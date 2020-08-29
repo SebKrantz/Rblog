@@ -1,5 +1,5 @@
 languageCode = "en-us"
-title = "A Hugo website"
+title = "R, Econometrics, High Performance"
 
 baseurl = "https://sebkrantz.github.io/Rblog/"
 publishDir = "docs"
@@ -7,7 +7,7 @@ publishDir = "docs"
 theme = "hugo-lithium"
 googleAnalytics = ""
 disqusShortname = ""
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "README.md", "\\.R$", "\\.Rproj$", ".git"]
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "^README", "\\.R$", "\\.Rproj$", ".git"]
 
 [permalinks]
     post = "/:year/:month/:day/:slug/"
@@ -17,13 +17,13 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "README.md", "\
     url = "/about/"
 [[menu.main]]
     name = "GitHub"
-    url = "https://github.com/rstudio/blogdown"
+    url = "https://github.com/SebKrantz"
 [[menu.main]]
     name = "Twitter"
-    url = "https://twitter.com/rstudio"
+    url = "https://twitter.com/collapse_R"
 
 [params]
-    description = "A website built through Hugo and blogdown."
+    description = "An R blog dedicated to econometrics and high-performance data analysis and applications."
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.12.0"
@@ -38,7 +38,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "README.md", "\
     favicon = "favicon.ico"
 
     [params.logo]
-    url = "logo.png"
+    url = "sebkrantz.jpg"
     width = 50
     height = 50
     alt = "Logo"
