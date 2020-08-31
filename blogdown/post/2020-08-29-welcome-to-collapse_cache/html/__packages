@@ -1,0 +1,6 @@
+base
+data.table
+collapse
+magrittr
+dplyr
+microbenchmark
