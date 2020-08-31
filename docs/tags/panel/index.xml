@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>panel on R, Econometrics, High Performance</title>
-    <link>/Rblog/tags/panel/</link>
+    <link>https://sebkrantz.github.io/Rblog/tags/panel/</link>
     <description>Recent content in panel on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/panel/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/panel/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Introducing collapse: Advanced and Fast Data Transformation in R</title>
-      <link>/Rblog/2020/08/31/welcome-to-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/08/31/welcome-to-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</guid>
       <description>
 
 
@@ -143,7 +143,7 @@ plot(fwithin(., g, mean = &amp;quot;overall.mean&amp;quot;), col = g,
 plot(fscale(., g, mean = &amp;quot;overall.mean&amp;quot;, sd = &amp;quot;within.sd&amp;quot;), col = g,    
      main = &amp;quot;Harmonized Mean and Variance&amp;quot;)
 }&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;100%&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://sebkrantz.github.io/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;100%&#34; /&gt;&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;par(oldpar)&lt;/code&gt;&lt;/pre&gt;
 &lt;!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It&#39;s replacement version `get_vars&lt;-` is 6x faster than `[&lt;-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). --&gt;
 &lt;p&gt;For the manipulation of time series and panel series, &lt;em&gt;collapse&lt;/em&gt; offers the functions &lt;code&gt;flag&lt;/code&gt;, &lt;code&gt;fdiff&lt;/code&gt; and &lt;code&gt;fgrowth&lt;/code&gt;.&lt;/p&gt;
@@ -158,7 +158,7 @@ flag(EuStockMarkets, -1:1) %&amp;gt;% head(3)
 EuStockMarkets[, .c(DAX, SMI)] %&amp;gt;% 
   fdiff(0:1 * frequency(.), 1:2) %&amp;gt;% 
   plot(main = c(&amp;quot;DAX and SMI&amp;quot;)) &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png&#34; width=&#34;100%&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://sebkrantz.github.io/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png&#34; width=&#34;100%&#34; /&gt;&lt;/p&gt;
 &lt;!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. --&gt;
 &lt;!-- At this point I will  --&gt;
 &lt;!-- ```{r, eval=FALSE} --&gt;
@@ -265,7 +265,7 @@ qsu(wlddev, pid = PCGDP + GINI ~ iso3c,
 
 # Panel data ACF: Efficient grouped standardizing and computing covariance with panel-lags
 psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png&#34; width=&#34;100%&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;https://sebkrantz.github.io/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png&#34; width=&#34;100%&#34; /&gt;
 &lt;!--
 For fast grouped statistics we can keep programming in standard evaluation as before, or we can use piped expressions. 
 
