@@ -145,7 +145,8 @@ For the manipulation of time series and panel series, *collapse* offers the func
 flag(EuStockMarkets, -1:1) %>% head(3)             
 
 # First and second annual difference of SAX and SMI indices (.c is for non-standard concatenation)
-EuStockMarkets[, .c(DAX, SMI)] %>% fdiff(0:1 * frequency(.), 1:2) %>% 
+EuStockMarkets[, .c(DAX, SMI)] %>% 
+  fdiff(0:1 * frequency(.), 1:2) %>% 
   plot(main = c("DAX and SMI")) 
 ```
 
@@ -194,11 +195,13 @@ iris %>% add_vars(wt) %>%
   fvar(wt) %>% roworder(sum.wt)       
 
 # Weighted demeaning
-iris %>% fgroup_by(Species) %>% num_vars %>% fwithin(wt) %>% head(3)  
+iris %>% fgroup_by(Species) %>% num_vars %>% 
+  fwithin(wt) %>% head(3)  
 
 # Generate some additional logical data
-settransform(iris, AWMSL = Sepal.Length > fmedian(Sepal.Length, w = wt), 
-                   AGWMSL = Sepal.Length > fmedian(Sepal.Length, Species, wt, "replace"))
+settransform(iris, 
+  AWMSL = Sepal.Length > fmedian(Sepal.Length, w = wt), 
+  AGWMSL = Sepal.Length > fmedian(Sepal.Length, Species, wt, "replace"))
 
  # Grouped distinct values
 iris %>% fgroup_by(Species) %>% fNdistinct  
@@ -255,10 +258,12 @@ Note that in this case by default (`keep.w = TRUE`) the sum of the weights is al
 
 ```{r}
 # Applying the mean to numeric and the mode to categorical data (first 2 arguments are 'by' and 'FUN')
-collap(wlddev, ~ iso3c + decade, fmean, catFUN = fmode) %>% head(3)
+collap(wlddev, ~ iso3c + decade, fmean, 
+       catFUN = fmode) %>% head(3)
 
 # Same as a piped call.. 
-wlddev %>% fgroup_by(iso3c, decade) %>% collapg(fmean, fmode) %>% head(3)
+wlddev %>% fgroup_by(iso3c, decade) %>% 
+  collapg(fmean, fmode) %>% head(3)
 
 # Same thing done manually... without column reordering 
 wlddev %>% fgroup_by(iso3c, decade) %>% {
@@ -272,7 +277,8 @@ collap(wlddev, ~ iso3c + decade, fmean, fmode, # weights are also aggregated usi
        w = ~ weights, wFUN = fsum) %>% head(3)
 
 # Can also apply multiple functions to columns, return in wide or long format or as list of data frames 
-collap(wlddev, PCGDP + LIFEEX ~ region + income, list(fmean, fsd, fmin, fmax), return = "long") %>% head(3)
+collap(wlddev, PCGDP + LIFEEX ~ region + income, 
+       list(fmean, fsd, fmin, fmax), return = "long") %>% head(3)
 
 ```
 
@@ -296,7 +302,8 @@ Time computations on panel data are also simple and computationally very fast.
 L(wlddev, -1:1, PCGDP + LIFEEX ~ iso3c, ~year) %>% head3
 
 # Equivalent piped call
-wlddev %>% fgroup_by(iso3c) %>% fselect(iso3c, year, PCGDP, LIFEEX) %>% 
+wlddev %>% fgroup_by(iso3c) %>% 
+  fselect(iso3c, year, PCGDP, LIFEEX) %>% 
   flag(-1:1, year) %>% head(3)
 
 # Or using plm classes for panel data
@@ -340,8 +347,9 @@ qsu(us_trade, pid = export_value_usd + import_value_usd ~ partner_iso + product_
 It would also be interesting to summarize the trade flows for each partner, but that would be too large to print to the console. We can however get the `qsu` output as a list of matrices:
 ```{r}
 # Doing all of that by partner - variance of flows between and within traded products for each partner
-l <- qsu(us_trade, by = export_value_usd + import_value_usd ~ partner_iso,
-                   pid = ~ partner_iso + product_code, array = FALSE)
+l <- qsu(us_trade, 
+         by = export_value_usd + import_value_usd ~ partner_iso,
+         pid = ~ partner_iso + product_code, array = FALSE)
 str(l, give.attr = FALSE)
 ```
 Now with the function `unlist2d`, we can efficiently turn this into a tidy data frame:

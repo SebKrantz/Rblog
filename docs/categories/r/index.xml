@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>R on R, Econometrics, High Performance</title>
-    <link>/Rblog/categories/r/</link>
+    <link>https://sebkrantz.github.io/Rblog/categories/r/</link>
     <description>Recent content in R on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/Rblog/categories/r/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://sebkrantz.github.io/Rblog/categories/r/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
-      <link>/Rblog/2020/08/31/programming-with-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/08/31/programming-with-collapse/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/08/31/programming-with-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/08/31/programming-with-collapse/</guid>
       <description>collapse is a C/C++ based package for data transformation and statistical computing in R. Among other features it introduces an excellent and highly efficient architecture for grouped (and weighted) statistical programming in R. This post briefly explains this architecture and demonstrates:
 How to program highly efficient grouped statistical computations and data manipulations in R using the grouped functions supplied by collapse.
 How to use the grouping mechanism of collapse with custom C/C++ code to create further efficient grouped functions/operations in R.</description>
@@ -24,10 +24,10 @@ How to program highly efficient grouped statistical computations and data manipu
     
     <item>
       <title>Introducing collapse: Advanced and Fast Data Transformation in R</title>
-      <link>/Rblog/2020/08/29/welcome-to-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/08/29/welcome-to-collapse/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/08/29/welcome-to-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/08/29/welcome-to-collapse/</guid>
       <description>Introductioncollapse is a C/C++ based package for data transformation and statistical computing in R. It was first released on CRAN end of March 2020. The current version 1.3.1 is a mature package secured by &amp;gt; 7700 unit tests. collapse has 2 main aims:
 To facilitate complex data transformation, exploration and computing tasks in R.
 (In particular grouped and weighted statistical computations, advanced aggregation of multi-type data, advanced transformations of time series and panel data, and the manipulation of lists)</description>

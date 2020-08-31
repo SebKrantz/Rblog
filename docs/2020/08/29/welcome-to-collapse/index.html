@@ -10,7 +10,7 @@
 <meta property="og:title" content="Introducing collapse: Advanced and Fast Data Transformation in R - R, Econometrics, High Performance">
 
 
-  <link href='/Rblog/favicon.ico' rel='icon' type='image/x-icon'/>
+  <link href='https://sebkrantz.github.io/Rblog/favicon.ico' rel='icon' type='image/x-icon'/>
 
 
 
@@ -38,7 +38,7 @@
       <header class="header">
         <nav class="nav">
   <a href="/Rblog/" class="nav-logo">
-    <img src="/Rblog/images/sebkrantz.png"
+    <img src="/Rblog/images/SebKrantz.png"
          width="50"
          height="50"
          alt="Logo">
@@ -214,7 +214,8 @@ flag(EuStockMarkets, -1:1) %&gt;% head(3)
 ## [3,] 1621.04 1606.51 1613.63 1684.1 1678.6 1688.5 1708.1 1718.0 1750.5  2470.4 2448.2  2460.2
 
 # First and second annual difference of SAX and SMI indices (.c is for non-standard concatenation)
-EuStockMarkets[, .c(DAX, SMI)] %&gt;% fdiff(0:1 * frequency(.), 1:2) %&gt;% 
+EuStockMarkets[, .c(DAX, SMI)] %&gt;% 
+  fdiff(0:1 * frequency(.), 1:2) %&gt;% 
   plot(main = c(&quot;DAX and SMI&quot;)) </code></pre>
 <p><img src="/Rblog/post/2020-08-29-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. -->
@@ -263,7 +264,8 @@ iris %&gt;% add_vars(wt) %&gt;%
 ## 3 setosa      39.8       0.165       0.0299       0.0140
 
 # Weighted demeaning
-iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;% fwithin(wt) %&gt;% head(3)  
+iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;% 
+  fwithin(wt) %&gt;% head(3)  
 ## # A tibble: 3 x 4
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
 ##          &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
@@ -272,8 +274,9 @@ iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;% fwithin(wt) %&gt;% head(3)
 ## 3      -0.326      -0.204        -0.201     -0.0519
 
 # Generate some additional logical data
-settransform(iris, AWMSL = Sepal.Length &gt; fmedian(Sepal.Length, w = wt), 
-                   AGWMSL = Sepal.Length &gt; fmedian(Sepal.Length, Species, wt, &quot;replace&quot;))
+settransform(iris, 
+  AWMSL = Sepal.Length &gt; fmedian(Sepal.Length, w = wt), 
+  AGWMSL = Sepal.Length &gt; fmedian(Sepal.Length, Species, wt, &quot;replace&quot;))
 
  # Grouped distinct values
 iris %&gt;% fgroup_by(Species) %&gt;% fNdistinct  
@@ -365,7 +368,8 @@ Note that in this case by default (`keep.w = TRUE`) the sum of the weights is al
 --></p>
 <p><em>collapse</em> also has its own very flexible data aggregation command called <code>collap</code>, providing fast and easy multi-data-type, multi-function, weighted, parallelized and fully customized data aggregation.</p>
 <pre class="r"><code># Applying the mean to numeric and the mode to categorical data (first 2 arguments are &#39;by&#39; and &#39;FUN&#39;)
-collap(wlddev, ~ iso3c + decade, fmean, catFUN = fmode) %&gt;% head(3)
+collap(wlddev, ~ iso3c + decade, fmean, 
+       catFUN = fmode) %&gt;% head(3)
 ##   country iso3c       date   year decade                     region      income  OECD PCGDP   LIFEEX
 ## 1   Aruba   ABW 1961-01-01 1962.5   1960 Latin America &amp; Caribbean  High income FALSE    NA 66.58583
 ## 2   Aruba   ABW 1967-01-01 1970.0   1970 Latin America &amp; Caribbean  High income FALSE    NA 69.14178
@@ -376,7 +380,8 @@ collap(wlddev, ~ iso3c + decade, fmean, catFUN = fmode) %&gt;% head(3)
 ## 3   NA 33630000
 
 # Same as a piped call.. 
-wlddev %&gt;% fgroup_by(iso3c, decade) %&gt;% collapg(fmean, fmode) %&gt;% head(3)
+wlddev %&gt;% fgroup_by(iso3c, decade) %&gt;% 
+  collapg(fmean, fmode) %&gt;% head(3)
 ## # A tibble: 3 x 12
 ##   iso3c decade country date        year region             income    OECD  PCGDP LIFEEX  GINI     ODA
 ##   &lt;fct&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;date&gt;     &lt;dbl&gt; &lt;fct&gt;              &lt;fct&gt;     &lt;lgl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
@@ -410,7 +415,8 @@ collap(wlddev, ~ iso3c + decade, fmean, fmode, # weights are also aggregated usi
 ## 3 71.96918   NA 33630000 9.788278
 
 # Can also apply multiple functions to columns, return in wide or long format or as list of data frames 
-collap(wlddev, PCGDP + LIFEEX ~ region + income, list(fmean, fsd, fmin, fmax), return = &quot;long&quot;) %&gt;% head(3)
+collap(wlddev, PCGDP + LIFEEX ~ region + income, 
+       list(fmean, fsd, fmin, fmax), return = &quot;long&quot;) %&gt;% head(3)
 ##   Function              region              income     PCGDP   LIFEEX
 ## 1    fmean East Asia &amp; Pacific         High income 26042.280 73.22799
 ## 2    fmean East Asia &amp; Pacific Lower middle income  1621.178 58.83796
@@ -440,7 +446,8 @@ L(wlddev, -1:1, PCGDP + LIFEEX ~ iso3c, ~year) %&gt;% head3
 ## 3   AFG 1962       NA    NA       NA    33.624 33.185    32.742
 
 # Equivalent piped call
-wlddev %&gt;% fgroup_by(iso3c) %&gt;% fselect(iso3c, year, PCGDP, LIFEEX) %&gt;% 
+wlddev %&gt;% fgroup_by(iso3c) %&gt;% 
+  fselect(iso3c, year, PCGDP, LIFEEX) %&gt;% 
   flag(-1:1, year) %&gt;% head(3)
 ## # A tibble: 3 x 8
 ##   iso3c  year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
@@ -521,8 +528,9 @@ qsu(us_trade, pid = export_value_usd + import_value_usd ~ partner_iso + product_
 ## Within     9.5931  31,421502.4  212,076350  -3.32316111e+10  4.15739375e+10</code></pre>
 <p>It would also be interesting to summarize the trade flows for each partner, but that would be too large to print to the console. We can however get the <code>qsu</code> output as a list of matrices:</p>
 <pre class="r"><code># Doing all of that by partner - variance of flows between and within traded products for each partner
-l &lt;- qsu(us_trade, by = export_value_usd + import_value_usd ~ partner_iso,
-                   pid = ~ partner_iso + product_code, array = FALSE)
+l &lt;- qsu(us_trade, 
+         by = export_value_usd + import_value_usd ~ partner_iso,
+         pid = ~ partner_iso + product_code, array = FALSE)
 str(l, give.attr = FALSE)
 ## List of 2
 ##  $ export_value_usd:List of 3
