@@ -6,15 +6,11 @@
     <description>Recent content in Tags on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="/Rblog/tags/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Tue, 01 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>collapse</title>
       <link>/Rblog/tags/collapse/</link>
-      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/collapse/</guid>
       <description></description>
@@ -23,7 +19,7 @@
     <item>
       <title>grouped</title>
       <link>/Rblog/tags/grouped/</link>
-      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/grouped/</guid>
       <description></description>
@@ -32,16 +28,25 @@
     <item>
       <title>programming</title>
       <link>/Rblog/tags/programming/</link>
-      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/programming/</guid>
       <description></description>
     </item>
     
     <item>
+      <title>R</title>
+      <link>/Rblog/tags/r/</link>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/Rblog/tags/r/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>statistical</title>
       <link>/Rblog/tags/statistical/</link>
-      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/statistical/</guid>
       <description></description>
@@ -50,7 +55,7 @@
     <item>
       <title>weighted</title>
       <link>/Rblog/tags/weighted/</link>
-      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/weighted/</guid>
       <description></description>
@@ -59,7 +64,7 @@
     <item>
       <title>advanced</title>
       <link>/Rblog/tags/advanced/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/advanced/</guid>
       <description></description>
@@ -68,7 +73,7 @@
     <item>
       <title>fast</title>
       <link>/Rblog/tags/fast/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/fast/</guid>
       <description></description>
@@ -77,7 +82,7 @@
     <item>
       <title>manipulation</title>
       <link>/Rblog/tags/manipulation/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/manipulation/</guid>
       <description></description>
@@ -86,7 +91,7 @@
     <item>
       <title>multilevel</title>
       <link>/Rblog/tags/multilevel/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/multilevel/</guid>
       <description></description>
@@ -95,7 +100,7 @@
     <item>
       <title>panel</title>
       <link>/Rblog/tags/panel/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/panel/</guid>
       <description></description>
@@ -104,7 +109,7 @@
     <item>
       <title>time-series</title>
       <link>/Rblog/tags/time-series/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/time-series/</guid>
       <description></description>
@@ -113,7 +118,7 @@
     <item>
       <title>transformation</title>
       <link>/Rblog/tags/transformation/</link>
-      <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/tags/transformation/</guid>
       <description></description>

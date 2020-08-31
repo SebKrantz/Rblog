@@ -1,10 +1,10 @@
 ---
 title: "Introducing collapse: Advanced and Fast Data Transformation in R"
 author: "Sebastian Krantz"
-date: '2020-08-29'
+date: '2020-08-31'
 slug: welcome-to-collapse
 categories: ["R"]
-tags: ["collapse", "advanced", "fast", "transformation", "manipulation", "time-series", "multilevel", "panel", "weighted"]
+tags: ["R","collapse", "advanced", "fast", "transformation", "manipulation", "time-series", "multilevel", "panel", "weighted"]
 ---
 
 <img src='collapse_logo_small.png' width="150px" align="right" />

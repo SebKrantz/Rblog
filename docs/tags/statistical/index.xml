@@ -6,20 +6,273 @@
     <description>Recent content in statistical on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="/Rblog/tags/statistical/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Tue, 01 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/statistical/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
-      <link>/Rblog/2020/08/31/programming-with-collapse/</link>
-      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      <link>/Rblog/2020/09/01/programming-with-collapse/</link>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/08/31/programming-with-collapse/</guid>
-      <description>collapse is a C/C++ based package for data transformation and statistical computing in R. Among other features it introduces an excellent and highly efficient architecture for grouped (and weighted) statistical programming in R. This post briefly explains this architecture and demonstrates:
-How to program highly efficient grouped statistical computations and data manipulations in R using the grouped functions supplied by collapse.
-How to use the grouping mechanism of collapse with custom C/C++ code to create further efficient grouped functions/operations in R.</description>
+      <guid>/Rblog/2020/09/01/programming-with-collapse/</guid>
+      <description>
+
+
+&lt;p&gt;&lt;a href=&#34;https://sebkrantz.github.io/collapse/&#34;&gt;&lt;em&gt;collapse&lt;/em&gt;&lt;/a&gt; is a C/C++ based package for data transformation and statistical computing in R. Among other features it introduces an excellent and highly efficient architecture for grouped (and weighted) statistical programming in R. This post briefly explains this architecture and demonstrates:&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;&lt;p&gt;How to program highly efficient grouped statistical computations and data manipulations in R using the grouped functions supplied by &lt;em&gt;collapse&lt;/em&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;How to use the grouping mechanism of &lt;em&gt;collapse&lt;/em&gt; with custom C/C++ code to create further efficient grouped functions/operations in R.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div id=&#34;essentials-collapse-grouping-objects&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Essentials: &lt;em&gt;collapse&lt;/em&gt; Grouping Objects&lt;/h1&gt;
+&lt;p&gt;&lt;em&gt;collapse&lt;/em&gt; uses grouping objects as essential inputs for grouped computations. These objects are created from vectors or lists of vectors (i.e. data frames) using the function &lt;code&gt;GRP()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(collapse)
+# A dataset supplied with collapse providing sectoral value added (VA) and employment (EMP)
+head(GGDC10S, 3)
+##   Country Regioncode             Region Variable Year AGR MIN MAN PU CON WRT TRA FIRE GOV OTH SUM
+## 1     BWA        SSA Sub-saharan Africa       VA 1960  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+## 2     BWA        SSA Sub-saharan Africa       VA 1961  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+## 3     BWA        SSA Sub-saharan Africa       VA 1962  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+fdim(GGDC10S)
+## [1] 5027   16
+
+# Creating a grouping object (by default return.order = FALSE as the ordering is typically not needed)
+g &amp;lt;- GRP(GGDC10S, c(&amp;quot;Country&amp;quot;, &amp;quot;Variable&amp;quot;), return.order = TRUE)
+# Printing it
+print(g)
+## collapse grouping object of length 5027 with 85 ordered groups
+## 
+## Call: GRP.default(X = GGDC10S, by = c(&amp;quot;Country&amp;quot;, &amp;quot;Variable&amp;quot;), return.order = TRUE), X is unordered
+## 
+## Distribution of group sizes: 
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    4.00   53.00   62.00   59.14   63.00   65.00 
+## 
+## Groups with sizes: 
+## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
+##      62      62      61      62      62      62 
+##   ---
+## VEN.EMP  VEN.VA ZAF.EMP  ZAF.VA ZMB.EMP  ZMB.VA 
+##      62      63      52      52      52      52
+# Plotting it
+plot(g)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-09-01-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png&#34; width=&#34;100%&#34; /&gt;
+Grouping is done very efficiently using radix-based ordering in C (thanks to &lt;em&gt;data.table&lt;/em&gt; source code). The structure of this object is shown below:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;str(g)
+## List of 8
+##  $ N.groups   : int 85
+##  $ group.id   : int [1:5027] 8 8 8 8 8 8 8 8 8 8 ...
+##  $ group.sizes: int [1:85] 62 62 61 62 62 62 52 52 63 62 ...
+##  $ groups     :&amp;#39;data.frame&amp;#39;: 85 obs. of  2 variables:
+##   ..$ Country : chr [1:85] &amp;quot;ARG&amp;quot; &amp;quot;ARG&amp;quot; &amp;quot;BOL&amp;quot; &amp;quot;BOL&amp;quot; ...
+##   .. ..- attr(*, &amp;quot;label&amp;quot;)= chr &amp;quot;Country&amp;quot;
+##   .. ..- attr(*, &amp;quot;format.stata&amp;quot;)= chr &amp;quot;%9s&amp;quot;
+##   ..$ Variable: chr [1:85] &amp;quot;EMP&amp;quot; &amp;quot;VA&amp;quot; &amp;quot;EMP&amp;quot; &amp;quot;VA&amp;quot; ...
+##   .. ..- attr(*, &amp;quot;label&amp;quot;)= chr &amp;quot;Variable&amp;quot;
+##   .. ..- attr(*, &amp;quot;format.stata&amp;quot;)= chr &amp;quot;%9s&amp;quot;
+##  $ group.vars : chr [1:2] &amp;quot;Country&amp;quot; &amp;quot;Variable&amp;quot;
+##  $ ordered    : Named logi [1:2] TRUE FALSE
+##   ..- attr(*, &amp;quot;names&amp;quot;)= chr [1:2] &amp;quot;GRP.sort&amp;quot; &amp;quot;initially.ordered&amp;quot;
+##  $ order      : int [1:5027] 2583 2584 2585 2586 2587 2588 2589 2590 2591 2592 ...
+##   ..- attr(*, &amp;quot;starts&amp;quot;)= int [1:85] 1 63 125 186 248 310 372 424 476 539 ...
+##   ..- attr(*, &amp;quot;maxgrpn&amp;quot;)= int 65
+##   ..- attr(*, &amp;quot;sorted&amp;quot;)= logi FALSE
+##  $ call       : language GRP.default(X = GGDC10S, by = c(&amp;quot;Country&amp;quot;, &amp;quot;Variable&amp;quot;), return.order = TRUE)
+##  - attr(*, &amp;quot;class&amp;quot;)= chr &amp;quot;GRP&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The first three slots of this object provide the number of unique groups, a group-id matching each value/row to a group&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;, and a vector of group-sizes. The fourth slot provides the unique groups (default &lt;code&gt;return.groups = TRUE&lt;/code&gt;), followed by the names of the grouping variables, a logical vector showing whether the grouping is ordered (default &lt;code&gt;sort = TRUE&lt;/code&gt;), and the ordering vector which can be used to sort the data alphabetically according to the grouping variables (default &lt;code&gt;return.order = FALSE&lt;/code&gt;).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;grouped-programming-in-r&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Grouped Programming in R&lt;/h1&gt;
+&lt;p&gt;&lt;em&gt;collapse&lt;/em&gt; provides a whole ensemble of C++ based generic statistical functions that can use these ‘GRP’ objects to internally perform (column-wise) grouped (and weighted) computations on vectors, matrices and data frames in R. Their names are contained in the global macro &lt;code&gt;.FAST_FUN&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;.FAST_FUN
+##  [1] &amp;quot;fmean&amp;quot;      &amp;quot;fmedian&amp;quot;    &amp;quot;fmode&amp;quot;      &amp;quot;fsum&amp;quot;       &amp;quot;fprod&amp;quot;      &amp;quot;fsd&amp;quot;        &amp;quot;fvar&amp;quot;      
+##  [8] &amp;quot;fmin&amp;quot;       &amp;quot;fmax&amp;quot;       &amp;quot;fnth&amp;quot;       &amp;quot;ffirst&amp;quot;     &amp;quot;flast&amp;quot;      &amp;quot;fNobs&amp;quot;      &amp;quot;fNdistinct&amp;quot;
+## [15] &amp;quot;fscale&amp;quot;     &amp;quot;fbetween&amp;quot;   &amp;quot;fwithin&amp;quot;    &amp;quot;fHDbetween&amp;quot; &amp;quot;fHDwithin&amp;quot;  &amp;quot;flag&amp;quot;       &amp;quot;fdiff&amp;quot;     
+## [22] &amp;quot;fgrowth&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Additional functions supporting grouping objects are &lt;code&gt;TRA&lt;/code&gt; (grouped replacing and sweeping out statistics), &lt;code&gt;BY&lt;/code&gt; (split-apply-combine computing) and &lt;code&gt;collap&lt;/code&gt; (advanced data aggregation with multiple functions).&lt;/p&gt;
+&lt;p&gt;To provide a brief example, we can compute a grouped mean of the above data using:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;head(fmean(GGDC10S[6:16], g))
+##                AGR         MIN         MAN           PU        CON         WRT        TRA
+## ARG.EMP  1419.8013    52.08903   1931.7602   101.720936   742.4044   1982.1775   648.5119
+## ARG.VA  14951.2918  6454.94152  36346.5456  2722.762554  9426.0033  26633.1292 14404.6626
+## BOL.EMP   964.2103    56.03295    235.0332     5.346433   122.7827    281.5164   115.4728
+## BOL.VA   3299.7182  2846.83763   3458.2904   664.289574   729.0152   2757.9795  2727.4414
+## BRA.EMP 17191.3529   206.02389   6991.3710   364.573404  3524.7384   8509.4612  2054.3731
+## BRA.VA  76870.1456 30916.64606 223330.4487 43549.277879 70211.4219 178357.8685 89880.9743
+##                 FIRE        GOV        OTH         SUM
+## ARG.EMP    627.79291   2043.471   992.4475   10542.177
+## ARG.VA    8547.37278  25390.774  7656.3565  152533.839
+## BOL.EMP     44.56442         NA   395.5650    2220.524
+## BOL.VA    1752.06208         NA  4383.5425   22619.177
+## BRA.EMP   4413.54448   5307.280  5710.2665   54272.985
+## BRA.VA  183027.46189 249135.452 55282.9748 1200562.671&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;By default (&lt;code&gt;use.g.names = TRUE&lt;/code&gt;), group names are added as names (vectors) or row-names (matrices and data frames) to the result. For data frames we can also add the grouping columns again using&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;head(add_vars(g[[&amp;quot;groups&amp;quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
+##   Country Variable        AGR         MIN         MAN           PU        CON         WRT        TRA
+## 1     ARG      EMP  1419.8013    52.08903   1931.7602   101.720936   742.4044   1982.1775   648.5119
+## 2     ARG       VA 14951.2918  6454.94152  36346.5456  2722.762554  9426.0033  26633.1292 14404.6626
+## 3     BOL      EMP   964.2103    56.03295    235.0332     5.346433   122.7827    281.5164   115.4728
+## 4     BOL       VA  3299.7182  2846.83763   3458.2904   664.289574   729.0152   2757.9795  2727.4414
+## 5     BRA      EMP 17191.3529   206.02389   6991.3710   364.573404  3524.7384   8509.4612  2054.3731
+## 6     BRA       VA 76870.1456 30916.64606 223330.4487 43549.277879 70211.4219 178357.8685 89880.9743
+##           FIRE        GOV        OTH         SUM
+## 1    627.79291   2043.471   992.4475   10542.177
+## 2   8547.37278  25390.774  7656.3565  152533.839
+## 3     44.56442         NA   395.5650    2220.524
+## 4   1752.06208         NA  4383.5425   22619.177
+## 5   4413.54448   5307.280  5710.2665   54272.985
+## 6 183027.46189 249135.452 55282.9748 1200562.671&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The execution cost of all of these functions is extremely small, so the performance is essentially limited by C++, not by R.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(microbenchmark)
+microbenchmark(call = add_vars(g[[&amp;quot;groups&amp;quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
+## Unit: microseconds
+##  expr     min      lq     mean   median      uq     max neval
+##  call 271.765 441.116 934.8879 553.1235 944.259 4878.82   100&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data&lt;a href=&#34;#fn3&#34; class=&#34;footnote-ref&#34; id=&#34;fnref3&#34;&gt;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Panel_Ests &amp;lt;- function(formula, data, pids) {
+  # Get variables as character string, first variable is dependent variable
+  vars &amp;lt;- all.vars(formula)
+  # na_omit and qM are faster replacements for na.omit and as.matrix
+  data_cc &amp;lt;- na_omit(qM(get_vars(data, vars)), na.attr = TRUE)
+  cc &amp;lt;- attr(data_cc, &amp;quot;na.action&amp;quot;)
+  # We don&amp;#39;t need the unique groups or the call. ss() is faster replacement for [.data.frame 
+  g &amp;lt;- GRP(ss(data, -cc, pids), return.groups = FALSE, call = FALSE)
+  # Computing group means
+  mean_data_cc &amp;lt;- fmean(data_cc, g, use.g.names = FALSE)
+  # This computes regression coefficients
+  reg &amp;lt;- function(x) qr.coef(qr(cbind(Intercept = 1, x[, -1L, drop = FALSE])), x[, 1L])
+  
+  qM(list(Pooled = reg(data_cc),
+          Means = reg(mean_data_cc),
+          # This replaces data values with the group-mean -&amp;gt; between-group estimator
+          Between = reg(TRA(data_cc, mean_data_cc, &amp;quot;replace_fill&amp;quot;, g)),
+          # This subtracts the group-means -&amp;gt; within-group estimator
+          Within = reg(TRA(data_cc, mean_data_cc, &amp;quot;-&amp;quot;, g))))
+}
+
+# Value Added data
+round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == &amp;quot;VA&amp;quot;), &amp;quot;Country&amp;quot;), 4)
+##                 Pooled        Means      Between  Within
+## Intercept 2605610.3402 2305205.3650 2030326.5556  0.0000
+## AGR            -0.7828       1.4656      -5.6343 -0.1935
+## MIN             2.5863      -0.3798       6.4096  2.4478
+## MAN             3.1535       3.1953       4.1260  2.8924
+
+# Employment data
+round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == &amp;quot;EMP&amp;quot;), &amp;quot;Country&amp;quot;), 4)
+##              Pooled     Means   Between   Within
+## Intercept 2218.8727 1120.2277 1053.6433   0.0000
+## AGR          0.8963    0.7866    0.7699   1.0885
+## MIN        -11.8597  -12.4496  -12.7368 -13.6924
+## MAN          4.6062    5.1998    5.2988   4.3131&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It would be easy to add an option for sampling weights as &lt;code&gt;fmean&lt;/code&gt; also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using &lt;code&gt;plm&lt;/code&gt; to do it).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Benchmark on VA data  
+VA_data &amp;lt;- fsubset(GGDC10S, Variable == &amp;quot;VA&amp;quot;)
+microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_data, &amp;quot;Country&amp;quot;))
+## Unit: milliseconds
+##  expr      min       lq     mean   median       uq      max neval
+##  call 1.496266 1.564766 2.066504 1.712027 2.420891 5.198332   100&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;There are lots and lots of other applications that can be devised in R using the &lt;code&gt;.FAST_FUN&lt;/code&gt; and efficient programming with grouping objects.&lt;/p&gt;
+&lt;div id=&#34;creating-grouped-functions-in-cc&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Creating Grouped Functions in C/C++&lt;/h2&gt;
+&lt;p&gt;It is also possible to just use ‘GRP’ objects as input to new grouped functions written in C or C++. Below I use &lt;em&gt;Rcpp&lt;/em&gt; to create a generic grouped &lt;code&gt;anyNA&lt;/code&gt; function for vectors:&lt;/p&gt;
+&lt;pre class=&#34;cpp&#34;&gt;&lt;code&gt;// [[Rcpp::plugins(cpp11)]]
+#include &amp;lt;Rcpp.h&amp;gt;
+using namespace Rcpp;
+
+// Inputs: 
+// x - A vector of any type 
+// ng - The number of groups - supplied by GRP() in R
+// g - An integer grouping vector - supplied by GRP() in R
+
+// Output: A plain logical vector of size ng
+
+template &amp;lt;int RTYPE&amp;gt;
+LogicalVector ganyNACppImpl(Vector&amp;lt;RTYPE&amp;gt; x, int ng, IntegerVector g) {
+  int l = x.size();
+  if(l != g.size()) stop(&amp;quot;length(x) must match length(g)&amp;quot;);
+  LogicalVector out(ng);
+
+  if(RTYPE == REALSXP) { // numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
+    for(int i = 0; i &amp;lt; l; ++i) if(x[i] != x[i]) out[g[i]-1] = true;
+  } else { // other vectors
+    for(int i = 0; i &amp;lt; l; ++i) if(x[i] == Vector&amp;lt;RTYPE&amp;gt;::get_na()) out[g[i]-1] = true;
+  }
+
+  return out;
+}
+
+// disabling other data types (lists, complex values etc.)
+template &amp;lt;&amp;gt;
+LogicalVector ganyNACppImpl(Vector&amp;lt;CPLXSXP&amp;gt; x, int ng, IntegerVector) {
+  stop(&amp;quot;Not supported SEXP type!&amp;quot;);
+}
+
+template &amp;lt;&amp;gt;
+LogicalVector ganyNACppImpl(Vector&amp;lt;VECSXP&amp;gt; x, int ng, IntegerVector) {
+  stop(&amp;quot;Not supported SEXP type!&amp;quot;);
+}
+
+template &amp;lt;&amp;gt;
+LogicalVector ganyNACppImpl(Vector&amp;lt;RAWSXP&amp;gt; x, int ng, IntegerVector) {
+  stop(&amp;quot;Not supported SEXP type!&amp;quot;);
+}
+
+template &amp;lt;&amp;gt;
+LogicalVector ganyNACppImpl(Vector&amp;lt;EXPRSXP&amp;gt; x, int ng, IntegerVector) {
+  stop(&amp;quot;Not supported SEXP type!&amp;quot;);
+}
+
+// [[Rcpp::export]]
+LogicalVector ganyNACpp(const SEXP&amp;amp; x, int ng = 0, const IntegerVector&amp;amp; g = 0){
+  RCPP_RETURN_VECTOR(ganyNACppImpl, x, ng, g);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;On the R side things are then pretty simple:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(Rcpp)   
+sourceCpp(&amp;quot;ganyNA.cpp&amp;quot;)
+
+ganyNA &amp;lt;- function(x, g, use.g.names = TRUE) {
+  # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
+  g &amp;lt;- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
+  res &amp;lt;- ganyNACpp(x, g[[1L]], g[[2L]])
+  # GRPnames creates unique group names. For vectors they need not be character typed.
+  if(use.g.names) return(setNames(res, GRPnames(g, force.char = FALSE)))
+  res
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Strictly speaking there are different options to set this up: &lt;code&gt;GRP()&lt;/code&gt; is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a ‘factor’ method converting factors to ‘GRP’ objects. Above I have used the generic &lt;code&gt;GRP&lt;/code&gt; function with the option &lt;code&gt;group.sizes = FALSE&lt;/code&gt;, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to &lt;code&gt;g&lt;/code&gt;, but will not drop unused factor levels. The alternative is to use &lt;code&gt;g &amp;lt;- GRP.default(g, return.groups = use.g.names, call = FALSE)&lt;/code&gt;, which will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;head(ganyNA(GGDC10S$SUM, fselect(GGDC10S, Country, Variable)))
+## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
+##   FALSE   FALSE   FALSE    TRUE   FALSE    TRUE
+
+# 10 million obs and 1 million groups, 1% of data missing 
+x &amp;lt;- na_insert(rnorm(1e7), prop = 0.01)
+g &amp;lt;- sample.int(1e6, 1e7, TRUE)
+system.time(ganyNA(x, g))
+##        User      System verstrichen 
+##        0.61        0.03        0.65
+system.time(ganyNA(x, g, use.g.names = FALSE))
+##        User      System verstrichen 
+##        0.52        0.04        0.58
+
+# Using a factor grouping variable: More efficient but does not drop any unused levels
+f &amp;lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
+system.time(ganyNA(x, f))
+##        User      System verstrichen 
+##        0.04        0.00        0.03
+system.time(ganyNA(x, f, use.g.names = FALSE))
+##        User      System verstrichen 
+##        0.04        0.00        0.05&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We could additionally add a &lt;code&gt;TRA&lt;/code&gt; argument and then internally call the &lt;code&gt;TRA()&lt;/code&gt; function to allow for replacing and sweeping out statistics, but this does not make much sense here.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;By default (&lt;code&gt;sort = TRUE&lt;/code&gt;) the grouping is ordered, which is equivalent to &lt;em&gt;data.table&lt;/em&gt; grouping with &lt;code&gt;keyby&lt;/code&gt;.&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;&lt;code&gt;add_vars&lt;/code&gt; is a faster alternative to &lt;code&gt;cbind&lt;/code&gt; and &lt;code&gt;get_vars&lt;/code&gt; is a faster alternative to &lt;code&gt;[.data.frame&lt;/code&gt; for subsetting columns.&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn3&#34;&gt;&lt;p&gt;A random effects estimator could easily be added, see the example &lt;a href=&#34;https://sebkrantz.github.io/collapse/reference/fbetween_fwithin.html&#34;&gt;here&lt;/a&gt;.&lt;a href=&#34;#fnref3&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
   </channel>

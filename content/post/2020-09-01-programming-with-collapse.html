@@ -1,10 +1,10 @@
 ---
 title: "Efficient Grouped Programming in R and/or C/C++ - with the collapse Package"
 author: "Sebastian Krantz"
-date: '2020-08-31'
+date: '2020-09-01'
 slug: programming-with-collapse
 categories: ["R"]
-tags: ["collapse", "grouped", "weighted", "statistical", "programming"]
+tags: ["R", "collapse", "grouped", "weighted", "statistical", "programming"]
 ---
 
 
@@ -47,28 +47,28 @@ print(g)
 ##      62      63      52      52      52      52
 # Plotting it
 plot(g)</code></pre>
-<p><img src="/Rblog/post/2020-08-31-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png" width="100%" />
+<p><img src="/Rblog/post/2020-09-01-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png" width="100%" />
 Grouping is done very efficiently using radix-based ordering in C (thanks to <em>data.table</em> source code). The structure of this object is shown below:</p>
 <pre class="r"><code>str(g)
 ## List of 8
 ##  $ N.groups   : int 85
-##  $ group.id   : int [1:5027] 46 46 46 46 46 46 46 46 46 46 ...
-##  $ group.sizes: int [1:85] 62 61 62 52 63 62 61 62 61 64 ...
+##  $ group.id   : int [1:5027] 8 8 8 8 8 8 8 8 8 8 ...
+##  $ group.sizes: int [1:85] 62 62 61 62 62 62 52 52 63 62 ...
 ##  $ groups     :&#39;data.frame&#39;: 85 obs. of  2 variables:
-##   ..$ Variable: chr [1:85] &quot;EMP&quot; &quot;EMP&quot; &quot;EMP&quot; &quot;EMP&quot; ...
-##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Variable&quot;
-##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
-##   ..$ Country : chr [1:85] &quot;ARG&quot; &quot;BOL&quot; &quot;BRA&quot; &quot;BWA&quot; ...
+##   ..$ Country : chr [1:85] &quot;ARG&quot; &quot;ARG&quot; &quot;BOL&quot; &quot;BOL&quot; ...
 ##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Country&quot;
 ##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
-##  $ group.vars : chr [1:2] &quot;Variable&quot; &quot;Country&quot;
+##   ..$ Variable: chr [1:85] &quot;EMP&quot; &quot;VA&quot; &quot;EMP&quot; &quot;VA&quot; ...
+##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Variable&quot;
+##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
+##  $ group.vars : chr [1:2] &quot;Country&quot; &quot;Variable&quot;
 ##  $ ordered    : Named logi [1:2] TRUE FALSE
 ##   ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;GRP.sort&quot; &quot;initially.ordered&quot;
 ##  $ order      : int [1:5027] 2583 2584 2585 2586 2587 2588 2589 2590 2591 2592 ...
-##   ..- attr(*, &quot;starts&quot;)= int [1:85] 1 63 124 186 238 301 363 424 486 547 ...
+##   ..- attr(*, &quot;starts&quot;)= int [1:85] 1 63 125 186 248 310 372 424 476 539 ...
 ##   ..- attr(*, &quot;maxgrpn&quot;)= int 65
 ##   ..- attr(*, &quot;sorted&quot;)= logi FALSE
-##  $ call       : language GRP.default(X = GGDC10S, by = c(&quot;Variable&quot;, &quot;Country&quot;), return.order = TRUE)
+##  $ call       : language GRP.default(X = GGDC10S, by = c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE)
 ##  - attr(*, &quot;class&quot;)= chr &quot;GRP&quot;</code></pre>
 <p>The first three slots of this object provide the number of unique groups, a group-id matching each value/row to a group<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>, and a vector of group-sizes. The fourth slot provides the unique groups (default <code>return.groups = TRUE</code>), followed by the names of the grouping variables, a logical vector showing whether the grouping is ordered (default <code>sort = TRUE</code>), and the ordering vector which can be used to sort the data alphabetically according to the grouping variables (default <code>return.order = FALSE</code>).</p>
 </div>
@@ -117,8 +117,8 @@ Grouping is done very efficiently using radix-based ordering in C (thanks to <em
 <pre class="r"><code>library(microbenchmark)
 microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ## Unit: microseconds
-##  expr    min      lq     mean   median     uq      max neval
-##  call 230.71 234.503 330.9058 236.9575 262.17 8180.156   100</code></pre>
+##  expr     min      lq     mean   median      uq     max neval
+##  call 271.765 441.116 934.8879 553.1235 944.259 4878.82   100</code></pre>
 <p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
 <pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids) {
   # Get variables as character string, first variable is dependent variable
@@ -157,12 +157,12 @@ round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == &quot;EMP&q
 ## MIN        -11.8597  -12.4496  -12.7368 -13.6924
 ## MAN          4.6062    5.1998    5.2988   4.3131</code></pre>
 <p>It would be easy to add an option for sampling weights as <code>fmean</code> also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using <code>plm</code> to do it).</p>
-<pre class="r"><code># Benchmark on VA data
+<pre class="r"><code># Benchmark on VA data  
 VA_data &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;)
 microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_data, &quot;Country&quot;))
 ## Unit: milliseconds
 ##  expr      min       lq     mean   median       uq      max neval
-##  call 1.515902 1.581946 1.985501 1.719613 2.135293 6.163119   100</code></pre>
+##  call 1.496266 1.564766 2.066504 1.712027 2.420891 5.198332   100</code></pre>
 <p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
 <div id="creating-grouped-functions-in-cc" class="section level2">
 <h2>Creating Grouped Functions in C/C++</h2>
@@ -241,19 +241,19 @@ x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g))
 ##        User      System verstrichen 
-##        0.56        0.06        0.66
+##        0.61        0.03        0.65
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.43        0.04        0.47
+##        0.52        0.04        0.58
 
 # Using a factor grouping variable: More efficient but does not drop any unused levels
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##        User      System verstrichen 
-##        0.05        0.00        0.05
+##        0.04        0.00        0.03
 system.time(ganyNA(x, f, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.04        0.00        0.03</code></pre>
+##        0.04        0.00        0.05</code></pre>
 <p>We could additionally add a <code>TRA</code> argument and then internally call the <code>TRA()</code> function to allow for replacing and sweeping out statistics, but this does not make much sense here.</p>
 </div>
 </div>

@@ -1,10 +1,10 @@
 ---
 title: "Efficient Grouped Programming in R and/or C/C++ - with the collapse Package"
 author: "Sebastian Krantz"
-date: '2020-08-31'
+date: '2020-09-01'
 slug: programming-with-collapse
 categories: ["R"]
-tags: ["collapse", "grouped", "weighted", "statistical", "programming"]
+tags: ["R", "collapse", "grouped", "weighted", "statistical", "programming"]
 ---
 
 
@@ -96,7 +96,7 @@ round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == "EMP"), "Co
 ```
 It would be easy to add an option for sampling weights as `fmean` also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using `plm` to do it). 
 ```{r}
-# Benchmark on VA data
+# Benchmark on VA data  
 VA_data <- fsubset(GGDC10S, Variable == "VA")
 microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_data, "Country"))
 ```

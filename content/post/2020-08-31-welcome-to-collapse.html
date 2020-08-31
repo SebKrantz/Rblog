@@ -1,78 +1,12 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.72.0" />
+---
+title: "Introducing collapse: Advanced and Fast Data Transformation in R"
+author: "Sebastian Krantz"
+date: '2020-08-31'
+slug: welcome-to-collapse
+categories: ["R"]
+tags: ["R","collapse", "advanced", "fast", "transformation", "manipulation", "time-series", "multilevel", "panel", "weighted"]
+---
 
-
-<title>Introducing collapse: Advanced and Fast Data Transformation in R - R, Econometrics, High Performance</title>
-<meta property="og:title" content="Introducing collapse: Advanced and Fast Data Transformation in R - R, Econometrics, High Performance">
-
-
-  <link href='/Rblog/favicon.ico' rel='icon' type='image/x-icon'/>
-
-
-
-  
-
-
-
-
-
-
-
-
-<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
-
-
-
-<link rel="stylesheet" href="/Rblog/css/fonts.css" media="all">
-<link rel="stylesheet" href="/Rblog/css/main.css" media="all">
-
-
-
-  </head>
-  <body>
-    <div class="wrapper">
-      <header class="header">
-        <nav class="nav">
-  <a href="/Rblog/" class="nav-logo">
-    <img src="/Rblog/images/logo.png"
-         width="50"
-         height="50"
-         alt="Logo">
-  </a>
-
-  <ul class="nav-links">
-    
-    <li><a href="/Rblog/about/">About</a></li>
-    
-    <li><a href="https://github.com/SebKrantz">GitHub</a></li>
-    
-    <li><a href="https://twitter.com/collapse_R">Twitter</a></li>
-    
-  </ul>
-</nav>
-
-      </header>
-
-
-<main class="content" role="main">
-
-  <article class="article">
-    
-    <span class="article-duration">24 min read</span>
-    
-
-    <h1 class="article-title">Introducing collapse: Advanced and Fast Data Transformation in R</h1>
-
-    
-    <span class="article-date">2020-08-29</span>
-    
-
-    <div class="article-content">
-      
 
 
 <p><img src='collapse_logo_small.png' width="150px" align="right" /></p>
@@ -132,7 +66,7 @@ fmax(d, drop = FALSE)          # Still a data.frame
 wt &lt;- abs(rnorm(fnrow(iris)))
 fmedian(d, w = wt)     
 ## Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
-##          5.8          3.0          4.3          1.3</code></pre>
+##          5.7          3.0          4.1          1.3</code></pre>
 <p>The second argument of these functions is called <code>g</code> and supports vectors or lists of grouping variables for grouped computations. For functions supporting weights, <code>w</code> is the third argument<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.
 <!-- it does not matter anymore on which type of object we are working.   --></p>
 <pre class="r"><code># Grouped statistics
@@ -145,15 +79,15 @@ fmean(d, g)
 # Groupwise-weighted statistics 
 fmean(d, g, wt)
 ##            Sepal.Length Sepal.Width Petal.Length Petal.Width
-## setosa         5.026143    3.404146     1.500935   0.2518914
-## versicolor     5.957241    2.779551     4.255849   1.3107434
-## virginica      6.596801    2.969067     5.556465   2.0387274
+## setosa         4.964652    3.389885     1.436666   0.2493647
+## versicolor     5.924013    2.814171     4.255227   1.3273743
+## virginica      6.630702    2.990253     5.601473   2.0724544
 
 fmode(d, g, wt, ties = &quot;max&quot;)  # Grouped &amp; weighted maximum mode.. 
 ##            Sepal.Length Sepal.Width Petal.Length Petal.Width
-## setosa              5.0         3.5          1.4         0.2
-## versicolor          5.6         2.9          4.5         1.3
-## virginica           6.3         3.0          5.6         1.8</code></pre>
+## setosa              5.0           3          1.4         0.2
+## versicolor          5.8           3          4.5         1.3
+## virginica           6.3           3          5.1         2.3</code></pre>
 <p>Grouping becomes more efficient when factors or grouping objects are passed to <code>g</code>. Factors can efficiently be created using the function <code>qF</code>, and grouping objects are efficiently created with the function <code>GRP</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. As a final layer of complexity, all functions support transformations through the <code>TRA</code> argument.</p>
 <pre class="r"><code>library(magrittr)  # Pipe operators
 # Simple Transformations
@@ -177,9 +111,9 @@ fmedian(v, g, wt, &quot;-&quot;) %&gt;% head                      # Subtracting 
 ## [1]  0.1 -0.1 -0.3 -0.4  0.0  0.4
 fmode(d, g, wt, &quot;replace&quot;, ties = &quot;min&quot;) %&gt;% head(3) # replace with weighted minimum mode
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
-## 1            5         3.5          1.4         0.2
-## 2            5         3.5          1.4         0.2
-## 3            5         3.5          1.4         0.2</code></pre>
+## 1            5           3          1.4         0.2
+## 2            5           3          1.4         0.2
+## 3            5           3          1.4         0.2</code></pre>
 <p>Currently there are 10 different replacing or sweeping operations supported by <code>TRA</code>, see <code>?TRA</code>. <code>TRA</code> can also be called directly as a function which performs simple and grouped replacing and sweeping operations with computed statistics:</p>
 <pre class="r"><code># Same as fmedian(v, TRA = &quot;-&quot;)
 TRA(v, median(v), &quot;-&quot;) %&gt;% head               
@@ -202,7 +136,7 @@ plot(fwithin(., g, mean = &quot;overall.mean&quot;), col = g,
 plot(fscale(., g, mean = &quot;overall.mean&quot;, sd = &quot;within.sd&quot;), col = g,    
      main = &quot;Harmonized Mean and Variance&quot;)
 }</code></pre>
-<p><img src="/Rblog/post/2020-08-29-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 <pre class="r"><code>par(oldpar)</code></pre>
 <!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It's replacement version `get_vars<-` is 6x faster than `[<-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). -->
 <p>For the manipulation of time series and panel series, <em>collapse</em> offers the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code>.</p>
@@ -217,7 +151,7 @@ flag(EuStockMarkets, -1:1) %&gt;% head(3)
 EuStockMarkets[, .c(DAX, SMI)] %&gt;% 
   fdiff(0:1 * frequency(.), 1:2) %&gt;% 
   plot(main = c(&quot;DAX and SMI&quot;)) </code></pre>
-<p><img src="/Rblog/post/2020-08-29-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. -->
 <!-- At this point I will  -->
 <!-- ```{r, eval=FALSE} -->
@@ -246,9 +180,9 @@ iris %&gt;% add_vars(wt) %&gt;%             # Adding weight vector to dataset
 ## # A tibble: 3 x 5
 ##   Species    sum.wt Sepal.Width Petal.Length Petal.Width
 ##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
-## 1 virginica    4.08      0.0188      0.00937      0.0734
-## 2 versicolor  17.3       0.0747      0.144        0.0296
-## 3 setosa      39.8       0.165       0.0299       0.0140</code></pre>
+## 1 virginica    3.68      0.0193      0.00993      0.0281
+## 2 versicolor  19.2       0.0802      0.181        0.0299
+## 3 setosa      43.8       0.142       0.0281       0.0134</code></pre>
 <p>Since <em>dplyr</em> operations are rather slow, <em>collapse</em> provides its own set of manipulation verbs yielding significant performance gains.</p>
 <pre class="r"><code># Same as above.. executes about 15x faster 
 iris %&gt;% add_vars(wt) %&gt;%                    
@@ -259,9 +193,9 @@ iris %&gt;% add_vars(wt) %&gt;%
 ## # A tibble: 3 x 5
 ##   Species    sum.wt Sepal.Width Petal.Length Petal.Width
 ##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
-## 1 virginica    4.08      0.0188      0.00937      0.0734
-## 2 versicolor  17.3       0.0747      0.144        0.0296
-## 3 setosa      39.8       0.165       0.0299       0.0140
+## 1 virginica    3.68      0.0193      0.00993      0.0281
+## 2 versicolor  19.2       0.0802      0.181        0.0299
+## 3 setosa      43.8       0.142       0.0281       0.0134
 
 # Weighted demeaning
 iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;% 
@@ -269,9 +203,9 @@ iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;%
 ## # A tibble: 3 x 4
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
 ##          &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
-## 1       0.0739      0.0959       -0.101     -0.0519
-## 2      -0.126      -0.404        -0.101     -0.0519
-## 3      -0.326      -0.204        -0.201     -0.0519
+## 1       0.135        0.110      -0.0367     -0.0494
+## 2      -0.0647      -0.390      -0.0367     -0.0494
+## 3      -0.265       -0.190      -0.137      -0.0494
 
 # Generate some additional logical data
 settransform(iris, 
@@ -324,7 +258,7 @@ qsu(wlddev, pid = PCGDP + GINI ~ iso3c,
 
 # Panel data ACF: Efficient grouped standardizing and computing covariance with panel-lags
 psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)</code></pre>
-<p><img src="/Rblog/post/2020-08-29-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
 <!--
 For fast grouped statistics we can keep programming in standard evaluation as before, or we can use piped expressions. 
 
@@ -406,13 +340,13 @@ wlddev$weights &lt;- abs(rnorm(fnrow(wlddev)))
 collap(wlddev, ~ iso3c + decade, fmean, fmode, # weights are also aggregated using sum
        w = ~ weights, wFUN = fsum) %&gt;% head(3)
 ##   country iso3c       date     year decade                     region      income  OECD PCGDP
-## 1   Aruba   ABW 1965-01-01 1963.003   1960 Latin America &amp; Caribbean  High income FALSE    NA
-## 2   Aruba   ABW 1973-01-01 1970.422   1970 Latin America &amp; Caribbean  High income FALSE    NA
-## 3   Aruba   ABW 1976-01-01 1979.212   1980 Latin America &amp; Caribbean  High income FALSE    NA
+## 1   Aruba   ABW 1965-01-01 1963.375   1960 Latin America &amp; Caribbean  High income FALSE    NA
+## 2   Aruba   ABW 1967-01-01 1969.179   1970 Latin America &amp; Caribbean  High income FALSE    NA
+## 3   Aruba   ABW 1980-01-01 1980.443   1980 Latin America &amp; Caribbean  High income FALSE    NA
 ##     LIFEEX GINI      ODA  weights
-## 1 66.76277   NA       NA 4.887078
-## 2 69.29105   NA       NA 5.527378
-## 3 71.96918   NA 33630000 9.788278
+## 1 66.87902   NA       NA 4.527996
+## 2 68.85522   NA       NA 7.314234
+## 3 72.29649   NA 33630000 6.525710
 
 # Can also apply multiple functions to columns, return in wide or long format or as list of data frames 
 collap(wlddev, PCGDP + LIFEEX ~ region + income, 
@@ -559,10 +493,10 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year),
                data.table = data.table:::forderv(us_trade, c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;), retGrp = TRUE),
                dplyr = group_by(us_trade, partner_iso, group_code, year), times = 10)
 ## Unit: milliseconds
-##        expr       min        lq      mean    median        uq       max neval cld
-##    collapse  107.8713  114.1281  158.1613  120.3941  139.2130  409.7289    10  a 
-##  data.table  108.1667  126.3424  157.0426  143.5715  171.4173  258.5649    10  a 
-##       dplyr 1055.8710 1170.3307 1506.0241 1199.2487 1799.5083 3331.2470    10   b
+##        expr        min        lq      mean    median        uq       max neval cld
+##    collapse   99.84064  144.8371  157.3384  151.0732  181.1736  215.7332    10  a 
+##  data.table  110.52157  144.1017  171.9027  165.0710  206.1773  246.5064    10  a 
+##       dplyr 1004.00418 1040.4791 1608.8417 1609.1076 1666.6173 2817.4733    10   b
 
 # Sum
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fsum),
@@ -573,9 +507,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(sum, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean    median        uq       max neval cld
-##    collapse  131.0132  150.2978  170.1198  163.3479  181.9675  247.6756    10  a 
-##  data.table  219.6317  230.0074  242.1816  239.4613  250.8939  279.5216    10  a 
-##       dplyr 2745.0314 3077.7760 3322.6374 3325.1010 3655.2518 3794.6326    10   b
+##    collapse  121.6313  126.8872  138.0655  132.5655  139.3612  176.9097    10  a 
+##  data.table  178.2012  182.6521  189.1572  189.2764  191.2941  203.6373    10  a 
+##       dplyr 2313.2217 2510.0997 2767.9710 2762.0068 3013.4798 3305.7025    10   b
 
 # Mean
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fmean),
@@ -586,9 +520,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(mean, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean    median        uq       max neval cld
-##    collapse  132.4582  134.1289  139.8671  138.3324  144.6202  151.2630    10  a 
-##  data.table  195.5638  201.6519  224.2228  225.3666  244.5193  249.1442    10  a 
-##       dplyr 7069.5315 7308.6084 7894.6813 7945.5808 8204.3490 9007.4238    10   b
+##    collapse  133.3261  136.8323  156.4112  147.7642  170.5949  206.3643    10  a 
+##  data.table  192.3999  196.2688  259.2404  212.1575  329.3045  473.1112    10  a 
+##       dplyr 6989.4614 7160.9640 7507.8050 7559.4528 7763.4815 8021.8880    10   b
 
 # Variance
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fvar),
@@ -598,17 +532,17 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(var, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
-##        expr        min         lq       mean     median         uq        max neval cld
-##    collapse   172.6249   236.5056   290.2466   257.9694   381.5256   434.5313    10  a 
-##  data.table   298.6839   445.5572   476.0359   491.9789   528.3128   637.0070    10  a 
-##       dplyr 10612.4188 11747.1568 18760.9877 21166.6340 23309.3394 28314.6992    10   b
+##        expr       min         lq       mean     median         uq        max neval cld
+##    collapse  137.4660   145.3172   149.2197   148.8888   153.0498   166.1369    10  a 
+##  data.table  298.3206   303.9032   324.4731   319.8797   325.1213   407.8484    10  a 
+##       dplyr 9966.0937 11013.0331 11428.4869 11281.9907 11816.9584 12970.7931    10   b
 
 # Mode (forget trying to do this with dplyr or data.table using some mode function created in base R, it runs forever...)
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&gt;% 
                  fselect(export_value_usd, import_value_usd) %&gt;% fmode, times = 10)
 ## Unit: milliseconds
-##      expr     min       lq     mean   median       uq      max neval
-##  collapse 719.046 763.6385 858.1242 805.4311 960.7941 1126.278    10
+##      expr      min       lq     mean  median       uq      max neval
+##  collapse 459.1816 514.8982 567.0183 562.834 572.5453 775.1321    10
 
 # Weighted Mean (not easily done with dplyr)
 settransform(us_trade, weights = abs(rnorm(length(year))))
@@ -617,9 +551,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                                             import_value_usd = weighted.mean(import_value_usd, weights, na.rm = TRUE)),
                                      by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)], times = 10)
 ## Unit: milliseconds
-##        expr        min         lq       mean     median         uq        max neval cld
-##    collapse   183.0657   188.4586   209.9705   211.0921   225.7426   239.1233    10  a 
-##  data.table 10906.6781 11235.4565 12050.7461 12209.1234 12663.2695 13430.8194    10   b
+##        expr       min       lq      mean   median        uq       max neval cld
+##    collapse  121.1436  124.922  145.6163  126.611  150.7958  219.8369    10  a 
+##  data.table 6186.1921 6602.255 7214.5573 6990.023 7880.3219 9001.5137    10   b
 
 
 # Replace values with group-sum
@@ -631,10 +565,10 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&g
                dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(sum, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
-##        expr       min        lq      mean    median        uq       max neval cld
-##    collapse  187.5929  215.7163  257.3252  235.3657  293.8466  422.4599    10 a  
-##  data.table 1347.8603 1545.3380 1771.3054 1676.8334 2056.6743 2384.7315    10  b 
-##       dplyr 4460.4364 4835.6633 5376.2411 5250.3542 5857.1831 6953.2329    10   c
+##        expr       min        lq      mean   median        uq       max neval cld
+##    collapse  143.2029  157.3766  197.5339  186.320  225.0063  315.4146    10 a  
+##  data.table  925.8516  945.3285 1153.0023 1159.254 1248.0763 1541.8163    10  b 
+##       dplyr 2662.5698 3003.1456 3234.8601 3079.397 3451.9015 4265.0801    10   c
 
 # Centering, partner-product
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&gt;%
@@ -645,10 +579,10 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&gt;%
                dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(function(x) x - mean(x, na.rm = TRUE)), times = 10)
 ## Unit: milliseconds
-##        expr        min         lq      mean     median         uq       max neval cld
-##    collapse   124.9309   141.5335   150.396   149.4348   152.5335   192.108    10 a  
-##  data.table  8071.6709  8626.3274  8937.879  8868.2433  9300.3729 10141.576    10  b 
-##       dplyr 11771.7991 12235.0544 13078.096 13098.0465 13498.7913 14883.916    10   c
+##        expr        min        lq      mean    median       uq        max neval cld
+##    collapse   85.83697  101.2428  119.5651  118.1308  142.152   149.6829    10 a  
+##  data.table 5088.01465 5725.2149 6447.1259 6361.4546 7280.318  7896.1449    10  b 
+##       dplyr 7462.59981 8355.4014 8880.3973 8652.2751 9182.877 11433.8414    10   c
 
 # Lag
 # Much better to sort data for dplyr
@@ -665,9 +599,9 @@ fNdistinct(us_trade$id)
 # Another nice comparison... 
 microbenchmark(fNdistinct(us_trade$id), n_distinct(us_trade$id))
 ## Unit: milliseconds
-##                     expr      min       lq      mean    median        uq       max neval cld
-##  fNdistinct(us_trade$id) 30.66833 38.48011  43.19984  42.25447  46.19706  72.19564   100  a 
-##  n_distinct(us_trade$id) 83.10415 95.47412 110.96813 102.56989 117.79740 245.81074   100   b
+##                     expr      min       lq     mean   median       uq       max neval cld
+##  fNdistinct(us_trade$id) 28.01718 28.73497 31.49064 29.71426 32.74784  51.38535   100  a 
+##  n_distinct(us_trade$id) 60.97431 69.68773 77.79539 72.97523 77.79939 182.42402   100   b
 
 # Here we go now:
 microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ id),
@@ -679,12 +613,18 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
                dplyr = group_by(us_trade, id) %&gt;% dplyr::select(export_value_usd, import_value_usd) %&gt;%
                  mutate_all(lag), times = 10)
 ## Unit: milliseconds
-##                expr         min          lq        mean      median         uq        max neval cld
-##            collapse    26.78687    50.98908    99.69026    67.19232   109.3189   270.7319    10 a  
-##    collapse_ordered    74.06229   104.33435   281.94101   139.22887   386.9806   994.5299    10 a  
-##          data.table 11866.39273 13457.83077 16357.88610 15132.25737 20244.8527 23286.3902    10  b 
-##  data.table_ordered 11873.37025 13546.12298 18030.44610 19130.00628 21733.7909 24207.8454    10  b 
-##               dplyr 48368.43900 58809.26819 64201.97629 65810.18412 72623.9953 77156.9728    10   c
+##                expr         min          lq        mean      median          uq         max neval
+##            collapse    35.73457    44.51493    51.49317    48.56195    54.36985    80.13437    10
+##    collapse_ordered    56.17537    89.42078   193.20808   113.71357   158.16202   808.18381    10
+##          data.table  9343.16222  9890.05320 10794.46538 10080.19082 10772.00166 14362.05811    10
+##  data.table_ordered  9543.76858  9672.53630 13941.51504 10871.98131 16165.38408 33013.28433    10
+##               dplyr 40483.64482 41042.47380 43325.85502 42752.21350 45764.23428 47113.19593    10
+##  cld
+##  a  
+##  a  
+##   b 
+##   b 
+##    c
 
 # Note: you can do ordered lags using mutate_all(lag, order_by = &quot;year&quot;) for dplyr, but at computation times in excess of 90 seconds..
 </code></pre>
@@ -700,47 +640,3 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
 <li id="fn4"><p>The within-group standard deviation is the standard deviation computed on the group-centered data.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
-
-    </div>
-  </article>
-
-  
-
-
-</main>
-
-      <footer class="footer">
-        <ul class="footer-links">
-          <li>
-            <a href="/Rblog/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
-          </li>
-          <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/Rblog/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
-          </li>
-        </ul>
-      </footer>
-
-    </div>
-    
-
-
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-
-
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
-
-
-
-    
-<script src="/Rblog/js/math-code.js"></script>
-<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-
-
-    
-  </body>
-</html>
-
