@@ -2,120 +2,120 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on R, Econometrics, High Performance</title>
-    <link>https://sebkrantz.github.io/Rblog/tags/</link>
+    <link>/Rblog/tags/</link>
     <description>Recent content in Tags on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://sebkrantz.github.io/Rblog/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/Rblog/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>collapse</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/collapse/</link>
+      <link>/Rblog/tags/collapse/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/collapse/</guid>
+      <guid>/Rblog/tags/collapse/</guid>
       <description></description>
     </item>
     
     <item>
       <title>grouped</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/grouped/</link>
+      <link>/Rblog/tags/grouped/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/grouped/</guid>
+      <guid>/Rblog/tags/grouped/</guid>
       <description></description>
     </item>
     
     <item>
       <title>programming</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/programming/</link>
+      <link>/Rblog/tags/programming/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/programming/</guid>
+      <guid>/Rblog/tags/programming/</guid>
       <description></description>
     </item>
     
     <item>
       <title>statistical</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/statistical/</link>
+      <link>/Rblog/tags/statistical/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/statistical/</guid>
+      <guid>/Rblog/tags/statistical/</guid>
       <description></description>
     </item>
     
     <item>
       <title>weighted</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/weighted/</link>
+      <link>/Rblog/tags/weighted/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/weighted/</guid>
+      <guid>/Rblog/tags/weighted/</guid>
       <description></description>
     </item>
     
     <item>
       <title>advanced</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/advanced/</link>
+      <link>/Rblog/tags/advanced/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/advanced/</guid>
+      <guid>/Rblog/tags/advanced/</guid>
       <description></description>
     </item>
     
     <item>
       <title>fast</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/fast/</link>
+      <link>/Rblog/tags/fast/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/fast/</guid>
+      <guid>/Rblog/tags/fast/</guid>
       <description></description>
     </item>
     
     <item>
       <title>manipulation</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/manipulation/</link>
+      <link>/Rblog/tags/manipulation/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/manipulation/</guid>
+      <guid>/Rblog/tags/manipulation/</guid>
       <description></description>
     </item>
     
     <item>
       <title>multilevel</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/multilevel/</link>
+      <link>/Rblog/tags/multilevel/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/multilevel/</guid>
+      <guid>/Rblog/tags/multilevel/</guid>
       <description></description>
     </item>
     
     <item>
       <title>panel</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/panel/</link>
+      <link>/Rblog/tags/panel/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/panel/</guid>
+      <guid>/Rblog/tags/panel/</guid>
       <description></description>
     </item>
     
     <item>
       <title>time-series</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/time-series/</link>
+      <link>/Rblog/tags/time-series/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/time-series/</guid>
+      <guid>/Rblog/tags/time-series/</guid>
       <description></description>
     </item>
     
     <item>
       <title>transformation</title>
-      <link>https://sebkrantz.github.io/Rblog/tags/transformation/</link>
+      <link>/Rblog/tags/transformation/</link>
       <pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/tags/transformation/</guid>
+      <guid>/Rblog/tags/transformation/</guid>
       <description></description>
     </item>
     

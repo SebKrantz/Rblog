@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on R, Econometrics, High Performance</title>
-    <link>https://sebkrantz.github.io/Rblog/categories/</link>
+    <link>/Rblog/categories/</link>
     <description>Recent content in Categories on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://sebkrantz.github.io/Rblog/categories/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/Rblog/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>R</title>
-      <link>https://sebkrantz.github.io/Rblog/categories/r/</link>
+      <link>/Rblog/categories/r/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/categories/r/</guid>
+      <guid>/Rblog/categories/r/</guid>
       <description></description>
     </item>
     
