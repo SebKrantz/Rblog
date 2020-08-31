@@ -3,58 +3,98 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/Rblog/2016/12/30/a-plain-markdown-post/</loc>
-    <lastmod>2016-12-30T21:49:57-07:00</lastmod>
+    <loc>/Rblog/categories/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/collapse/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/2020/08/31/programming-with-collapse/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/grouped/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/Rblog/post/</loc>
-    <lastmod>2016-12-30T21:49:57-07:00</lastmod>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/Rblog/</loc>
-    <lastmod>2016-12-30T21:49:57-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/categories/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2015/07/23/hello-r-markdown/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/plot/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+    <loc>/Rblog/tags/programming/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/Rblog/categories/r/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/Rblog/tags/r-markdown/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+    <loc>/Rblog/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/Rblog/tags/regression/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+    <loc>/Rblog/tags/statistical/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/Rblog/tags/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/Rblog/2015/01/01/lorem-ipsum/</loc>
-    <lastmod>2015-01-01T13:09:13-06:00</lastmod>
+    <loc>/Rblog/tags/weighted/</loc>
+    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/advanced/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/fast/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/2020/08/29/welcome-to-collapse/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/manipulation/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/multilevel/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/panel/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/time-series/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/transformation/</loc>
+    <lastmod>2020-08-29T00:00:00+00:00</lastmod>
   </url>
   
   <url>

@@ -1,4 +1,7 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
+*.Rproj.user
+*.Rhistory
+*.RData
+*.rdb
+*.rdx
+*.Ruserdata
+blogdown
