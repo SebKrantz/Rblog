@@ -13,6 +13,8 @@
       <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/2020/09/01/programming-with-collapse/</guid>
+      <media:content type="image/png" medium="image" 
+      url="https://sebkrantz.github.io/Rblog/" />
       <description>
 
 
@@ -281,6 +283,8 @@ system.time(ganyNA(x, f, use.g.names = FALSE))
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/2020/08/31/welcome-to-collapse/</guid>
+      <media:content type="image/png" medium="image" 
+      url="https://sebkrantz.github.io/Rblog/" />
       <description>
 
 
@@ -924,6 +928,8 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/about/</guid>
+      <media:content type="image/png" medium="image" 
+      url="https://sebkrantz.github.io/Rblog/" />
       <description>&lt;p&gt;This is the R blog of &lt;a href=&#34;https://github.com/SebKrantz&#34;&gt;Sebastian Krantz&lt;/a&gt;, dedicated to econometrics and high-performance data analysis and applications. A first set of posts introduces the &lt;a href=&#34;https://sebkrantz.github.io/collapse/&#34;&gt;collapse&lt;/a&gt; package for advanced and fast data transformation and statistical computing in R.&lt;/p&gt;
 &lt;p&gt;The blog is linked to &lt;a href=&#34;https://www.r-bloggers.com/&#34;&gt;r-bloggers.com&lt;/a&gt;.&lt;/p&gt;
 </description>
