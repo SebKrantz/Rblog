@@ -14,7 +14,6 @@
       
       <guid>/Rblog/tags/collapse/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -24,7 +23,6 @@
       
       <guid>/Rblog/tags/grouped/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -34,7 +32,6 @@
       
       <guid>/Rblog/tags/programming/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -44,7 +41,6 @@
       
       <guid>/Rblog/tags/r/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -54,7 +50,6 @@
       
       <guid>/Rblog/tags/statistical/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -64,7 +59,6 @@
       
       <guid>/Rblog/tags/weighted/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -74,7 +68,6 @@
       
       <guid>/Rblog/tags/advanced/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -84,7 +77,6 @@
       
       <guid>/Rblog/tags/fast/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -94,7 +86,6 @@
       
       <guid>/Rblog/tags/manipulation/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -104,7 +95,6 @@
       
       <guid>/Rblog/tags/multilevel/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -114,7 +104,6 @@
       
       <guid>/Rblog/tags/panel/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -124,7 +113,6 @@
       
       <guid>/Rblog/tags/time-series/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
     <item>
@@ -134,7 +122,6 @@
       
       <guid>/Rblog/tags/transformation/</guid>
       <description></description>
-      <content:encoded></content:encoded>
     </item>
     
   </channel>
