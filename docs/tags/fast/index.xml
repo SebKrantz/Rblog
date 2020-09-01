@@ -19,7 +19,7 @@
 &lt;p&gt;&lt;img src=&#39;collapse_logo_small.png&#39; width=&#34;150px&#34; align=&#34;right&#34; /&gt;&lt;/p&gt;
 &lt;div id=&#34;introduction&#34; class=&#34;section level1&#34;&gt;
 &lt;h1&gt;Introduction&lt;/h1&gt;
-&lt;p&gt;&lt;a href=&#34;https://sebkrantz.github.io/collapse/&#34;&gt;&lt;em&gt;collapse&lt;/em&gt;&lt;/a&gt; is a C/C++ based package for data transformation and statistical computing in R. It was first released on CRAN end of March 2020. The current version 1.3.1 is a mature package secured by &amp;gt; 7700 unit tests. &lt;em&gt;collapse&lt;/em&gt; has 2 main aims:&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://sebkrantz.github.io/collapse/&#34;&gt;&lt;em&gt;collapse&lt;/em&gt;&lt;/a&gt; is a C/C++ based package for data transformation and statistical computing in R. It was first released on CRAN end of March 2020. The current version 1.3.1 is a mature piece of statistical software tested with &amp;gt; 7700 unit tests. &lt;em&gt;collapse&lt;/em&gt; has 2 main aims:&lt;/p&gt;
 &lt;ol style=&#34;list-style-type: decimal&#34;&gt;
 &lt;li&gt;&lt;p&gt;To facilitate complex data transformation, exploration and computing tasks in R.&lt;/p&gt;
 &lt;p&gt;
