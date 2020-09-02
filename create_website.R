@@ -7,7 +7,7 @@ blogdown::serve_site()
 blogdown::stop_server()
 # blogdown::new_post("Welcome to collapse")
 
-<description>{{ .Content | html }}</description>
+# <description>{{ .Content | html }}</description>
 
 # replace R, Econometrics, High Performance - R, Econometrics, High Performance with one time only
 
