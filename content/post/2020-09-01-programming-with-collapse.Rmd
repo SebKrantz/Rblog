@@ -130,18 +130,22 @@ template <int RTYPE>
 LogicalVector ganyNACppImpl(Vector<RTYPE> x, int ng, IntegerVector g) {
   int l = x.size();
   if(l != g.size()) stop("length(x) must match length(g)");
-  LogicalVector out(ng);
+  LogicalVector out(ng); // Initializes as false
 
-  if(RTYPE == REALSXP) { // numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
-    for(int i = 0; i < l; ++i) if(x[i] != x[i]) out[g[i]-1] = true;
+  if(RTYPE == REALSXP) { // Numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
+    for(int i = 0; i < l; ++i) {
+      if(x[i] != x[i] && !out[g[i]-1]) out[g[i]-1] = true;
+    }
   } else { // other vectors
-    for(int i = 0; i < l; ++i) if(x[i] == Vector<RTYPE>::get_na()) out[g[i]-1] = true;
+    for(int i = 0; i < l; ++i) {
+      if(x[i] == Vector<RTYPE>::get_na() && !out[g[i]-1]) out[g[i]-1] = true;
+    }
   }
 
   return out;
 }
 
-// disabling other data types (lists, complex values etc.)
+// Disabling complex and non-atomic vector types
 template <>
 LogicalVector ganyNACppImpl(Vector<CPLXSXP> x, int ng, IntegerVector) {
   stop("Not supported SEXP type!");
@@ -157,7 +161,7 @@ LogicalVector ganyNACppImpl(Vector<RAWSXP> x, int ng, IntegerVector) {
   stop("Not supported SEXP type!");
 }
 
-template <>
+template <> 
 LogicalVector ganyNACppImpl(Vector<EXPRSXP> x, int ng, IntegerVector) {
   stop("Not supported SEXP type!");
 }
@@ -170,13 +174,13 @@ LogicalVector ganyNACpp(const SEXP& x, int ng = 0, const IntegerVector& g = 0){
 ```
 On the R side things are then pretty simple: 
 ```{r, message=FALSE, cache=TRUE}
-library(Rcpp)   
-sourceCpp("ganyNA.cpp")
-
+library(Rcpp)    
+sourceCpp("ganyNA.cpp") 
+ 
 ganyNA <- function(x, g, use.g.names = TRUE) {
   # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
   g <- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
-  res <- ganyNACpp(x, g[[1L]], g[[2L]])
+  res <- ganyNACpp(x, g[[1L]], g[[2L]]) 
   # GRPnames creates unique group names. For vectors they need not be character typed.
   if(use.g.names) return(setNames(res, GRPnames(g, force.char = FALSE)))
   res
@@ -186,11 +190,11 @@ Strictly speaking there are different options to set this up: `GRP()` is a S3 ge
 
 ```{r}
 head(ganyNA(GGDC10S$SUM, fselect(GGDC10S, Country, Variable)))
-
-# 10 million obs and 1 million groups, 1% of data missing 
+  
+# 10 million obs and 1 million groups, 1% of data missing  
 x <- na_insert(rnorm(1e7), prop = 0.01)
 g <- sample.int(1e6, 1e7, TRUE)
-system.time(ganyNA(x, g))
+system.time(ganyNA(x, g)) 
 system.time(ganyNA(x, g, use.g.names = FALSE))
 
 # Using a factor grouping variable: More efficient but does not drop any unused levels

@@ -189,18 +189,22 @@ template &lt;int RTYPE&gt;
 LogicalVector ganyNACppImpl(Vector&lt;RTYPE&gt; x, int ng, IntegerVector g) {
   int l = x.size();
   if(l != g.size()) stop(&quot;length(x) must match length(g)&quot;);
-  LogicalVector out(ng);
+  LogicalVector out(ng); // Initializes as false
 
-  if(RTYPE == REALSXP) { // numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
-    for(int i = 0; i &lt; l; ++i) if(x[i] != x[i]) out[g[i]-1] = true;
+  if(RTYPE == REALSXP) { // Numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
+    for(int i = 0; i &lt; l; ++i) {
+      if(x[i] != x[i] &amp;&amp; !out[g[i]-1]) out[g[i]-1] = true;
+    }
   } else { // other vectors
-    for(int i = 0; i &lt; l; ++i) if(x[i] == Vector&lt;RTYPE&gt;::get_na()) out[g[i]-1] = true;
+    for(int i = 0; i &lt; l; ++i) {
+      if(x[i] == Vector&lt;RTYPE&gt;::get_na() &amp;&amp; !out[g[i]-1]) out[g[i]-1] = true;
+    }
   }
 
   return out;
 }
 
-// disabling other data types (lists, complex values etc.)
+// Disabling complex and non-atomic vector types
 template &lt;&gt;
 LogicalVector ganyNACppImpl(Vector&lt;CPLXSXP&gt; x, int ng, IntegerVector) {
   stop(&quot;Not supported SEXP type!&quot;);
@@ -216,7 +220,7 @@ LogicalVector ganyNACppImpl(Vector&lt;RAWSXP&gt; x, int ng, IntegerVector) {
   stop(&quot;Not supported SEXP type!&quot;);
 }
 
-template &lt;&gt;
+template &lt;&gt; 
 LogicalVector ganyNACppImpl(Vector&lt;EXPRSXP&gt; x, int ng, IntegerVector) {
   stop(&quot;Not supported SEXP type!&quot;);
 }
@@ -227,13 +231,13 @@ LogicalVector ganyNACpp(const SEXP&amp; x, int ng = 0, const IntegerVector&amp; 
 }
 </code></pre>
 <p>On the R side things are then pretty simple:</p>
-<pre class="r"><code>library(Rcpp)   
-sourceCpp(&quot;ganyNA.cpp&quot;)
-
+<pre class="r"><code>library(Rcpp)    
+sourceCpp(&quot;ganyNA.cpp&quot;) 
+ 
 ganyNA &lt;- function(x, g, use.g.names = TRUE) {
   # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
   g &lt;- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
-  res &lt;- ganyNACpp(x, g[[1L]], g[[2L]])
+  res &lt;- ganyNACpp(x, g[[1L]], g[[2L]]) 
   # GRPnames creates unique group names. For vectors they need not be character typed.
   if(use.g.names) return(setNames(res, GRPnames(g, force.char = FALSE)))
   res
@@ -242,25 +246,25 @@ ganyNA &lt;- function(x, g, use.g.names = TRUE) {
 <pre class="r"><code>head(ganyNA(GGDC10S$SUM, fselect(GGDC10S, Country, Variable)))
 ## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
 ##   FALSE   FALSE   FALSE    TRUE   FALSE    TRUE
-
-# 10 million obs and 1 million groups, 1% of data missing 
+  
+# 10 million obs and 1 million groups, 1% of data missing  
 x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
-system.time(ganyNA(x, g))
+system.time(ganyNA(x, g)) 
 ##        User      System verstrichen 
-##        0.61        0.03        0.65
+##        0.67        0.06        0.74
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.52        0.04        0.58
+##        0.55        0.02        0.57
 
 # Using a factor grouping variable: More efficient but does not drop any unused levels
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##        User      System verstrichen 
-##        0.04        0.00        0.03
+##        0.05        0.02        0.07
 system.time(ganyNA(x, f, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.04        0.00        0.05</code></pre>
+##        0.04        0.02        0.04</code></pre>
 <p>We could additionally add a <code>TRA</code> argument and then internally call the <code>TRA()</code> function to allow for replacing and sweeping out statistics, but this does not make much sense here.</p>
 </div>
 </div>
