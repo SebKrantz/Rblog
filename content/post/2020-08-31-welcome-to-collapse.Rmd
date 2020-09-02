@@ -203,8 +203,8 @@ settransform(iris,
   AWMSL = Sepal.Length > fmedian(Sepal.Length, w = wt), 
   AGWMSL = Sepal.Length > fmedian(Sepal.Length, Species, wt, "replace"))
 
- # Grouped distinct values
-iris %>% fgroup_by(Species) %>% fNdistinct  
+ # Grouped and weighted statistical mode
+iris %>% fgroup_by(Species) %>% fmode(wt)
 
 ```
 

@@ -278,14 +278,14 @@ settransform(iris,
   AWMSL = Sepal.Length &gt; fmedian(Sepal.Length, w = wt), 
   AGWMSL = Sepal.Length &gt; fmedian(Sepal.Length, Species, wt, &quot;replace&quot;))
 
- # Grouped distinct values
-iris %&gt;% fgroup_by(Species) %&gt;% fNdistinct  
+ # Grouped and weighted statistical mode
+iris %&gt;% fgroup_by(Species) %&gt;% fmode(wt)
 ## # A tibble: 3 x 7
 ##   Species    Sepal.Length Sepal.Width Petal.Length Petal.Width AWMSL AGWMSL
-##   &lt;fct&gt;             &lt;int&gt;       &lt;int&gt;        &lt;int&gt;       &lt;int&gt; &lt;int&gt;  &lt;int&gt;
-## 1 setosa               15          16            9           6     1      2
-## 2 versicolor           21          14           19           9     2      0
-## 3 virginica            21          13           20          12     0      0</code></pre>
+##   &lt;fct&gt;             &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;lgl&gt; &lt;lgl&gt; 
+## 1 setosa              5             3          1.4         0.2 FALSE FALSE 
+## 2 versicolor          5.8           3          4.5         1.3 TRUE  FALSE 
+## 3 virginica           6.3           3          5.1         2.3 TRUE  FALSE</code></pre>
 <p>To take things a bit further, let’s consider some multilevel / panel data:</p>
 <pre class="r"><code># World Bank World Development Data - supplied with collapse
 head(wlddev, 3)

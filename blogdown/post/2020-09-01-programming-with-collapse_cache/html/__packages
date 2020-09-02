@@ -3,3 +3,4 @@ collapse
 Rcpp
 data.table
 microbenchmark
+magrittr

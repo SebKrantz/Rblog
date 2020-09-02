@@ -180,20 +180,20 @@ Grouping is done very efficiently using radix-based ordering in C (thanks to <em
 ## 5   4413.54448   5307.280  5710.2665   54272.985
 ## 6 183027.46189 249135.452 55282.9748 1200562.671</code></pre>
 <p>The execution cost of all of these functions is extremely small, so the performance is essentially limited by C++, not by R.</p>
-<pre class="r"><code>library(microbenchmark)
+<pre class="r"><code>library(microbenchmark) 
 microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ## Unit: microseconds
-##  expr     min      lq     mean   median      uq     max neval
-##  call 271.765 441.116 934.8879 553.1235 944.259 4878.82   100</code></pre>
+##  expr     min      lq     mean   median      uq      max neval
+##  call 264.625 273.327 437.1572 323.0825 388.012 11015.61   100</code></pre>
 <p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
 <pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids) {
   # Get variables as character string, first variable is dependent variable
   vars &lt;- all.vars(formula)
-  # na_omit and qM are faster replacements for na.omit and as.matrix
-  data_cc &lt;- na_omit(qM(get_vars(data, vars)), na.attr = TRUE)
-  cc &lt;- attr(data_cc, &quot;na.action&quot;)
-  # We don&#39;t need the unique groups or the call. ss() is faster replacement for [.data.frame 
-  g &lt;- GRP(ss(data, -cc, pids), return.groups = FALSE, call = FALSE)
+  # na_omit is a fast replacement for na.omit
+  data_cc &lt;- na_omit(get_vars(data, c(vars, pids)))
+  g &lt;- GRP(data_cc, pids, return.groups = FALSE, call = FALSE)
+  # qM is a faster as.matrix
+  data_cc &lt;- qM(get_vars(data_cc, vars))
   # Computing group means
   mean_data_cc &lt;- fmean(data_cc, g, use.g.names = FALSE)
   # This computes regression coefficients
@@ -207,28 +207,35 @@ microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 
           Within = reg(TRA(data_cc, mean_data_cc, &quot;-&quot;, g))))
 }
 
-# Value Added data
-round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == &quot;VA&quot;), &quot;Country&quot;), 4)
-##                 Pooled        Means      Between  Within
-## Intercept 2605610.3402 2305205.3650 2030326.5556  0.0000
-## AGR            -0.7828       1.4656      -5.6343 -0.1935
-## MIN             2.5863      -0.3798       6.4096  2.4478
-## MAN             3.1535       3.1953       4.1260  2.8924
+library(magrittr)  # Pipe operators
+
+# Calculating Value Added Percentage Shares (data is in local currency)
+VA_shares &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;) %&gt;% 
+             ftransform(fselect(., AGR:SUM) %&gt;% lapply(`*`, 100/SUM))
+  
+# Value Added data (regressing Government on Agriculture, Manufactoring and Finance &amp; Real Estate)
+Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, &quot;Country&quot;) %&gt;% round(4)
+##            Pooled   Means Between  Within
+## Intercept 25.8818 26.6702 26.5828  0.0000
+## AGR       -0.3425 -0.3962 -0.3749 -0.2124
+## MAN       -0.2339 -0.1744 -0.2215 -0.2680
+## FIRE      -0.2083 -0.3337 -0.2572 -0.0742
 
 # Employment data
-round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == &quot;EMP&quot;), &quot;Country&quot;), 4)
-##              Pooled     Means   Between   Within
-## Intercept 2218.8727 1120.2277 1053.6433   0.0000
-## AGR          0.8963    0.7866    0.7699   1.0885
-## MIN        -11.8597  -12.4496  -12.7368 -13.6924
-## MAN          4.6062    5.1998    5.2988   4.3131</code></pre>
+fsubset(GGDC10S, Variable == &quot;EMP&quot;) %&gt;% 
+ ftransform(fselect(., AGR:SUM) %&gt;% lapply(`*`, 100/SUM)) %&gt;%
+  Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, &quot;Country&quot;) %&gt;% round(4)
+##            Pooled   Means Between  Within
+## Intercept 33.2047 34.6626 35.4332  0.0000
+## AGR       -0.3543 -0.3767 -0.3873 -0.2762
+## MAN       -0.4444 -0.4595 -0.4790 -0.4912
+## FIRE      -0.1721 -0.3097 -0.2892 -0.1087</code></pre>
 <p>It would be easy to add an option for sampling weights as <code>fmean</code> also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using <code>plm</code> to do it).</p>
-<pre class="r"><code># Benchmark on VA data  
-VA_data &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;)
-microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_data, &quot;Country&quot;))
+<pre class="r"><code># Benchmark on VA data    
+microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;))
 ## Unit: milliseconds
-##  expr      min       lq     mean   median       uq      max neval
-##  call 1.496266 1.564766 2.066504 1.712027 2.420891 5.198332   100</code></pre>
+##  expr    min       lq     mean   median       uq      max neval
+##  call 2.0215 2.705819 3.397926 3.067279 3.742897 8.572853   100</code></pre>
 <p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
 <div id="creating-grouped-functions-in-cc" class="section level2">
 <h2>Creating Grouped Functions in C/C++</h2>

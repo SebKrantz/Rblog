@@ -1,5 +1,5 @@
 library(blogdown)
-blogdown::install_hugo()
+# blogdown::install_hugo()
 # setwd("website")
 # blogdown::new_site() # theme = 'gcushen/hugo-academic'
 blogdown::build_site()

@@ -60,7 +60,7 @@ head(add_vars(g[["groups"]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FAL
 ```
 The execution cost of all of these functions is extremely small, so the performance is essentially limited by C++, not by R. 
 ```{r}
-library(microbenchmark)
+library(microbenchmark) 
 microbenchmark(call = add_vars(g[["groups"]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ```
 
@@ -70,11 +70,11 @@ We can use these functions to write very efficient grouped code in R. This shows
 Panel_Ests <- function(formula, data, pids) {
   # Get variables as character string, first variable is dependent variable
   vars <- all.vars(formula)
-  # na_omit and qM are faster replacements for na.omit and as.matrix
-  data_cc <- na_omit(qM(get_vars(data, vars)), na.attr = TRUE)
-  cc <- attr(data_cc, "na.action")
-  # We don't need the unique groups or the call. ss() is faster replacement for [.data.frame 
-  g <- GRP(ss(data, -cc, pids), return.groups = FALSE, call = FALSE)
+  # na_omit is a fast replacement for na.omit
+  data_cc <- na_omit(get_vars(data, c(vars, pids)))
+  g <- GRP(data_cc, pids, return.groups = FALSE, call = FALSE)
+  # qM is a faster as.matrix
+  data_cc <- qM(get_vars(data_cc, vars))
   # Computing group means
   mean_data_cc <- fmean(data_cc, g, use.g.names = FALSE)
   # This computes regression coefficients
@@ -88,17 +88,24 @@ Panel_Ests <- function(formula, data, pids) {
           Within = reg(TRA(data_cc, mean_data_cc, "-", g))))
 }
 
-# Value Added data
-round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == "VA"), "Country"), 4)
+library(magrittr)  # Pipe operators
+
+# Calculating Value Added Percentage Shares (data is in local currency)
+VA_shares <- fsubset(GGDC10S, Variable == "VA") %>% 
+             ftransform(fselect(., AGR:SUM) %>% lapply(`*`, 100/SUM))
+  
+# Value Added data (regressing Government on Agriculture, Manufactoring and Finance & Real Estate)
+Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, "Country") %>% round(4)
 
 # Employment data
-round(Panel_Ests(SUM ~ AGR + MIN + MAN, fsubset(GGDC10S, Variable == "EMP"), "Country"), 4)
+fsubset(GGDC10S, Variable == "EMP") %>% 
+ ftransform(fselect(., AGR:SUM) %>% lapply(`*`, 100/SUM)) %>%
+  Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, "Country") %>% round(4)
 ```
 It would be easy to add an option for sampling weights as `fmean` also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using `plm` to do it). 
 ```{r}
-# Benchmark on VA data  
-VA_data <- fsubset(GGDC10S, Variable == "VA")
-microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_data, "Country"))
+# Benchmark on VA data    
+microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, "Country"))
 ```
 
 There are lots and lots of other applications that can be devised in R using the `.FAST_FUN` and efficient programming with grouping objects.
