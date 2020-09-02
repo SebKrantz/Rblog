@@ -13,43 +13,43 @@
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/Rblog/2020/08/31/welcome-to-collapse/</guid>
-      <description>
+      <description><![CDATA[ 
 
 
-&lt;p&gt;&lt;img src=&#39;collapse_logo_small.png&#39; width=&#34;150px&#34; align=&#34;right&#34; /&gt;&lt;/p&gt;
-&lt;div id=&#34;introduction&#34; class=&#34;section level1&#34;&gt;
-&lt;h1&gt;Introduction&lt;/h1&gt;
-&lt;p&gt;&lt;a href=&#34;https://sebkrantz.github.io/collapse/&#34;&gt;&lt;em&gt;collapse&lt;/em&gt;&lt;/a&gt; is a C/C++ based package for data transformation and statistical computing in R. It was first released on CRAN end of March 2020. The current version 1.3.1 is a mature piece of statistical software tested with &amp;gt; 7700 unit tests. &lt;em&gt;collapse&lt;/em&gt; has 2 main aims:&lt;/p&gt;
-&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
-&lt;li&gt;&lt;p&gt;To facilitate complex data transformation, exploration and computing tasks in R.&lt;/p&gt;
-&lt;p&gt;
-&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;(In particular grouped and weighted statistical computations, advanced aggregation of multi-type data, advanced transformations of time series and panel data, and the manipulation of lists)&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;To help make R code fast, flexible, parsimonious and programmer friendly.&lt;/p&gt;
-&lt;p&gt;
-&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;(Provide order of magnitude performance improvements via C/C++ and highly optimized R code, broad object orientation and attribute preservation, and a flexible programming infrastructure in standard and non-standard evaluation)&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;It is made compatible with &lt;em&gt;dplyr&lt;/em&gt;, &lt;em&gt;data.table&lt;/em&gt; and the &lt;em&gt;plm&lt;/em&gt; approach to panel data. It can be installed in R using:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;install.packages(&amp;#39;collapse&amp;#39;)
+<p><img src='collapse_logo_small.png' width="150px" align="right" /></p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p><a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> is a C/C++ based package for data transformation and statistical computing in R. It was first released on CRAN end of March 2020. The current version 1.3.1 is a mature piece of statistical software tested with &gt; 7700 unit tests. <em>collapse</em> has 2 main aims:</p>
+<ol style="list-style-type: decimal">
+<li><p>To facilitate complex data transformation, exploration and computing tasks in R.</p>
+<p>
+</p>
+<p><em>(In particular grouped and weighted statistical computations, advanced aggregation of multi-type data, advanced transformations of time series and panel data, and the manipulation of lists)</em></p></li>
+<li><p>To help make R code fast, flexible, parsimonious and programmer friendly.</p>
+<p>
+</p>
+<p><em>(Provide order of magnitude performance improvements via C/C++ and highly optimized R code, broad object orientation and attribute preservation, and a flexible programming infrastructure in standard and non-standard evaluation)</em></p></li>
+</ol>
+<p>It is made compatible with <em>dplyr</em>, <em>data.table</em> and the <em>plm</em> approach to panel data. It can be installed in R using:</p>
+<pre class="r"><code>install.packages(&#39;collapse&#39;)
 
 # See Documentation
-help(&amp;#39;collapse-documentation&amp;#39;)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;With this post I want to formally and briefly introduce &lt;em&gt;collapse&lt;/em&gt;, provide a basic demonstration of important features, and end with a small benchmark comparing &lt;em&gt;collapse&lt;/em&gt; to &lt;em&gt;dplyr&lt;/em&gt; and &lt;em&gt;data.table&lt;/em&gt;. I hope to convince that &lt;em&gt;collapse&lt;/em&gt; provides a superior architecture for data manipulation and statistical computing in R, particularly in terms of flexibility, functionality, performance, and programmability.&lt;/p&gt;
-&lt;!-- My motivation, to but it briefly, for creating this package and expending that --&gt;
-&lt;!-- The key features and functions of the package are summarized in the figure below.  --&gt;
-&lt;!-- and share some of the motivation and history of it --&gt;
-&lt;!-- ![*collapse* Core Functions](collapse header.png) --&gt;
-&lt;!-- I start with the motivation (you can skip this if you like). --&gt;
-&lt;/div&gt;
-&lt;div id=&#34;demonstration&#34; class=&#34;section level1&#34;&gt;
-&lt;h1&gt;Demonstration&lt;/h1&gt;
-&lt;p&gt;I start by briefly demonstrating the &lt;em&gt;Fast Statistical Functions&lt;/em&gt;, which are a central feature of &lt;em&gt;collapse&lt;/em&gt;. Currently there are 14 of them (&lt;code&gt;fmean&lt;/code&gt;, &lt;code&gt;fmedian&lt;/code&gt;, &lt;code&gt;fmode&lt;/code&gt;, &lt;code&gt;fsum&lt;/code&gt;, &lt;code&gt;fprod&lt;/code&gt;, &lt;code&gt;fsd&lt;/code&gt;, &lt;code&gt;fvar&lt;/code&gt;, &lt;code&gt;fmin&lt;/code&gt;, &lt;code&gt;fmax&lt;/code&gt;, &lt;code&gt;fnth&lt;/code&gt;, &lt;code&gt;ffirst&lt;/code&gt;, &lt;code&gt;flast&lt;/code&gt;, &lt;code&gt;fNobs&lt;/code&gt; and &lt;code&gt;fNdistinct&lt;/code&gt;), they are all S3 generic and support fast grouped and weighted computations on vectors, matrices, data frames, lists and grouped tibbles (class &lt;em&gt;grouped_df&lt;/em&gt;). Calling these functions on different objects yields column-wise statistical computations:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(collapse)
-data(&amp;quot;iris&amp;quot;)            # iris dataset in base R
-v &amp;lt;- iris$Sepal.Length  # Vector
-d &amp;lt;- num_vars(iris)     # Saving numeric variables 
-g &amp;lt;- iris$Species       # Grouping variable (could also be a list of variables)
+help(&#39;collapse-documentation&#39;)</code></pre>
+<p>With this post I want to formally and briefly introduce <em>collapse</em>, provide a basic demonstration of important features, and end with a small benchmark comparing <em>collapse</em> to <em>dplyr</em> and <em>data.table</em>. I hope to convince that <em>collapse</em> provides a superior architecture for data manipulation and statistical computing in R, particularly in terms of flexibility, functionality, performance, and programmability.</p>
+<!-- My motivation, to but it briefly, for creating this package and expending that -->
+<!-- The key features and functions of the package are summarized in the figure below.  -->
+<!-- and share some of the motivation and history of it -->
+<!-- ![*collapse* Core Functions](collapse header.png) -->
+<!-- I start with the motivation (you can skip this if you like). -->
+</div>
+<div id="demonstration" class="section level1">
+<h1>Demonstration</h1>
+<p>I start by briefly demonstrating the <em>Fast Statistical Functions</em>, which are a central feature of <em>collapse</em>. Currently there are 14 of them (<code>fmean</code>, <code>fmedian</code>, <code>fmode</code>, <code>fsum</code>, <code>fprod</code>, <code>fsd</code>, <code>fvar</code>, <code>fmin</code>, <code>fmax</code>, <code>fnth</code>, <code>ffirst</code>, <code>flast</code>, <code>fNobs</code> and <code>fNdistinct</code>), they are all S3 generic and support fast grouped and weighted computations on vectors, matrices, data frames, lists and grouped tibbles (class <em>grouped_df</em>). Calling these functions on different objects yields column-wise statistical computations:</p>
+<pre class="r"><code>library(collapse)
+data(&quot;iris&quot;)            # iris dataset in base R
+v &lt;- iris$Sepal.Length  # Vector
+d &lt;- num_vars(iris)     # Saving numeric variables 
+g &lt;- iris$Species       # Grouping variable (could also be a list of variables)
 
 # Simple statistics
 fmean(v)              # Vector
@@ -67,16 +67,16 @@ fmean(qM(d), drop = FALSE)     # Still a matrix
 ## [1,]     5.843333    3.057333        3.758    1.199333
 fmax(d, drop = FALSE)          # Still a data.frame
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
-## 1          7.9         4.4          6.9         2.5&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The functions &lt;code&gt;fmean&lt;/code&gt;, &lt;code&gt;fmedian&lt;/code&gt;, &lt;code&gt;fmode&lt;/code&gt;, &lt;code&gt;fnth&lt;/code&gt;, &lt;code&gt;fsum&lt;/code&gt;, &lt;code&gt;fprod&lt;/code&gt;, &lt;code&gt;fvar&lt;/code&gt; and &lt;code&gt;fsd&lt;/code&gt; additionally support weights&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Weighted statistics, similarly for vectors and matrices ...
-wt &amp;lt;- abs(rnorm(fnrow(iris)))
+## 1          7.9         4.4          6.9         2.5</code></pre>
+<p>The functions <code>fmean</code>, <code>fmedian</code>, <code>fmode</code>, <code>fnth</code>, <code>fsum</code>, <code>fprod</code>, <code>fvar</code> and <code>fsd</code> additionally support weights<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+<pre class="r"><code># Weighted statistics, similarly for vectors and matrices ...
+wt &lt;- abs(rnorm(fnrow(iris)))
 fmedian(d, w = wt)     
 ## Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
-##          5.7          3.0          4.1          1.3&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The second argument of these functions is called &lt;code&gt;g&lt;/code&gt; and supports vectors or lists of grouping variables for grouped computations. For functions supporting weights, &lt;code&gt;w&lt;/code&gt; is the third argument&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;.
-&lt;!-- it does not matter anymore on which type of object we are working.   --&gt;&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Grouped statistics
+##          5.7          3.0          4.1          1.3</code></pre>
+<p>The second argument of these functions is called <code>g</code> and supports vectors or lists of grouping variables for grouped computations. For functions supporting weights, <code>w</code> is the third argument<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.
+<!-- it does not matter anymore on which type of object we are working.   --></p>
+<pre class="r"><code># Grouped statistics
 fmean(d, g) 
 ##            Sepal.Length Sepal.Width Petal.Length Petal.Width
 ## setosa            5.006       3.428        1.462       0.246
@@ -90,152 +90,152 @@ fmean(d, g, wt)
 ## versicolor     5.924013    2.814171     4.255227   1.3273743
 ## virginica      6.630702    2.990253     5.601473   2.0724544
 
-fmode(d, g, wt, ties = &amp;quot;max&amp;quot;)  # Grouped &amp;amp; weighted maximum mode.. 
+fmode(d, g, wt, ties = &quot;max&quot;)  # Grouped &amp; weighted maximum mode.. 
 ##            Sepal.Length Sepal.Width Petal.Length Petal.Width
 ## setosa              5.0           3          1.4         0.2
 ## versicolor          5.8           3          4.5         1.3
-## virginica           6.3           3          5.1         2.3&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Grouping becomes more efficient when factors or grouping objects are passed to &lt;code&gt;g&lt;/code&gt;. Factors can efficiently be created using the function &lt;code&gt;qF&lt;/code&gt;, and grouping objects are efficiently created with the function &lt;code&gt;GRP&lt;/code&gt;&lt;a href=&#34;#fn3&#34; class=&#34;footnote-ref&#34; id=&#34;fnref3&#34;&gt;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt;. As a final layer of complexity, all functions support transformations through the &lt;code&gt;TRA&lt;/code&gt; argument.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(magrittr)  # Pipe operators
+## virginica           6.3           3          5.1         2.3</code></pre>
+<p>Grouping becomes more efficient when factors or grouping objects are passed to <code>g</code>. Factors can efficiently be created using the function <code>qF</code>, and grouping objects are efficiently created with the function <code>GRP</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. As a final layer of complexity, all functions support transformations through the <code>TRA</code> argument.</p>
+<pre class="r"><code>library(magrittr)  # Pipe operators
 # Simple Transformations
-fnth(v, 0.9, TRA = &amp;quot;replace&amp;quot;) %&amp;gt;% head   # Replacing values with the 90th percentile
+fnth(v, 0.9, TRA = &quot;replace&quot;) %&gt;% head   # Replacing values with the 90th percentile
 ## [1] 6.9 6.9 6.9 6.9 6.9 6.9
-fsd(v, TRA = &amp;quot;/&amp;quot;) %&amp;gt;% head               # Dividing by the overall standard-deviation (scaling)
+fsd(v, TRA = &quot;/&quot;) %&gt;% head               # Dividing by the overall standard-deviation (scaling)
 ## [1] 6.158928 5.917402 5.675875 5.555112 6.038165 6.521218
 
 # Grouped transformations
-fsd(v, g, TRA = &amp;quot;/&amp;quot;) %&amp;gt;% head         # Grouped scaling
+fsd(v, g, TRA = &quot;/&quot;) %&gt;% head         # Grouped scaling
 ## [1] 14.46851 13.90112 13.33372 13.05003 14.18481 15.31960
-fmin(v, g, TRA = &amp;quot;-&amp;quot;) %&amp;gt;% head        # Setting the minimum value in each species to 0
+fmin(v, g, TRA = &quot;-&quot;) %&gt;% head        # Setting the minimum value in each species to 0
 ## [1] 0.8 0.6 0.4 0.3 0.7 1.1
-fsum(v, g, TRA = &amp;quot;%&amp;quot;) %&amp;gt;% head        # Computing percentages
+fsum(v, g, TRA = &quot;%&quot;) %&gt;% head        # Computing percentages
 ## [1] 2.037555 1.957651 1.877747 1.837795 1.997603 2.157411
-ffirst(v, g, TRA = &amp;quot;%%&amp;quot;) %&amp;gt;% head     # Taking modulus of first group-value, etc ...
+ffirst(v, g, TRA = &quot;%%&quot;) %&gt;% head     # Taking modulus of first group-value, etc ...
 ## [1] 0.0 4.9 4.7 4.6 5.0 0.3
 
 # Grouped and weighted transformations
-fmedian(v, g, wt, &amp;quot;-&amp;quot;) %&amp;gt;% head                      # Subtracting weighted group-medians
+fmedian(v, g, wt, &quot;-&quot;) %&gt;% head                      # Subtracting weighted group-medians
 ## [1]  0.1 -0.1 -0.3 -0.4  0.0  0.4
-fmode(d, g, wt, &amp;quot;replace&amp;quot;, ties = &amp;quot;min&amp;quot;) %&amp;gt;% head(3) # replace with weighted minimum mode
+fmode(d, g, wt, &quot;replace&quot;, ties = &quot;min&quot;) %&gt;% head(3) # replace with weighted minimum mode
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
 ## 1            5           3          1.4         0.2
 ## 2            5           3          1.4         0.2
-## 3            5           3          1.4         0.2&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Currently there are 10 different replacing or sweeping operations supported by &lt;code&gt;TRA&lt;/code&gt;, see &lt;code&gt;?TRA&lt;/code&gt;. &lt;code&gt;TRA&lt;/code&gt; can also be called directly as a function which performs simple and grouped replacing and sweeping operations with computed statistics:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Same as fmedian(v, TRA = &amp;quot;-&amp;quot;)
-TRA(v, median(v), &amp;quot;-&amp;quot;) %&amp;gt;% head               
+## 3            5           3          1.4         0.2</code></pre>
+<p>Currently there are 10 different replacing or sweeping operations supported by <code>TRA</code>, see <code>?TRA</code>. <code>TRA</code> can also be called directly as a function which performs simple and grouped replacing and sweeping operations with computed statistics:</p>
+<pre class="r"><code># Same as fmedian(v, TRA = &quot;-&quot;)
+TRA(v, median(v), &quot;-&quot;) %&gt;% head               
 ## [1] -0.7 -0.9 -1.1 -1.2 -0.8 -0.4
 
 # Replace values with 5% percentile by species
-TRA(d, BY(d, g, quantile, 0.05), &amp;quot;replace&amp;quot;, g) %&amp;gt;% head(3) 
+TRA(d, BY(d, g, quantile, 0.05), &quot;replace&quot;, g) %&gt;% head(3) 
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
 ## 1          4.4           3          1.2         0.1
 ## 2          4.4           3          1.2         0.1
-## 3          4.4           3          1.2         0.1&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The function &lt;code&gt;BY&lt;/code&gt; is generic for Split-Apply-Combine computing with user-supplied functions. Another useful function is &lt;code&gt;dapply&lt;/code&gt; (data-apply) for efficient column- and row-operations on matrices and data frames.&lt;/p&gt;
-&lt;!-- I note that simple row-wise operations on data.frames like row-sums are best performed through efficient matrix conversion i.e. `rowSums(qM(d))` is better than `dapply(d, sum, MARGIN = 1)`.    --&gt;
-&lt;p&gt;Some common panel data transformations like between- and (quasi-)within-transformations (averaging and centering using the mean) are implemented slightly more memory efficient in the functions &lt;code&gt;fbetween&lt;/code&gt; and &lt;code&gt;fwithin&lt;/code&gt;. The function &lt;code&gt;fscale&lt;/code&gt; also exists for fast (grouped, weighted) scaling and centering (standardizing) and mean-preserving scaling. These functions provide further options for data harmonization, such as centering on the overall data mean or scaling to the within-group standard deviation&lt;a href=&#34;#fn4&#34; class=&#34;footnote-ref&#34; id=&#34;fnref4&#34;&gt;&lt;sup&gt;4&lt;/sup&gt;&lt;/a&gt; (as shown below), as well as scaling / centering to arbitrary supplied means and standard deviations.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;oldpar &amp;lt;- par(mfrow = c(1,3))
-gv(d, 1:2) %&amp;gt;% {  # gv = shortcut for get_vars is &amp;gt; 2x faster than [.data.frame
-plot(., col = g, main = &amp;quot;Raw Data&amp;quot;)                      
-plot(fwithin(., g, mean = &amp;quot;overall.mean&amp;quot;), col = g, 
-     main = &amp;quot;Centered on Overall Mean&amp;quot;)
-plot(fscale(., g, mean = &amp;quot;overall.mean&amp;quot;, sd = &amp;quot;within.sd&amp;quot;), col = g,    
-     main = &amp;quot;Harmonized Mean and Variance&amp;quot;)
-}&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;100%&#34; /&gt;&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;par(oldpar)&lt;/code&gt;&lt;/pre&gt;
-&lt;!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It&#39;s replacement version `get_vars&lt;-` is 6x faster than `[&lt;-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). --&gt;
-&lt;p&gt;For the manipulation of time series and panel series, &lt;em&gt;collapse&lt;/em&gt; offers the functions &lt;code&gt;flag&lt;/code&gt;, &lt;code&gt;fdiff&lt;/code&gt; and &lt;code&gt;fgrowth&lt;/code&gt;.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# A sequence of lags and leads
-flag(EuStockMarkets, -1:1) %&amp;gt;% head(3)             
+## 3          4.4           3          1.2         0.1</code></pre>
+<p>The function <code>BY</code> is generic for Split-Apply-Combine computing with user-supplied functions. Another useful function is <code>dapply</code> (data-apply) for efficient column- and row-operations on matrices and data frames.</p>
+<!-- I note that simple row-wise operations on data.frames like row-sums are best performed through efficient matrix conversion i.e. `rowSums(qM(d))` is better than `dapply(d, sum, MARGIN = 1)`.    -->
+<p>Some common panel data transformations like between- and (quasi-)within-transformations (averaging and centering using the mean) are implemented slightly more memory efficient in the functions <code>fbetween</code> and <code>fwithin</code>. The function <code>fscale</code> also exists for fast (grouped, weighted) scaling and centering (standardizing) and mean-preserving scaling. These functions provide further options for data harmonization, such as centering on the overall data mean or scaling to the within-group standard deviation<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a> (as shown below), as well as scaling / centering to arbitrary supplied means and standard deviations.</p>
+<pre class="r"><code>oldpar &lt;- par(mfrow = c(1,3))
+gv(d, 1:2) %&gt;% {  # gv = shortcut for get_vars is &gt; 2x faster than [.data.frame
+plot(., col = g, main = &quot;Raw Data&quot;)                      
+plot(fwithin(., g, mean = &quot;overall.mean&quot;), col = g, 
+     main = &quot;Centered on Overall Mean&quot;)
+plot(fscale(., g, mean = &quot;overall.mean&quot;, sd = &quot;within.sd&quot;), col = g,    
+     main = &quot;Harmonized Mean and Variance&quot;)
+}</code></pre>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<pre class="r"><code>par(oldpar)</code></pre>
+<!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It's replacement version `get_vars<-` is 6x faster than `[<-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). -->
+<p>For the manipulation of time series and panel series, <em>collapse</em> offers the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code>.</p>
+<pre class="r"><code># A sequence of lags and leads
+flag(EuStockMarkets, -1:1) %&gt;% head(3)             
 ##       F1.DAX     DAX  L1.DAX F1.SMI    SMI L1.SMI F1.CAC    CAC L1.CAC F1.FTSE   FTSE L1.FTSE
 ## [1,] 1613.63 1628.75      NA 1688.5 1678.1     NA 1750.5 1772.8     NA  2460.2 2443.6      NA
 ## [2,] 1606.51 1613.63 1628.75 1678.6 1688.5 1678.1 1718.0 1750.5 1772.8  2448.2 2460.2  2443.6
 ## [3,] 1621.04 1606.51 1613.63 1684.1 1678.6 1688.5 1708.1 1718.0 1750.5  2470.4 2448.2  2460.2
 
 # First and second annual difference of SAX and SMI indices (.c is for non-standard concatenation)
-EuStockMarkets[, .c(DAX, SMI)] %&amp;gt;% 
-  fdiff(0:1 * frequency(.), 1:2) %&amp;gt;% 
-  plot(main = c(&amp;quot;DAX and SMI&amp;quot;)) &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png&#34; width=&#34;100%&#34; /&gt;&lt;/p&gt;
-&lt;!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. --&gt;
-&lt;!-- At this point I will  --&gt;
-&lt;!-- ```{r, eval=FALSE} --&gt;
-&lt;!-- library(vars) --&gt;
-&lt;!-- library(ggplot2) --&gt;
-&lt;!-- library(data.table) # for melt function --&gt;
-&lt;!-- frequency(EuStockMarkets) --&gt;
-&lt;!-- VARselect(EuStockMarkets, type = &#34;both&#34;, season = 260) --&gt;
-&lt;!-- varmod &lt;- VAR(EuStockMarkets, p = 7, type = &#34;both&#34;, season = 260) --&gt;
-&lt;!-- serial.test(varmod) --&gt;
-&lt;!-- irf &lt;- irf(varmod) --&gt;
-&lt;!-- str(irf) --&gt;
-&lt;!-- irfdata &lt;- unlist2d(list_elem(irf), idcols = c(&#34;bound&#34;, &#34;series&#34;), row.names = &#34;time&#34;, --&gt;
-&lt;!--                     id.factor = TRUE, DT = TRUE) --&gt;
-&lt;!-- head(irfdata) --&gt;
-&lt;!-- melt(irfdata, 1:3) %&gt;% ggplot(aes(x = time, y = value, colour = series, shape = bound)) + --&gt;
-&lt;!--   geom_line() + facet_wrap(&#34;variable&#34;) --&gt;
-&lt;!-- ``` --&gt;
-&lt;p&gt;To facilitate programming and integration with &lt;em&gt;dplyr&lt;/em&gt;, all functions introduced so far have a &lt;em&gt;grouped_df&lt;/em&gt; method.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)
-iris %&amp;gt;% add_vars(wt) %&amp;gt;%             # Adding weight vector to dataset
-  filter(Sepal.Length &amp;lt; fmean(Sepal.Length)) %&amp;gt;% 
-  select(Species, Sepal.Width:wt) %&amp;gt;% 
-  group_by(Species) %&amp;gt;%               # Frequency-weighted group-variance, default (keep.w = TRUE)  
-  fvar(wt) %&amp;gt;% arrange(sum.wt)        # also saves group weights in a column called &amp;#39;sum.wt&amp;#39;
+EuStockMarkets[, .c(DAX, SMI)] %&gt;% 
+  fdiff(0:1 * frequency(.), 1:2) %&gt;% 
+  plot(main = c(&quot;DAX and SMI&quot;)) </code></pre>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. -->
+<!-- At this point I will  -->
+<!-- ```{r, eval=FALSE} -->
+<!-- library(vars) -->
+<!-- library(ggplot2) -->
+<!-- library(data.table) # for melt function -->
+<!-- frequency(EuStockMarkets) -->
+<!-- VARselect(EuStockMarkets, type = "both", season = 260) -->
+<!-- varmod <- VAR(EuStockMarkets, p = 7, type = "both", season = 260) -->
+<!-- serial.test(varmod) -->
+<!-- irf <- irf(varmod) -->
+<!-- str(irf) -->
+<!-- irfdata <- unlist2d(list_elem(irf), idcols = c("bound", "series"), row.names = "time", -->
+<!--                     id.factor = TRUE, DT = TRUE) -->
+<!-- head(irfdata) -->
+<!-- melt(irfdata, 1:3) %>% ggplot(aes(x = time, y = value, colour = series, shape = bound)) + -->
+<!--   geom_line() + facet_wrap("variable") -->
+<!-- ``` -->
+<p>To facilitate programming and integration with <em>dplyr</em>, all functions introduced so far have a <em>grouped_df</em> method.</p>
+<pre class="r"><code>library(dplyr)
+iris %&gt;% add_vars(wt) %&gt;%             # Adding weight vector to dataset
+  filter(Sepal.Length &lt; fmean(Sepal.Length)) %&gt;% 
+  select(Species, Sepal.Width:wt) %&gt;% 
+  group_by(Species) %&gt;%               # Frequency-weighted group-variance, default (keep.w = TRUE)  
+  fvar(wt) %&gt;% arrange(sum.wt)        # also saves group weights in a column called &#39;sum.wt&#39;
 ## # A tibble: 3 x 5
 ##   Species    sum.wt Sepal.Width Petal.Length Petal.Width
-##   &amp;lt;fct&amp;gt;       &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;        &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;
+##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
 ## 1 virginica    3.68      0.0193      0.00993      0.0281
 ## 2 versicolor  19.2       0.0802      0.181        0.0299
-## 3 setosa      43.8       0.142       0.0281       0.0134&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Since &lt;em&gt;dplyr&lt;/em&gt; operations are rather slow, &lt;em&gt;collapse&lt;/em&gt; provides its own set of manipulation verbs yielding significant performance gains.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Same as above.. executes about 15x faster 
-iris %&amp;gt;% add_vars(wt) %&amp;gt;%                    
-  fsubset(Sepal.Length &amp;lt; fmean(Sepal.Length), 
-          Species, Sepal.Width:wt) %&amp;gt;% 
-  fgroup_by(Species) %&amp;gt;%                     
-  fvar(wt) %&amp;gt;% roworder(sum.wt)       
+## 3 setosa      43.8       0.142       0.0281       0.0134</code></pre>
+<p>Since <em>dplyr</em> operations are rather slow, <em>collapse</em> provides its own set of manipulation verbs yielding significant performance gains.</p>
+<pre class="r"><code># Same as above.. executes about 15x faster 
+iris %&gt;% add_vars(wt) %&gt;%                    
+  fsubset(Sepal.Length &lt; fmean(Sepal.Length), 
+          Species, Sepal.Width:wt) %&gt;% 
+  fgroup_by(Species) %&gt;%                     
+  fvar(wt) %&gt;% roworder(sum.wt)       
 ## # A tibble: 3 x 5
 ##   Species    sum.wt Sepal.Width Petal.Length Petal.Width
-##   &amp;lt;fct&amp;gt;       &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;        &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;
+##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
 ## 1 virginica    3.68      0.0193      0.00993      0.0281
 ## 2 versicolor  19.2       0.0802      0.181        0.0299
 ## 3 setosa      43.8       0.142       0.0281       0.0134
 
 # Weighted demeaning
-iris %&amp;gt;% fgroup_by(Species) %&amp;gt;% num_vars %&amp;gt;% 
-  fwithin(wt) %&amp;gt;% head(3)  
+iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;% 
+  fwithin(wt) %&gt;% head(3)  
 ## # A tibble: 3 x 4
 ##   Sepal.Length Sepal.Width Petal.Length Petal.Width
-##          &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;        &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;
+##          &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
 ## 1       0.135        0.110      -0.0367     -0.0494
 ## 2      -0.0647      -0.390      -0.0367     -0.0494
 ## 3      -0.265       -0.190      -0.137      -0.0494
 
 # Generate some additional logical data
 settransform(iris, 
-  AWMSL = Sepal.Length &amp;gt; fmedian(Sepal.Length, w = wt), 
-  AGWMSL = Sepal.Length &amp;gt; fmedian(Sepal.Length, Species, wt, &amp;quot;replace&amp;quot;))
+  AWMSL = Sepal.Length &gt; fmedian(Sepal.Length, w = wt), 
+  AGWMSL = Sepal.Length &gt; fmedian(Sepal.Length, Species, wt, &quot;replace&quot;))
 
  # Grouped and weighted statistical mode
-iris %&amp;gt;% fgroup_by(Species) %&amp;gt;% fmode(wt)
+iris %&gt;% fgroup_by(Species) %&gt;% fmode(wt)
 ## # A tibble: 3 x 7
 ##   Species    Sepal.Length Sepal.Width Petal.Length Petal.Width AWMSL AGWMSL
-##   &amp;lt;fct&amp;gt;             &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;        &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt; &amp;lt;lgl&amp;gt; &amp;lt;lgl&amp;gt; 
+##   &lt;fct&gt;             &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;lgl&gt; &lt;lgl&gt; 
 ## 1 setosa              5             3          1.4         0.2 FALSE FALSE 
 ## 2 versicolor          5.8           3          4.5         1.3 TRUE  FALSE 
-## 3 virginica           6.3           3          5.1         2.3 TRUE  FALSE&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;To take things a bit further, let’s consider some multilevel / panel data:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# World Bank World Development Data - supplied with collapse
+## 3 virginica           6.3           3          5.1         2.3 TRUE  FALSE</code></pre>
+<p>To take things a bit further, let’s consider some multilevel / panel data:</p>
+<pre class="r"><code># World Bank World Development Data - supplied with collapse
 head(wlddev, 3)
 ##       country iso3c       date year decade     region     income  OECD PCGDP LIFEEX GINI       ODA
 ## 1 Afghanistan   AFG 1961-01-01 1960   1960 South Asia Low income FALSE    NA 32.292   NA 114440000
 ## 2 Afghanistan   AFG 1962-01-01 1961   1960 South Asia Low income FALSE    NA 32.742   NA 233350000
-## 3 Afghanistan   AFG 1963-01-01 1962   1960 South Asia Low income FALSE    NA 33.185   NA 114880000&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;All variables in this data have labels stored in a ‘label’ attribute (the default if you import from STATA / SPSS / SAS with &lt;em&gt;haven&lt;/em&gt;). Variable labels can be accessed and set using &lt;code&gt;vlabels&lt;/code&gt; and &lt;code&gt;vlabels&amp;lt;-&lt;/code&gt;, and viewed together with names and classes using &lt;code&gt;namlab&lt;/code&gt;. In general variable labels and other attributes will be preserved in when working with &lt;em&gt;collapse&lt;/em&gt;. &lt;em&gt;collapse&lt;/em&gt; provides some of the fastest and most advanced summary statistics:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Fast distinct value count
+## 3 Afghanistan   AFG 1963-01-01 1962   1960 South Asia Low income FALSE    NA 33.185   NA 114880000</code></pre>
+<p>All variables in this data have labels stored in a ‘label’ attribute (the default if you import from STATA / SPSS / SAS with <em>haven</em>). Variable labels can be accessed and set using <code>vlabels</code> and <code>vlabels&lt;-</code>, and viewed together with names and classes using <code>namlab</code>. In general variable labels and other attributes will be preserved in when working with <em>collapse</em>. <em>collapse</em> provides some of the fastest and most advanced summary statistics:</p>
+<pre class="r"><code># Fast distinct value count
 fNdistinct(wlddev)
 ## country   iso3c    date    year  decade  region  income    OECD   PCGDP  LIFEEX    GINI     ODA 
 ##     216     216      59      59       7       7       4       2    8995   10048     363    7564
@@ -264,92 +264,92 @@ qsu(wlddev, pid = PCGDP + GINI ~ iso3c,
 ## Within   8.4224  39.3976  3.0406  23.9576  54.7976  0.1421  5.7781
 
 # Panel data ACF: Efficient grouped standardizing and computing covariance with panel-lags
-psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/Rblog/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png&#34; width=&#34;100%&#34; /&gt;
-&lt;!--
+psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)</code></pre>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
+<!--
 For fast grouped statistics we can keep programming in standard evaluation as before, or we can use piped expressions. 
 
 
 ```r
-head3 &lt;- function(x) head(x, 3L)
+head3 <- function(x) head(x, 3L)
 head3(fmean(get_vars(wlddev, 9:12), 
-            get_vars(wlddev, c(&#34;region&#34;, &#34;income&#34;))))
+            get_vars(wlddev, c("region", "income"))))
 ##                                             PCGDP   LIFEEX     GINI       ODA
-## East Asia &amp; Pacific.High income         26042.280 73.22799 32.80000 177672692
-## East Asia &amp; Pacific.Lower middle income  1621.178 58.83796 36.21081 503484782
-## East Asia &amp; Pacific.Upper middle income  3432.559 66.41750 42.29524 242080501
+## East Asia & Pacific.High income         26042.280 73.22799 32.80000 177672692
+## East Asia & Pacific.Lower middle income  1621.178 58.83796 36.21081 503484782
+## East Asia & Pacific.Upper middle income  3432.559 66.41750 42.29524 242080501
 
-`%&gt;%` &lt;- magrittr::`%&gt;%` 
-wlddev %&gt;% fgroup_by(region, income) %&gt;% 
-  fselect(PCGDP:ODA) %&gt;% fmean %&gt;% head3
+`%>%` <- magrittr::`%>%` 
+wlddev %>% fgroup_by(region, income) %>% 
+  fselect(PCGDP:ODA) %>% fmean %>% head3
 ## # A tibble: 3 x 6
 ##   region              income               PCGDP LIFEEX  GINI        ODA
-##   &lt;fct&gt;               &lt;fct&gt;                &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
-## 1 East Asia &amp; Pacific High income         26042.   73.2  32.8 177672692.
-## 2 East Asia &amp; Pacific Lower middle income  1621.   58.8  36.2 503484782.
-## 3 East Asia &amp; Pacific Upper middle income  3433.   66.4  42.3 242080501.
+##   <fct>               <fct>                <dbl>  <dbl> <dbl>      <dbl>
+## 1 East Asia & Pacific High income         26042.   73.2  32.8 177672692.
+## 2 East Asia & Pacific Lower middle income  1621.   58.8  36.2 503484782.
+## 3 East Asia & Pacific Upper middle income  3433.   66.4  42.3 242080501.
 ```
 
-I note that the default is `na.rm = TRUE` for all *collapse* functions^[Missing values are efficiently skipped at C++ level with hardly any computational cost. This also pertains to missing values occurring in the weight vector. If `na.rm = FALSE`, execution will stop when a missing value is encountered, and `NA` is returned. This also speeds up computations compared to base R, particularly if some columns or some groups have missing values and others not. The fast functions also avoid `NaN`&#39;s being created from computations involving `NA` values, and functions like `fsum` are well behaved (i.e. `fsum(NA)` gives `NA`, not `0` like `sum(NA, na.rm = TRUE)`, similarly for `fmin` and `fmax`).]  I also note that you can also use `dplyr::group_by` and `dplyr::select`, but `fgroup_by` and `fselect` are significantly faster (see benchmark). We can do a weighted aggregation using the variable `ODA` as weights using:
+I note that the default is `na.rm = TRUE` for all *collapse* functions^[Missing values are efficiently skipped at C++ level with hardly any computational cost. This also pertains to missing values occurring in the weight vector. If `na.rm = FALSE`, execution will stop when a missing value is encountered, and `NA` is returned. This also speeds up computations compared to base R, particularly if some columns or some groups have missing values and others not. The fast functions also avoid `NaN`'s being created from computations involving `NA` values, and functions like `fsum` are well behaved (i.e. `fsum(NA)` gives `NA`, not `0` like `sum(NA, na.rm = TRUE)`, similarly for `fmin` and `fmax`).]  I also note that you can also use `dplyr::group_by` and `dplyr::select`, but `fgroup_by` and `fselect` are significantly faster (see benchmark). We can do a weighted aggregation using the variable `ODA` as weights using:
 
 
 ```r
 # Weighted group mean: Weighted by ODA
-wlddev %&gt;% fgroup_by(region, income) %&gt;% 
-  fselect(PCGDP:ODA) %&gt;% fmean(ODA) %&gt;% head3
+wlddev %>% fgroup_by(region, income) %>% 
+  fselect(PCGDP:ODA) %>% fmean(ODA) %>% head3
 ## # A tibble: 3 x 6
 ##   region              income                   sum.ODA PCGDP LIFEEX  GINI
-##   &lt;fct&gt;               &lt;fct&gt;                      &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1 East Asia &amp; Pacific High income          64672860000 2332.   64.6  NA  
-## 2 East Asia &amp; Pacific Lower middle income 346397530000 1411.   62.5  36.2
-## 3 East Asia &amp; Pacific Upper middle income 106273340000 1707.   68.8  44.6
+##   <fct>               <fct>                      <dbl> <dbl>  <dbl> <dbl>
+## 1 East Asia & Pacific High income          64672860000 2332.   64.6  NA  
+## 2 East Asia & Pacific Lower middle income 346397530000 1411.   62.5  36.2
+## 3 East Asia & Pacific Upper middle income 106273340000 1707.   68.8  44.6
 ```
 
 Note that in this case by default (`keep.w = TRUE`) the sum of the weights is also computed and saved. 
---&gt;&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;collapse&lt;/em&gt; also has its own very flexible data aggregation command called &lt;code&gt;collap&lt;/code&gt;, providing fast and easy multi-data-type, multi-function, weighted, parallelized and fully customized data aggregation.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Applying the mean to numeric and the mode to categorical data (first 2 arguments are &amp;#39;by&amp;#39; and &amp;#39;FUN&amp;#39;)
+--></p>
+<p><em>collapse</em> also has its own very flexible data aggregation command called <code>collap</code>, providing fast and easy multi-data-type, multi-function, weighted, parallelized and fully customized data aggregation.</p>
+<pre class="r"><code># Applying the mean to numeric and the mode to categorical data (first 2 arguments are &#39;by&#39; and &#39;FUN&#39;)
 collap(wlddev, ~ iso3c + decade, fmean, 
-       catFUN = fmode) %&amp;gt;% head(3)
+       catFUN = fmode) %&gt;% head(3)
 ##   country iso3c       date   year decade                     region      income  OECD PCGDP   LIFEEX
-## 1   Aruba   ABW 1961-01-01 1962.5   1960 Latin America &amp;amp; Caribbean  High income FALSE    NA 66.58583
-## 2   Aruba   ABW 1967-01-01 1970.0   1970 Latin America &amp;amp; Caribbean  High income FALSE    NA 69.14178
-## 3   Aruba   ABW 1976-01-01 1980.0   1980 Latin America &amp;amp; Caribbean  High income FALSE    NA 72.17600
+## 1   Aruba   ABW 1961-01-01 1962.5   1960 Latin America &amp; Caribbean  High income FALSE    NA 66.58583
+## 2   Aruba   ABW 1967-01-01 1970.0   1970 Latin America &amp; Caribbean  High income FALSE    NA 69.14178
+## 3   Aruba   ABW 1976-01-01 1980.0   1980 Latin America &amp; Caribbean  High income FALSE    NA 72.17600
 ##   GINI      ODA
 ## 1   NA       NA
 ## 2   NA       NA
 ## 3   NA 33630000
 
 # Same as a piped call.. 
-wlddev %&amp;gt;% fgroup_by(iso3c, decade) %&amp;gt;% 
-  collapg(fmean, fmode) %&amp;gt;% head(3)
+wlddev %&gt;% fgroup_by(iso3c, decade) %&gt;% 
+  collapg(fmean, fmode) %&gt;% head(3)
 ## # A tibble: 3 x 12
 ##   iso3c decade country date        year region             income    OECD  PCGDP LIFEEX  GINI     ODA
-##   &amp;lt;fct&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;   &amp;lt;date&amp;gt;     &amp;lt;dbl&amp;gt; &amp;lt;fct&amp;gt;              &amp;lt;fct&amp;gt;     &amp;lt;lgl&amp;gt; &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt;
-## 1 ABW     1960 Aruba   1961-01-01 1962. &amp;quot;Latin America &amp;amp; ~ High inc~ FALSE    NA   66.6    NA NA     
-## 2 ABW     1970 Aruba   1967-01-01 1970  &amp;quot;Latin America &amp;amp; ~ High inc~ FALSE    NA   69.1    NA NA     
-## 3 ABW     1980 Aruba   1976-01-01 1980  &amp;quot;Latin America &amp;amp; ~ High inc~ FALSE    NA   72.2    NA  3.36e7
+##   &lt;fct&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;date&gt;     &lt;dbl&gt; &lt;fct&gt;              &lt;fct&gt;     &lt;lgl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1 ABW     1960 Aruba   1961-01-01 1962. &quot;Latin America &amp; ~ High inc~ FALSE    NA   66.6    NA NA     
+## 2 ABW     1970 Aruba   1967-01-01 1970  &quot;Latin America &amp; ~ High inc~ FALSE    NA   69.1    NA NA     
+## 3 ABW     1980 Aruba   1976-01-01 1980  &quot;Latin America &amp; ~ High inc~ FALSE    NA   72.2    NA  3.36e7
 
 # Same thing done manually... without column reordering 
-wlddev %&amp;gt;% fgroup_by(iso3c, decade) %&amp;gt;% {
+wlddev %&gt;% fgroup_by(iso3c, decade) %&gt;% {
   add_vars(fmode(cat_vars(.)),  # cat_vars selects non-numeric (categorical) columns
            fmean(num_vars(.), keep.group_vars = FALSE)) 
-} %&amp;gt;% head(3)
+} %&gt;% head(3)
 ## # A tibble: 3 x 12
 ##   iso3c decade country date       region             income    OECD   year PCGDP LIFEEX  GINI     ODA
-##   &amp;lt;fct&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;   &amp;lt;date&amp;gt;     &amp;lt;fct&amp;gt;              &amp;lt;fct&amp;gt;     &amp;lt;lgl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt;
-## 1 ABW     1960 Aruba   1961-01-01 &amp;quot;Latin America &amp;amp; ~ High inc~ FALSE 1962.    NA   66.6    NA NA     
-## 2 ABW     1970 Aruba   1967-01-01 &amp;quot;Latin America &amp;amp; ~ High inc~ FALSE 1970     NA   69.1    NA NA     
-## 3 ABW     1980 Aruba   1976-01-01 &amp;quot;Latin America &amp;amp; ~ High inc~ FALSE 1980     NA   72.2    NA  3.36e7
+##   &lt;fct&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;date&gt;     &lt;fct&gt;              &lt;fct&gt;     &lt;lgl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1 ABW     1960 Aruba   1961-01-01 &quot;Latin America &amp; ~ High inc~ FALSE 1962.    NA   66.6    NA NA     
+## 2 ABW     1970 Aruba   1967-01-01 &quot;Latin America &amp; ~ High inc~ FALSE 1970     NA   69.1    NA NA     
+## 3 ABW     1980 Aruba   1976-01-01 &quot;Latin America &amp; ~ High inc~ FALSE 1980     NA   72.2    NA  3.36e7
 
 # Adding weights: weighted mean and weighted mode (catFUN is 3rd argument) 
-wlddev$weights &amp;lt;- abs(rnorm(fnrow(wlddev)))
+wlddev$weights &lt;- abs(rnorm(fnrow(wlddev)))
 collap(wlddev, ~ iso3c + decade, fmean, fmode, # weights are also aggregated using sum
-       w = ~ weights, wFUN = fsum) %&amp;gt;% head(3)
+       w = ~ weights, wFUN = fsum) %&gt;% head(3)
 ##   country iso3c       date     year decade                     region      income  OECD PCGDP
-## 1   Aruba   ABW 1965-01-01 1963.375   1960 Latin America &amp;amp; Caribbean  High income FALSE    NA
-## 2   Aruba   ABW 1967-01-01 1969.179   1970 Latin America &amp;amp; Caribbean  High income FALSE    NA
-## 3   Aruba   ABW 1980-01-01 1980.443   1980 Latin America &amp;amp; Caribbean  High income FALSE    NA
+## 1   Aruba   ABW 1965-01-01 1963.375   1960 Latin America &amp; Caribbean  High income FALSE    NA
+## 2   Aruba   ABW 1967-01-01 1969.179   1970 Latin America &amp; Caribbean  High income FALSE    NA
+## 3   Aruba   ABW 1980-01-01 1980.443   1980 Latin America &amp; Caribbean  High income FALSE    NA
 ##     LIFEEX GINI      ODA  weights
 ## 1 66.87902   NA       NA 4.527996
 ## 2 68.85522   NA       NA 7.314234
@@ -357,73 +357,73 @@ collap(wlddev, ~ iso3c + decade, fmean, fmode, # weights are also aggregated usi
 
 # Can also apply multiple functions to columns, return in wide or long format or as list of data frames 
 collap(wlddev, PCGDP + LIFEEX ~ region + income, 
-       list(fmean, fsd, fmin, fmax), return = &amp;quot;long&amp;quot;) %&amp;gt;% head(3)
+       list(fmean, fsd, fmin, fmax), return = &quot;long&quot;) %&gt;% head(3)
 ##   Function              region              income     PCGDP   LIFEEX
-## 1    fmean East Asia &amp;amp; Pacific         High income 26042.280 73.22799
-## 2    fmean East Asia &amp;amp; Pacific Lower middle income  1621.178 58.83796
-## 3    fmean East Asia &amp;amp; Pacific Upper middle income  3432.559 66.41750&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The default (&lt;code&gt;keep.col.order = TRUE&lt;/code&gt;) ensures that the data remains in the same order, and, when working with &lt;em&gt;Fast Statistical Functions&lt;/em&gt;, all column attributes are preserved. It is also possible to provide fully customized calls:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Fully custom aggregation (also possible with weights)
-collapv(wlddev, c(&amp;quot;iso3c&amp;quot;, &amp;quot;decade&amp;quot;), # collapv allows names or indices of grouping variables
+## 1    fmean East Asia &amp; Pacific         High income 26042.280 73.22799
+## 2    fmean East Asia &amp; Pacific Lower middle income  1621.178 58.83796
+## 3    fmean East Asia &amp; Pacific Upper middle income  3432.559 66.41750</code></pre>
+<p>The default (<code>keep.col.order = TRUE</code>) ensures that the data remains in the same order, and, when working with <em>Fast Statistical Functions</em>, all column attributes are preserved. It is also possible to provide fully customized calls:</p>
+<pre class="r"><code># Fully custom aggregation (also possible with weights)
+collapv(wlddev, c(&quot;iso3c&quot;, &quot;decade&quot;), # collapv allows names or indices of grouping variables
         custom = list(fmean = 9:12, 
                       fmax = 9:10, 
-                      flast = cat_vars(wlddev, &amp;quot;indices&amp;quot;),
-                      fmode = &amp;quot;GINI&amp;quot;), keep.col.order = FALSE) %&amp;gt;% head(3)
+                      flast = cat_vars(wlddev, &quot;indices&quot;),
+                      fmode = &quot;GINI&quot;), keep.col.order = FALSE) %&gt;% head(3)
 ##   iso3c decade fmean.PCGDP fmean.LIFEEX fmean.GINI fmean.ODA fmax.PCGDP fmax.LIFEEX flast.country
 ## 1   ABW   1960          NA     66.58583         NA        NA         NA      67.435         Aruba
 ## 2   ABW   1970          NA     69.14178         NA        NA         NA      70.519         Aruba
 ## 3   ABW   1980          NA     72.17600         NA  33630000         NA      73.181         Aruba
 ##   flast.iso3c flast.date               flast.region flast.income flast.OECD fmode.GINI
-## 1         ABW 1966-01-01 Latin America &amp;amp; Caribbean   High income      FALSE         NA
-## 2         ABW 1975-01-01 Latin America &amp;amp; Caribbean   High income      FALSE         NA
-## 3         ABW 1986-01-01 Latin America &amp;amp; Caribbean   High income      FALSE         NA&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;When aggregating with multiple functions, you can parallelize over them (internally done with &lt;code&gt;parallel::mclapply&lt;/code&gt;).&lt;/p&gt;
-&lt;p&gt;Time computations on panel data are also simple and computationally very fast.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Panel Lag and lead of PCGDP and LIFEEX
-L(wlddev, -1:1, PCGDP + LIFEEX ~ iso3c, ~year) %&amp;gt;% head3
+## 1         ABW 1966-01-01 Latin America &amp; Caribbean   High income      FALSE         NA
+## 2         ABW 1975-01-01 Latin America &amp; Caribbean   High income      FALSE         NA
+## 3         ABW 1986-01-01 Latin America &amp; Caribbean   High income      FALSE         NA</code></pre>
+<p>When aggregating with multiple functions, you can parallelize over them (internally done with <code>parallel::mclapply</code>).</p>
+<p>Time computations on panel data are also simple and computationally very fast.</p>
+<pre class="r"><code># Panel Lag and lead of PCGDP and LIFEEX
+L(wlddev, -1:1, PCGDP + LIFEEX ~ iso3c, ~year) %&gt;% head3
 ##   iso3c year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
 ## 1   AFG 1960       NA    NA       NA    32.742 32.292        NA
 ## 2   AFG 1961       NA    NA       NA    33.185 32.742    32.292
 ## 3   AFG 1962       NA    NA       NA    33.624 33.185    32.742
 
 # Equivalent piped call
-wlddev %&amp;gt;% fgroup_by(iso3c) %&amp;gt;% 
-  fselect(iso3c, year, PCGDP, LIFEEX) %&amp;gt;% 
-  flag(-1:1, year) %&amp;gt;% head(3)
+wlddev %&gt;% fgroup_by(iso3c) %&gt;% 
+  fselect(iso3c, year, PCGDP, LIFEEX) %&gt;% 
+  flag(-1:1, year) %&gt;% head(3)
 ## # A tibble: 3 x 8
 ##   iso3c  year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
-##   &amp;lt;fct&amp;gt; &amp;lt;int&amp;gt;    &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;    &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;
+##   &lt;fct&gt; &lt;int&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
 ## 1 AFG    1960       NA    NA       NA      32.7   32.3      NA  
 ## 2 AFG    1961       NA    NA       NA      33.2   32.7      32.3
 ## 3 AFG    1962       NA    NA       NA      33.6   33.2      32.7
 
 # Or using plm classes for panel data
-pwlddev &amp;lt;- plm::pdata.frame(wlddev, index = .c(iso3c, year))
-L(pwlddev, -1:1, cols = .c(PCGDP, LIFEEX)) %&amp;gt;% head(3)
+pwlddev &lt;- plm::pdata.frame(wlddev, index = .c(iso3c, year))
+L(pwlddev, -1:1, cols = .c(PCGDP, LIFEEX)) %&gt;% head(3)
 ##          iso3c year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
 ## ABW-1960   ABW 1960       NA    NA       NA    66.074 65.662        NA
 ## ABW-1961   ABW 1961       NA    NA       NA    66.444 66.074    65.662
 ## ABW-1962   ABW 1962       NA    NA       NA    66.787 66.444    66.074
 
 # Growth rates in percentage terms: 1 and 10-year
-G(pwlddev, c(1, 10), cols = 9:12) %&amp;gt;% head(3) # or use Dlog, or G(..., logdiff = TRUE) for percentages
+G(pwlddev, c(1, 10), cols = 9:12) %&gt;% head(3) # or use Dlog, or G(..., logdiff = TRUE) for percentages
 ##          iso3c year G1.PCGDP L10G1.PCGDP G1.LIFEEX L10G1.LIFEEX G1.GINI L10G1.GINI G1.ODA L10G1.ODA
 ## ABW-1960   ABW 1960       NA          NA        NA           NA      NA         NA     NA        NA
 ## ABW-1961   ABW 1961       NA          NA 0.6274558           NA      NA         NA     NA        NA
-## ABW-1962   ABW 1962       NA          NA 0.5599782           NA      NA         NA     NA        NA&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Equivalently we can can compute lagged / leaded and suitably iterated (log-) differences, as well as quasi-(log-)differences of the form &lt;span class=&#34;math inline&#34;&gt;\(x_t - \rho x_{t-1}\)&lt;/span&gt;. The operators &lt;code&gt;L&lt;/code&gt;, &lt;code&gt;D&lt;/code&gt;, &lt;code&gt;Dlog&lt;/code&gt; and &lt;code&gt;G&lt;/code&gt; are shorthand’s for the functions &lt;code&gt;flag&lt;/code&gt;, &lt;code&gt;fdiff&lt;/code&gt; and &lt;code&gt;fgrowth&lt;/code&gt; allowing formula input. Similar operators exist for &lt;code&gt;fwithin&lt;/code&gt;, &lt;code&gt;fscale&lt;/code&gt;, etc. which also support &lt;em&gt;plm&lt;/em&gt; classes.&lt;/p&gt;
-&lt;p&gt;This short demonstration illustrated some basic features of &lt;em&gt;collapse&lt;/em&gt;. A more complete overview of the package is provided in the &lt;a href=&#34;https://sebkrantz.github.io/collapse/reference/index.html&#34;&gt;documentation&lt;/a&gt; and the &lt;a href=&#34;https://sebkrantz.github.io/collapse/articles/index.html&#34;&gt;vignettes&lt;/a&gt;.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id=&#34;benchmark&#34; class=&#34;section level1&#34;&gt;
-&lt;h1&gt;Benchmark&lt;/h1&gt;
-&lt;p&gt;For benchmarking I use some product-level trade data from the UN Comtrade database, processed by &lt;a href=&#34;https://tradestatistics.io/&#34;&gt;tadestatistics.io&lt;/a&gt;.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(tradestatistics)
+## ABW-1962   ABW 1962       NA          NA 0.5599782           NA      NA         NA     NA        NA</code></pre>
+<p>Equivalently we can can compute lagged / leaded and suitably iterated (log-) differences, as well as quasi-(log-)differences of the form <span class="math inline">\(x_t - \rho x_{t-1}\)</span>. The operators <code>L</code>, <code>D</code>, <code>Dlog</code> and <code>G</code> are shorthand’s for the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code> allowing formula input. Similar operators exist for <code>fwithin</code>, <code>fscale</code>, etc. which also support <em>plm</em> classes.</p>
+<p>This short demonstration illustrated some basic features of <em>collapse</em>. A more complete overview of the package is provided in the <a href="https://sebkrantz.github.io/collapse/reference/index.html">documentation</a> and the <a href="https://sebkrantz.github.io/collapse/articles/index.html">vignettes</a>.</p>
+</div>
+<div id="benchmark" class="section level1">
+<h1>Benchmark</h1>
+<p>For benchmarking I use some product-level trade data from the UN Comtrade database, processed by <a href="https://tradestatistics.io/">tadestatistics.io</a>.</p>
+<pre class="r"><code>library(tradestatistics)
 # US HS4-level trade from 2000 to 2018
-us_trade &amp;lt;- ots_create_tidy_data(years = 2000:2018,
-                                 reporters = &amp;quot;usa&amp;quot;,
-                                 table = &amp;quot;yrpc&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Downloading US product-level trade (HS4) from 2000 to 2018 gives about 2.6 million observations:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fdim(us_trade)
+us_trade &lt;- ots_create_tidy_data(years = 2000:2018,
+                                 reporters = &quot;usa&quot;,
+                                 table = &quot;yrpc&quot;)</code></pre>
+<p>Downloading US product-level trade (HS4) from 2000 to 2018 gives about 2.6 million observations:</p>
+<pre class="r"><code>fdim(us_trade)
 ## [1] 2569787      16
 head(us_trade, 1)
 ##    year reporter_iso                                                   reporter_fullname_english
@@ -466,38 +466,38 @@ qsu(us_trade, pid = export_value_usd + import_value_usd ~ partner_iso + product_
 ##               N/T         Mean          SD              Min             Max
 ## Overall  1,248201  31,421502.4  505,644905                1  8.51970855e+10
 ## Between    130114  16,250758.2  328,538895                1  4.36545695e+10
-## Within     9.5931  31,421502.4  212,076350  -3.32316111e+10  4.15739375e+10&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;It would also be interesting to summarize the trade flows for each partner, but that would be too large to print to the console. We can however get the &lt;code&gt;qsu&lt;/code&gt; output as a list of matrices:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Doing all of that by partner - variance of flows between and within traded products for each partner
-l &amp;lt;- qsu(us_trade, 
+## Within     9.5931  31,421502.4  212,076350  -3.32316111e+10  4.15739375e+10</code></pre>
+<p>It would also be interesting to summarize the trade flows for each partner, but that would be too large to print to the console. We can however get the <code>qsu</code> output as a list of matrices:</p>
+<pre class="r"><code># Doing all of that by partner - variance of flows between and within traded products for each partner
+l &lt;- qsu(us_trade, 
          by = export_value_usd + import_value_usd ~ partner_iso,
          pid = ~ partner_iso + product_code, array = FALSE)
 str(l, give.attr = FALSE)
 ## List of 2
 ##  $ export_value_usd:List of 3
-##   ..$ Overall: &amp;#39;qsu&amp;#39; num [1:221, 1:5] 7250 12427 6692 5941 4017 ...
-##   ..$ Between: &amp;#39;qsu&amp;#39; num [1:221, 1:5] 901 1151 872 903 695 ...
-##   ..$ Within : &amp;#39;qsu&amp;#39; num [1:221, 1:5] 8.05 10.8 7.67 6.58 5.78 ...
+##   ..$ Overall: &#39;qsu&#39; num [1:221, 1:5] 7250 12427 6692 5941 4017 ...
+##   ..$ Between: &#39;qsu&#39; num [1:221, 1:5] 901 1151 872 903 695 ...
+##   ..$ Within : &#39;qsu&#39; num [1:221, 1:5] 8.05 10.8 7.67 6.58 5.78 ...
 ##  $ import_value_usd:List of 3
-##   ..$ Overall: &amp;#39;qsu&amp;#39; num [1:221, 1:5] 1157 1547 361 1512 685 ...
-##   ..$ Between: &amp;#39;qsu&amp;#39; num [1:221, 1:5] 312 532 167 347 235 ...
-##   ..$ Within : &amp;#39;qsu&amp;#39; num [1:221, 1:5] 3.71 2.91 2.16 4.36 2.91 ...&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Now with the function &lt;code&gt;unlist2d&lt;/code&gt;, we can efficiently turn this into a tidy data frame:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;unlist2d(l, idcols = c(&amp;quot;Variable&amp;quot;, &amp;quot;Trans&amp;quot;),
-         row.names = &amp;quot;Partner&amp;quot;, DT = TRUE) %&amp;gt;% head(3)
+##   ..$ Overall: &#39;qsu&#39; num [1:221, 1:5] 1157 1547 361 1512 685 ...
+##   ..$ Between: &#39;qsu&#39; num [1:221, 1:5] 312 532 167 347 235 ...
+##   ..$ Within : &#39;qsu&#39; num [1:221, 1:5] 3.71 2.91 2.16 4.36 2.91 ...</code></pre>
+<p>Now with the function <code>unlist2d</code>, we can efficiently turn this into a tidy data frame:</p>
+<pre class="r"><code>unlist2d(l, idcols = c(&quot;Variable&quot;, &quot;Trans&quot;),
+         row.names = &quot;Partner&quot;, DT = TRUE) %&gt;% head(3)
 ##            Variable   Trans Partner     N      Mean         SD  Min        Max
 ## 1: export_value_usd Overall     afg  7250 2170074.0 21176449.3   56 1115125722
 ## 2: export_value_usd Overall     ago 12427 2188174.6 17158413.8    1  687323408
-## 3: export_value_usd Overall     aia  6692  125729.3   586862.2 2503   17698445&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;If &lt;code&gt;l&lt;/code&gt; were some statistical object we could first pull out relevant elements using &lt;code&gt;get_elem&lt;/code&gt;, possibly process those elements using &lt;code&gt;rapply2d&lt;/code&gt; and then apply &lt;code&gt;unlist2d&lt;/code&gt; to get the data frame (or data.table with &lt;code&gt;DT = TRUE&lt;/code&gt;). These are the main &lt;em&gt;collapse&lt;/em&gt; list-processing functions.&lt;/p&gt;
-&lt;p&gt;Now on to the benchmark. It is run on a Windows 8.1 laptop with a 2x 2.2 GHZ Intel i5 processor, 8GB DDR3 RAM and a Samsung 850 EVO SSD hard drive.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(microbenchmark)
+## 3: export_value_usd Overall     aia  6692  125729.3   586862.2 2503   17698445</code></pre>
+<p>If <code>l</code> were some statistical object we could first pull out relevant elements using <code>get_elem</code>, possibly process those elements using <code>rapply2d</code> and then apply <code>unlist2d</code> to get the data frame (or data.table with <code>DT = TRUE</code>). These are the main <em>collapse</em> list-processing functions.</p>
+<p>Now on to the benchmark. It is run on a Windows 8.1 laptop with a 2x 2.2 GHZ Intel i5 processor, 8GB DDR3 RAM and a Samsung 850 EVO SSD hard drive.</p>
+<pre class="r"><code>library(microbenchmark)
 library(dplyr)
 library(data.table) # Default for this machine is 2 threads
 
 # Grouping (data.table:::forderv here does not compute the unique groups yet)
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year),
-               data.table = data.table:::forderv(us_trade, c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;), retGrp = TRUE),
+               data.table = data.table:::forderv(us_trade, c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;), retGrp = TRUE),
                dplyr = group_by(us_trade, partner_iso, group_code, year), times = 10)
 ## Unit: milliseconds
 ##        expr        min        lq      mean    median        uq       max neval cld
@@ -509,9 +509,9 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year),
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fsum),
                data.table = us_trade[, list(export_value_usd = sum(export_value_usd, na.rm = TRUE),
                                             import_value_usd = sum(import_value_usd, na.rm = TRUE)),
-                                     by = c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;)],
-               dplyr = group_by(us_trade, partner_iso, group_code, year) %&amp;gt;%
-                 dplyr::select(export_value_usd, import_value_usd) %&amp;gt;% summarise_all(sum, na.rm = TRUE), times = 10)
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(sum, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean    median        uq       max neval cld
 ##    collapse  121.6313  126.8872  138.0655  132.5655  139.3612  176.9097    10  a 
@@ -522,9 +522,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fmean),
                data.table = us_trade[, list(export_value_usd = mean(export_value_usd, na.rm = TRUE),
                                             import_value_usd = mean(import_value_usd, na.rm = TRUE)),
-                                     by = c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;)],
-               dplyr = group_by(us_trade, partner_iso, group_code, year) %&amp;gt;%
-                 dplyr::select(export_value_usd, import_value_usd) %&amp;gt;% summarise_all(mean, na.rm = TRUE), times = 10)
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(mean, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean    median        uq       max neval cld
 ##    collapse  133.3261  136.8323  156.4112  147.7642  170.5949  206.3643    10  a 
@@ -535,9 +535,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fvar),
                data.table = us_trade[, list(export_value_usd = var(export_value_usd, na.rm = TRUE),
                                             import_value_usd = var(import_value_usd, na.rm = TRUE)),
-                                     by = c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;)],
-               dplyr = group_by(us_trade, partner_iso, group_code, year) %&amp;gt;%
-                 dplyr::select(export_value_usd, import_value_usd) %&amp;gt;% summarise_all(var, na.rm = TRUE), times = 10)
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(var, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min         lq       mean     median         uq        max neval cld
 ##    collapse  137.4660   145.3172   149.2197   148.8888   153.0498   166.1369    10  a 
@@ -545,8 +545,8 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
 ##       dplyr 9966.0937 11013.0331 11428.4869 11281.9907 11816.9584 12970.7931    10   b
 
 # Mode (forget trying to do this with dplyr or data.table using some mode function created in base R, it runs forever...)
-microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&amp;gt;% 
-                 fselect(export_value_usd, import_value_usd) %&amp;gt;% fmode, times = 10)
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&gt;% 
+                 fselect(export_value_usd, import_value_usd) %&gt;% fmode, times = 10)
 ## Unit: milliseconds
 ##      expr      min       lq     mean  median       uq      max neval
 ##  collapse 459.1816 514.8982 567.0183 562.834 572.5453 775.1321    10
@@ -556,7 +556,7 @@ settransform(us_trade, weights = abs(rnorm(length(year))))
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fmean, w = ~ weights, keep.w = FALSE),
                data.table = us_trade[, list(export_value_usd = weighted.mean(export_value_usd, weights, na.rm = TRUE),
                                             import_value_usd = weighted.mean(import_value_usd, weights, na.rm = TRUE)),
-                                     by = c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;)], times = 10)
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)], times = 10)
 ## Unit: milliseconds
 ##        expr       min       lq      mean   median        uq       max neval cld
 ##    collapse  121.1436  124.922  145.6163  126.611  150.7958  219.8369    10  a 
@@ -564,13 +564,13 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
 
 
 # Replace values with group-sum
-microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&amp;gt;%
-                 fselect(export_value_usd, import_value_usd) %&amp;gt;% fsum(TRA = &amp;quot;replace_fill&amp;quot;),
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 fselect(export_value_usd, import_value_usd) %&gt;% fsum(TRA = &quot;replace_fill&quot;),
                data.table = us_trade[, `:=`(export_value_usd2 = sum(export_value_usd, na.rm = TRUE),
                                             import_value_usd2 = sum(import_value_usd, na.rm = TRUE)),
-                                     by = c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;)],
-               dplyr = group_by(us_trade, partner_iso, group_code, year) %&amp;gt;%
-                 dplyr::select(export_value_usd, import_value_usd) %&amp;gt;% mutate_all(sum, na.rm = TRUE), times = 10)
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(sum, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean   median        uq       max neval cld
 ##    collapse  143.2029  157.3766  197.5339  186.320  225.0063  315.4146    10 a  
@@ -578,13 +578,13 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&a
 ##       dplyr 2662.5698 3003.1456 3234.8601 3079.397 3451.9015 4265.0801    10   c
 
 # Centering, partner-product
-microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&amp;gt;%
-                 fselect(export_value_usd, import_value_usd) %&amp;gt;% fwithin,
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&gt;%
+                 fselect(export_value_usd, import_value_usd) %&gt;% fwithin,
                data.table = us_trade[, `:=`(export_value_usd2 = export_value_usd - mean(export_value_usd, na.rm = TRUE),
                                             import_value_usd2 = import_value_usd - mean(import_value_usd, na.rm = TRUE)),
-                                     by = c(&amp;quot;partner_iso&amp;quot;, &amp;quot;group_code&amp;quot;, &amp;quot;year&amp;quot;)],
-               dplyr = group_by(us_trade, partner_iso, group_code, year) %&amp;gt;%
-                 dplyr::select(export_value_usd, import_value_usd) %&amp;gt;% mutate_all(function(x) x - mean(x, na.rm = TRUE)), times = 10)
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(function(x) x - mean(x, na.rm = TRUE)), times = 10)
 ## Unit: milliseconds
 ##        expr        min        lq      mean    median       uq        max neval cld
 ##    collapse   85.83697  101.2428  119.5651  118.1308  142.152   149.6829    10 a  
@@ -597,7 +597,7 @@ setorder(us_trade, partner_iso, product_code, year)
 # We have an additional problem here: There are time-gaps within some partner-product pairs
 tryCatch(L(us_trade, 1, export_value_usd + import_value_usd ~ partner_iso + product_code, ~ year),
          error = function(e) e)
-## &amp;lt;Rcpp::exception in L.data.frame(us_trade, 1, export_value_usd + import_value_usd ~     partner_iso + product_code, ~year): Gaps in timevar within one or more groups&amp;gt;
+## &lt;Rcpp::exception in L.data.frame(us_trade, 1, export_value_usd + import_value_usd ~     partner_iso + product_code, ~year): Gaps in timevar within one or more groups&gt;
 # The solution is that we create a unique id for each continuous partner-product sequence
 settransform(us_trade, id = seqid(year + unattrib(finteraction(partner_iso, product_code)) * 20L))
 # Notes: Normally id = seqid(year) would be enough on sorted data, but here we also have very different start and end dates, with the potential of overlaps...
@@ -614,10 +614,10 @@ microbenchmark(fNdistinct(us_trade$id), n_distinct(us_trade$id))
 microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ id),
                collapse_ordered = L(us_trade, 1, export_value_usd + import_value_usd ~ id, ~ year),
                data.table = us_trade[, shift(.SD), keyby = id,
-                                     .SDcols = c(&amp;quot;export_value_usd&amp;quot;,&amp;quot;import_value_usd&amp;quot;)],
+                                     .SDcols = c(&quot;export_value_usd&quot;,&quot;import_value_usd&quot;)],
                data.table_ordered = us_trade[order(year), shift(.SD), keyby = id,
-                                             .SDcols = c(&amp;quot;export_value_usd&amp;quot;,&amp;quot;import_value_usd&amp;quot;)],
-               dplyr = group_by(us_trade, id) %&amp;gt;% dplyr::select(export_value_usd, import_value_usd) %&amp;gt;%
+                                             .SDcols = c(&quot;export_value_usd&quot;,&quot;import_value_usd&quot;)],
+               dplyr = group_by(us_trade, id) %&gt;% dplyr::select(export_value_usd, import_value_usd) %&gt;%
                  mutate_all(lag), times = 10)
 ## Unit: milliseconds
 ##                expr         min          lq        mean      median          uq         max neval
@@ -633,21 +633,21 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
 ##   b 
 ##    c
 
-# Note: you can do ordered lags using mutate_all(lag, order_by = &amp;quot;year&amp;quot;) for dplyr, but at computation times in excess of 90 seconds..
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The benchmarks show that &lt;em&gt;collapse&lt;/em&gt; is consistently very fast. More extensive benchmarks against &lt;em&gt;dplyr&lt;/em&gt; and &lt;em&gt;plm&lt;/em&gt; are provided in the corresponding &lt;a href=&#34;https://sebkrantz.github.io/collapse/articles/index.html&#34;&gt;vignettes&lt;/a&gt;.&lt;/p&gt;
-&lt;!-- But of course *collapse* cannot do a lot of things you can do with *dplyr* or *data.table* and vice-versa. It is and remains an advanced package, but I think it lives up to the high standards set forth by these packages. I am also highly indebted to *data.table* for inspiration and some vital bits of C-code. Feel free to get in touch for any suggestions or comments about *collapse*. I hope you will find it useful. --&gt;
-&lt;/div&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-&lt;hr /&gt;
-&lt;ol&gt;
-&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;&lt;code&gt;fvar&lt;/code&gt; and &lt;code&gt;fsd&lt;/code&gt; compute frequency weights, the most common form of weighted sample variance. &lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;I note that all further examples generalize to different objects (vectors, matrices, data frames).&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li id=&#34;fn3&#34;&gt;&lt;p&gt;Grouping objects are better for programming and for multiple grouping variables. This is demonstrated in the blog post on programming with &lt;em&gt;collapse&lt;/em&gt;.&lt;a href=&#34;#fnref3&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li id=&#34;fn4&#34;&gt;&lt;p&gt;The within-group standard deviation is the standard deviation computed on the group-centered data.&lt;a href=&#34;#fnref4&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
+# Note: you can do ordered lags using mutate_all(lag, order_by = &quot;year&quot;) for dplyr, but at computation times in excess of 90 seconds..
+</code></pre>
+<p>The benchmarks show that <em>collapse</em> is consistently very fast. More extensive benchmarks against <em>dplyr</em> and <em>plm</em> are provided in the corresponding <a href="https://sebkrantz.github.io/collapse/articles/index.html">vignettes</a>.</p>
+<!-- But of course *collapse* cannot do a lot of things you can do with *dplyr* or *data.table* and vice-versa. It is and remains an advanced package, but I think it lives up to the high standards set forth by these packages. I am also highly indebted to *data.table* for inspiration and some vital bits of C-code. Feel free to get in touch for any suggestions or comments about *collapse*. I hope you will find it useful. -->
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p><code>fvar</code> and <code>fsd</code> compute frequency weights, the most common form of weighted sample variance. <a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>I note that all further examples generalize to different objects (vectors, matrices, data frames).<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Grouping objects are better for programming and for multiple grouping variables. This is demonstrated in the blog post on programming with <em>collapse</em>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>The within-group standard deviation is the standard deviation computed on the group-centered data.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
     </item>
     
   </channel>
