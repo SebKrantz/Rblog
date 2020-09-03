@@ -6,7 +6,7 @@ publishDir = "docs"
 
 theme = "hugo-lithium"
 googleAnalytics = ""
-disqusShortname = ""
+disqusShortname = "r-econometrics-high-performance"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "^README", "\\.R$", "\\.Rproj$", ".git"]
 
 [permalinks]

@@ -239,7 +239,7 @@ ganyNA &lt;- function(x, g, use.g.names = TRUE) {
   g &lt;- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
   res &lt;- ganyNACpp(x, g[[1L]], g[[2L]]) 
   # GRPnames creates unique group names. For vectors they need not be character typed.
-  if(use.g.names) return(setNames(res, GRPnames(g, force.char = FALSE)))
+  if(use.g.names) names(res) &lt;- GRPnames(g, force.char = FALSE)
   res
 }</code></pre>
 <p>Strictly speaking there are different options to set this up: <code>GRP()</code> is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a ‘factor’ method converting factors to ‘GRP’ objects. Above I have used the generic <code>GRP</code> function with the option <code>group.sizes = FALSE</code>, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to <code>g</code>, but will not drop unused factor levels. The alternative is to use <code>g &lt;- GRP.default(g, return.groups = use.g.names, call = FALSE)</code>, which will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector.</p>
