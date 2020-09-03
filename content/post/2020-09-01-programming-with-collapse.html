@@ -234,7 +234,7 @@ LogicalVector ganyNACpp(const SEXP&amp; x, int ng = 0, const IntegerVector&amp; 
 <pre class="r"><code>library(Rcpp)    
 sourceCpp(&quot;ganyNA.cpp&quot;) 
  
-ganyNA &lt;- function(x, g, use.g.names = TRUE) {
+ganyNA &lt;- function(x, g, use.g.names = TRUE) { 
   # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
   g &lt;- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
   res &lt;- ganyNACpp(x, g[[1L]], g[[2L]]) 
@@ -243,7 +243,7 @@ ganyNA &lt;- function(x, g, use.g.names = TRUE) {
   res
 }</code></pre>
 <p>Strictly speaking there are different options to set this up: <code>GRP()</code> is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a ‘factor’ method converting factors to ‘GRP’ objects. Above I have used the generic <code>GRP</code> function with the option <code>group.sizes = FALSE</code>, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to <code>g</code>, but will not drop unused factor levels. The alternative is to use <code>g &lt;- GRP.default(g, return.groups = use.g.names, call = FALSE)</code>, which will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector.</p>
-<pre class="r"><code>head(ganyNA(GGDC10S$SUM, fselect(GGDC10S, Country, Variable)))
+<pre class="r"><code>GGDC10S %$% ganyNA(SUM, list(Country, Variable)) %&gt;% head
 ## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
 ##   FALSE   FALSE   FALSE    TRUE   FALSE    TRUE
   
@@ -252,19 +252,28 @@ x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 ##        User      System verstrichen 
-##        0.67        0.06        0.74
+##        0.84        0.02        0.87
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.55        0.02        0.57
+##        0.67        0.02        0.69
 
-# Using a factor grouping variable: More efficient but does not drop any unused levels
+# Using a factor grouping variable: more efficient but does not drop any unused levels
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##        User      System verstrichen 
-##        0.05        0.02        0.07
+##        0.04        0.03        0.06
 system.time(ganyNA(x, f, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.04        0.02        0.04</code></pre>
+##        0.04        0.00        0.05
+
+# We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
+g &lt;- GRP(g)
+system.time(ganyNA(x, g))
+##        User      System verstrichen 
+##        0.03        0.00        0.03
+system.time(ganyNA(x, g, use.g.names = FALSE))
+##        User      System verstrichen 
+##        0.03        0.00        0.03</code></pre>
 <p>We could additionally add a <code>TRA</code> argument and then internally call the <code>TRA()</code> function to allow for replacing and sweeping out statistics, but this does not make much sense here.</p>
 </div>
 </div>

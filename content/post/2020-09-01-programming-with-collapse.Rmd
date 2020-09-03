@@ -177,7 +177,7 @@ On the R side things are then pretty simple:
 library(Rcpp)    
 sourceCpp("ganyNA.cpp") 
  
-ganyNA <- function(x, g, use.g.names = TRUE) {
+ganyNA <- function(x, g, use.g.names = TRUE) { 
   # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
   g <- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
   res <- ganyNACpp(x, g[[1L]], g[[2L]]) 
@@ -189,7 +189,7 @@ ganyNA <- function(x, g, use.g.names = TRUE) {
 Strictly speaking there are different options to set this up: `GRP()` is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a 'factor' method converting factors to 'GRP' objects. Above I have used the generic `GRP` function with the option `group.sizes = FALSE`, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to `g`, but will not drop unused factor levels. The alternative is to use `g <- GRP.default(g, return.groups = use.g.names, call = FALSE)`, which will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector. 
 
 ```{r}
-head(ganyNA(GGDC10S$SUM, fselect(GGDC10S, Country, Variable)))
+GGDC10S %$% ganyNA(SUM, list(Country, Variable)) %>% head
   
 # 10 million obs and 1 million groups, 1% of data missing  
 x <- na_insert(rnorm(1e7), prop = 0.01)
@@ -197,10 +197,15 @@ g <- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 system.time(ganyNA(x, g, use.g.names = FALSE))
 
-# Using a factor grouping variable: More efficient but does not drop any unused levels
+# Using a factor grouping variable: more efficient but does not drop any unused levels
 f <- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 system.time(ganyNA(x, f, use.g.names = FALSE))
+
+# We can also efficiently pass a 'GRP' object: both GRP.GRP and GRP.default simply return it.
+g <- GRP(g)
+system.time(ganyNA(x, g))
+system.time(ganyNA(x, g, use.g.names = FALSE))
 
 ```
 
