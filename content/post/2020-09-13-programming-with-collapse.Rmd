@@ -1,7 +1,7 @@
 ---
 title: "Efficient Grouped Programming in R and/or C/C++ - with the collapse Package"
 author: "Sebastian Krantz"
-date: '2020-09-01'
+date: '2020-09-13'
 slug: programming-with-collapse
 categories: ["R"]
 tags: ["R", "collapse", "grouped", "weighted", "statistical", "programming"]
@@ -91,15 +91,13 @@ Panel_Ests <- function(formula, data, pids) {
 library(magrittr)  # Pipe operators
 
 # Calculating Value Added Percentage Shares (data is in local currency)
-VA_shares <- fsubset(GGDC10S, Variable == "VA") %>% 
-             ftransform(fselect(., AGR:SUM) %>% lapply(`*`, 100/SUM))
+VA_shares <- fsubset(GGDC10S, Variable == "VA") %>% ftransformv(6:16, `*`, 100/SUM)
   
 # Value Added data (regressing Government on Agriculture, Manufactoring and Finance & Real Estate)
 Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, "Country") %>% round(4)
 
 # Employment data
-fsubset(GGDC10S, Variable == "EMP") %>% 
- ftransform(fselect(., AGR:SUM) %>% lapply(`*`, 100/SUM)) %>%
+fsubset(GGDC10S, Variable == "EMP") %>% ftransformv(6:16, `*`, 100/SUM) %>%
   Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, "Country") %>% round(4)
 ```
 It would be easy to add an option for sampling weights as `fmean` also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using `plm` to do it). 

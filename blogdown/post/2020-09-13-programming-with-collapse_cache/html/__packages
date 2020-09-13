@@ -1,6 +1,5 @@
 base
 collapse
-Rcpp
-data.table
 microbenchmark
 magrittr
+Rcpp

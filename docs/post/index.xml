@@ -6,13 +6,13 @@
     <description>Recent content in Posts on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 13 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
-      <link>/Rblog/2020/09/01/programming-with-collapse/</link>
-      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
+      <link>/Rblog/2020/09/13/programming-with-collapse/</link>
+      <pubDate>Sun, 13 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/09/01/programming-with-collapse/</guid>
+      <guid>/Rblog/2020/09/13/programming-with-collapse/</guid>
       <description><![CDATA[ 
 
 
@@ -54,7 +54,7 @@ print(g)
 ##      62      63      52      52      52      52
 # Plotting it
 plot(g)</code></pre>
-<p><img src="/Rblog/post/2020-09-01-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png" width="100%" />
+<p><img src="/Rblog/post/2020-09-13-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png" width="100%" />
 Grouping is done very efficiently using radix-based ordering in C (thanks to <em>data.table</em> source code). The structure of this object is shown below:</p>
 <pre class="r"><code>str(g)
 ## List of 8
@@ -124,8 +124,8 @@ Grouping is done very efficiently using radix-based ordering in C (thanks to <em
 <pre class="r"><code>library(microbenchmark) 
 microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ## Unit: microseconds
-##  expr     min      lq     mean   median      uq      max neval
-##  call 264.625 273.327 437.1572 323.0825 388.012 11015.61   100</code></pre>
+##  expr     min      lq     mean   median      uq     max neval
+##  call 257.931 271.765 368.8147 369.2695 384.889 987.545   100</code></pre>
 <p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
 <pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids) {
   # Get variables as character string, first variable is dependent variable
@@ -151,8 +151,7 @@ microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 
 library(magrittr)  # Pipe operators
 
 # Calculating Value Added Percentage Shares (data is in local currency)
-VA_shares &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;) %&gt;% 
-             ftransform(fselect(., AGR:SUM) %&gt;% lapply(`*`, 100/SUM))
+VA_shares &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;) %&gt;% ftransformv(6:16, `*`, 100/SUM)
   
 # Value Added data (regressing Government on Agriculture, Manufactoring and Finance &amp; Real Estate)
 Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, &quot;Country&quot;) %&gt;% round(4)
@@ -163,8 +162,7 @@ Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, &quot;Country&quot;) %&gt;% round(
 ## FIRE      -0.2083 -0.3337 -0.2572 -0.0742
 
 # Employment data
-fsubset(GGDC10S, Variable == &quot;EMP&quot;) %&gt;% 
- ftransform(fselect(., AGR:SUM) %&gt;% lapply(`*`, 100/SUM)) %&gt;%
+fsubset(GGDC10S, Variable == &quot;EMP&quot;) %&gt;% ftransformv(6:16, `*`, 100/SUM) %&gt;%
   Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, &quot;Country&quot;) %&gt;% round(4)
 ##            Pooled   Means Between  Within
 ## Intercept 33.2047 34.6626 35.4332  0.0000
@@ -175,8 +173,8 @@ fsubset(GGDC10S, Variable == &quot;EMP&quot;) %&gt;%
 <pre class="r"><code># Benchmark on VA data    
 microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;))
 ## Unit: milliseconds
-##  expr    min       lq     mean   median       uq      max neval
-##  call 2.0215 2.705819 3.397926 3.067279 3.742897 8.572853   100</code></pre>
+##  expr      min       lq     mean  median       uq      max neval
+##  call 1.643975 2.203792 3.119572 2.72077 3.583589 10.44576   100</code></pre>
 <p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
 <div id="creating-grouped-functions-in-cc" class="section level2">
 <h2>Creating Grouped Functions in C/C++</h2>
@@ -259,25 +257,25 @@ x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 ##        User      System verstrichen 
-##        0.84        0.02        0.87
+##        0.56        0.05        0.61
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.67        0.02        0.69
+##        0.42        0.03        0.46
 
 # Using a factor grouping variable: more efficient but does not drop any unused levels
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##        User      System verstrichen 
-##        0.04        0.03        0.06
+##        0.02        0.02        0.03
 system.time(ganyNA(x, f, use.g.names = FALSE))
 ##        User      System verstrichen 
-##        0.04        0.00        0.05
+##        0.04        0.01        0.05
 
 # We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
 g &lt;- GRP(g)
 system.time(ganyNA(x, g))
 ##        User      System verstrichen 
-##        0.03        0.00        0.03
+##        0.01        0.00        0.01
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##        User      System verstrichen 
 ##        0.03        0.00        0.03</code></pre>
