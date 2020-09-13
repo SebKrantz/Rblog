@@ -282,18 +282,20 @@ collap(wlddev, PCGDP + LIFEEX ~ region + income,
 
 ```
 
-The default (`keep.col.order = TRUE`) ensures that the data remains in the same order, and, when working with *Fast Statistical Functions*, all column attributes are preserved. It is also possible to provide fully customized calls:
+The default (`keep.col.order = TRUE`) ensures that the data remains in the same order, and, when working with *Fast Statistical Functions*, all column attributes are preserved. When aggregating with multiple functions, you can parallelize over them (internally done with `parallel::mclapply`).
 
-```{r}
-# Fully custom aggregation (also possible with weights)
-collapv(wlddev, c("iso3c", "decade"), # collapv allows names or indices of grouping variables
-        custom = list(fmean = 9:12, 
-                      fmax = 9:10, 
-                      flast = cat_vars(wlddev, "indices"),
-                      fmode = "GINI"), keep.col.order = FALSE) %>% head(3)
+<!-- It is also possible to provide fully customized calls: -->
 
-```
-When aggregating with multiple functions, you can parallelize over them (internally done with `parallel::mclapply`).
+<!-- ```{r} -->
+<!-- # Fully custom aggregation (also possible with weights) -->
+<!-- collapv(wlddev, c("iso3c", "decade"), # collapv allows names or indices of grouping variables -->
+<!--         custom = list(fmean = 9:12,  -->
+<!--                       fmax = 9:10,  -->
+<!--                       flast = cat_vars(wlddev, "indices"), -->
+<!--                       fmode = "GINI"), keep.col.order = FALSE) %>% head(3) -->
+
+<!-- ``` -->
+
 
 Time computations on panel data are also simple and computationally very fast. 
 
@@ -367,7 +369,7 @@ library(microbenchmark)
 library(dplyr)
 library(data.table) # Default for this machine is 2 threads
 
-# Grouping (data.table:::forderv here does not compute the unique groups yet)
+# Grouping (data.table:::forderv does not compute the unique groups yet)
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year),
                data.table = data.table:::forderv(us_trade, c("partner_iso", "group_code", "year"), retGrp = TRUE),
                dplyr = group_by(us_trade, partner_iso, group_code, year), times = 10)
@@ -436,7 +438,7 @@ tryCatch(L(us_trade, 1, export_value_usd + import_value_usd ~ partner_iso + prod
 settransform(us_trade, id = seqid(year + unattrib(finteraction(partner_iso, product_code)) * 20L))
 # Notes: Normally id = seqid(year) would be enough on sorted data, but here we also have very different start and end dates, with the potential of overlaps...
 fNdistinct(us_trade$id)
-# Another nice comparison... 
+# Another comparison..
 microbenchmark(fNdistinct(us_trade$id), n_distinct(us_trade$id))
 
 # Here we go now:

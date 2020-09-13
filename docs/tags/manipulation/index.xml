@@ -8,6 +8,294 @@
     <language>en-us</language>
     <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/manipulation/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
+      <link>/Rblog/2020/09/01/programming-with-collapse/</link>
+      <pubDate>Tue, 01 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/Rblog/2020/09/01/programming-with-collapse/</guid>
+      <description><![CDATA[ 
+
+
+<p><a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> is a C/C++ based package for data transformation and statistical computing in R. Among other features it introduces an excellent and highly efficient architecture for grouped (and weighted) statistical programming in R. This post briefly explains this architecture and demonstrates:</p>
+<ol style="list-style-type: decimal">
+<li><p>How to program highly efficient grouped statistical computations and data manipulations in R using the grouped functions supplied by <em>collapse</em>.</p></li>
+<li><p>How to use the grouping mechanism of <em>collapse</em> with custom C/C++ code to create further efficient grouped functions/operations in R.</p></li>
+</ol>
+<div id="essentials-collapse-grouping-objects" class="section level1">
+<h1>Essentials: <em>collapse</em> Grouping Objects</h1>
+<p><em>collapse</em> uses grouping objects as essential inputs for grouped computations. These objects are created from vectors or lists of vectors (i.e. data frames) using the function <code>GRP()</code>:</p>
+<pre class="r"><code>library(collapse)
+# A dataset supplied with collapse providing sectoral value added (VA) and employment (EMP)
+head(GGDC10S, 3)
+##   Country Regioncode             Region Variable Year AGR MIN MAN PU CON WRT TRA FIRE GOV OTH SUM
+## 1     BWA        SSA Sub-saharan Africa       VA 1960  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+## 2     BWA        SSA Sub-saharan Africa       VA 1961  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+## 3     BWA        SSA Sub-saharan Africa       VA 1962  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+fdim(GGDC10S)
+## [1] 5027   16
+
+# Creating a grouping object (by default return.order = FALSE as the ordering is typically not needed)
+g &lt;- GRP(GGDC10S, c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE)
+# Printing it
+print(g)
+## collapse grouping object of length 5027 with 85 ordered groups
+## 
+## Call: GRP.default(X = GGDC10S, by = c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE), X is unordered
+## 
+## Distribution of group sizes: 
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    4.00   53.00   62.00   59.14   63.00   65.00 
+## 
+## Groups with sizes: 
+## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
+##      62      62      61      62      62      62 
+##   ---
+## VEN.EMP  VEN.VA ZAF.EMP  ZAF.VA ZMB.EMP  ZMB.VA 
+##      62      63      52      52      52      52
+# Plotting it
+plot(g)</code></pre>
+<p><img src="/Rblog/post/2020-09-01-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png" width="100%" />
+Grouping is done very efficiently using radix-based ordering in C (thanks to <em>data.table</em> source code). The structure of this object is shown below:</p>
+<pre class="r"><code>str(g)
+## List of 8
+##  $ N.groups   : int 85
+##  $ group.id   : int [1:5027] 8 8 8 8 8 8 8 8 8 8 ...
+##  $ group.sizes: int [1:85] 62 62 61 62 62 62 52 52 63 62 ...
+##  $ groups     :&#39;data.frame&#39;: 85 obs. of  2 variables:
+##   ..$ Country : chr [1:85] &quot;ARG&quot; &quot;ARG&quot; &quot;BOL&quot; &quot;BOL&quot; ...
+##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Country&quot;
+##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
+##   ..$ Variable: chr [1:85] &quot;EMP&quot; &quot;VA&quot; &quot;EMP&quot; &quot;VA&quot; ...
+##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Variable&quot;
+##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
+##  $ group.vars : chr [1:2] &quot;Country&quot; &quot;Variable&quot;
+##  $ ordered    : Named logi [1:2] TRUE FALSE
+##   ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;GRP.sort&quot; &quot;initially.ordered&quot;
+##  $ order      : int [1:5027] 2583 2584 2585 2586 2587 2588 2589 2590 2591 2592 ...
+##   ..- attr(*, &quot;starts&quot;)= int [1:85] 1 63 125 186 248 310 372 424 476 539 ...
+##   ..- attr(*, &quot;maxgrpn&quot;)= int 65
+##   ..- attr(*, &quot;sorted&quot;)= logi FALSE
+##  $ call       : language GRP.default(X = GGDC10S, by = c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE)
+##  - attr(*, &quot;class&quot;)= chr &quot;GRP&quot;</code></pre>
+<p>The first three slots of this object provide the number of unique groups, a group-id matching each value/row to a group<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>, and a vector of group-sizes. The fourth slot provides the unique groups (default <code>return.groups = TRUE</code>), followed by the names of the grouping variables, a logical vector showing whether the grouping is ordered (default <code>sort = TRUE</code>), and the ordering vector which can be used to sort the data alphabetically according to the grouping variables (default <code>return.order = FALSE</code>).</p>
+</div>
+<div id="grouped-programming-in-r" class="section level1">
+<h1>Grouped Programming in R</h1>
+<p><em>collapse</em> provides a whole ensemble of C++ based generic statistical functions that can use these ‘GRP’ objects to internally perform (column-wise) grouped (and weighted) computations on vectors, matrices and data frames in R. Their names are contained in the global macro <code>.FAST_FUN</code>:</p>
+<pre class="r"><code>.FAST_FUN
+##  [1] &quot;fmean&quot;      &quot;fmedian&quot;    &quot;fmode&quot;      &quot;fsum&quot;       &quot;fprod&quot;      &quot;fsd&quot;        &quot;fvar&quot;      
+##  [8] &quot;fmin&quot;       &quot;fmax&quot;       &quot;fnth&quot;       &quot;ffirst&quot;     &quot;flast&quot;      &quot;fNobs&quot;      &quot;fNdistinct&quot;
+## [15] &quot;fscale&quot;     &quot;fbetween&quot;   &quot;fwithin&quot;    &quot;fHDbetween&quot; &quot;fHDwithin&quot;  &quot;flag&quot;       &quot;fdiff&quot;     
+## [22] &quot;fgrowth&quot;</code></pre>
+<p>Additional functions supporting grouping objects are <code>TRA</code> (grouped replacing and sweeping out statistics), <code>BY</code> (split-apply-combine computing) and <code>collap</code> (advanced data aggregation with multiple functions).</p>
+<p>To provide a brief example, we can compute a grouped mean of the above data using:</p>
+<pre class="r"><code>head(fmean(GGDC10S[6:16], g))
+##                AGR         MIN         MAN           PU        CON         WRT        TRA
+## ARG.EMP  1419.8013    52.08903   1931.7602   101.720936   742.4044   1982.1775   648.5119
+## ARG.VA  14951.2918  6454.94152  36346.5456  2722.762554  9426.0033  26633.1292 14404.6626
+## BOL.EMP   964.2103    56.03295    235.0332     5.346433   122.7827    281.5164   115.4728
+## BOL.VA   3299.7182  2846.83763   3458.2904   664.289574   729.0152   2757.9795  2727.4414
+## BRA.EMP 17191.3529   206.02389   6991.3710   364.573404  3524.7384   8509.4612  2054.3731
+## BRA.VA  76870.1456 30916.64606 223330.4487 43549.277879 70211.4219 178357.8685 89880.9743
+##                 FIRE        GOV        OTH         SUM
+## ARG.EMP    627.79291   2043.471   992.4475   10542.177
+## ARG.VA    8547.37278  25390.774  7656.3565  152533.839
+## BOL.EMP     44.56442         NA   395.5650    2220.524
+## BOL.VA    1752.06208         NA  4383.5425   22619.177
+## BRA.EMP   4413.54448   5307.280  5710.2665   54272.985
+## BRA.VA  183027.46189 249135.452 55282.9748 1200562.671</code></pre>
+<p>By default (<code>use.g.names = TRUE</code>), group names are added as names (vectors) or row-names (matrices and data frames) to the result. For data frames we can also add the grouping columns again using<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>:</p>
+<pre class="r"><code>head(add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
+##   Country Variable        AGR         MIN         MAN           PU        CON         WRT        TRA
+## 1     ARG      EMP  1419.8013    52.08903   1931.7602   101.720936   742.4044   1982.1775   648.5119
+## 2     ARG       VA 14951.2918  6454.94152  36346.5456  2722.762554  9426.0033  26633.1292 14404.6626
+## 3     BOL      EMP   964.2103    56.03295    235.0332     5.346433   122.7827    281.5164   115.4728
+## 4     BOL       VA  3299.7182  2846.83763   3458.2904   664.289574   729.0152   2757.9795  2727.4414
+## 5     BRA      EMP 17191.3529   206.02389   6991.3710   364.573404  3524.7384   8509.4612  2054.3731
+## 6     BRA       VA 76870.1456 30916.64606 223330.4487 43549.277879 70211.4219 178357.8685 89880.9743
+##           FIRE        GOV        OTH         SUM
+## 1    627.79291   2043.471   992.4475   10542.177
+## 2   8547.37278  25390.774  7656.3565  152533.839
+## 3     44.56442         NA   395.5650    2220.524
+## 4   1752.06208         NA  4383.5425   22619.177
+## 5   4413.54448   5307.280  5710.2665   54272.985
+## 6 183027.46189 249135.452 55282.9748 1200562.671</code></pre>
+<p>The execution cost of all of these functions is extremely small, so the performance is essentially limited by C++, not by R.</p>
+<pre class="r"><code>library(microbenchmark) 
+microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
+## Unit: microseconds
+##  expr     min      lq     mean   median      uq      max neval
+##  call 264.625 273.327 437.1572 323.0825 388.012 11015.61   100</code></pre>
+<p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
+<pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids) {
+  # Get variables as character string, first variable is dependent variable
+  vars &lt;- all.vars(formula)
+  # na_omit is a fast replacement for na.omit
+  data_cc &lt;- na_omit(get_vars(data, c(vars, pids)))
+  g &lt;- GRP(data_cc, pids, return.groups = FALSE, call = FALSE)
+  # qM is a faster as.matrix
+  data_cc &lt;- qM(get_vars(data_cc, vars))
+  # Computing group means
+  mean_data_cc &lt;- fmean(data_cc, g, use.g.names = FALSE)
+  # This computes regression coefficients
+  reg &lt;- function(x) qr.coef(qr(cbind(Intercept = 1, x[, -1L, drop = FALSE])), x[, 1L])
+  
+  qM(list(Pooled = reg(data_cc),
+          Means = reg(mean_data_cc),
+          # This replaces data values with the group-mean -&gt; between-group estimator
+          Between = reg(TRA(data_cc, mean_data_cc, &quot;replace_fill&quot;, g)),
+          # This subtracts the group-means -&gt; within-group estimator
+          Within = reg(TRA(data_cc, mean_data_cc, &quot;-&quot;, g))))
+}
+
+library(magrittr)  # Pipe operators
+
+# Calculating Value Added Percentage Shares (data is in local currency)
+VA_shares &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;) %&gt;% 
+             ftransform(fselect(., AGR:SUM) %&gt;% lapply(`*`, 100/SUM))
+  
+# Value Added data (regressing Government on Agriculture, Manufactoring and Finance &amp; Real Estate)
+Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, &quot;Country&quot;) %&gt;% round(4)
+##            Pooled   Means Between  Within
+## Intercept 25.8818 26.6702 26.5828  0.0000
+## AGR       -0.3425 -0.3962 -0.3749 -0.2124
+## MAN       -0.2339 -0.1744 -0.2215 -0.2680
+## FIRE      -0.2083 -0.3337 -0.2572 -0.0742
+
+# Employment data
+fsubset(GGDC10S, Variable == &quot;EMP&quot;) %&gt;% 
+ ftransform(fselect(., AGR:SUM) %&gt;% lapply(`*`, 100/SUM)) %&gt;%
+  Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, &quot;Country&quot;) %&gt;% round(4)
+##            Pooled   Means Between  Within
+## Intercept 33.2047 34.6626 35.4332  0.0000
+## AGR       -0.3543 -0.3767 -0.3873 -0.2762
+## MAN       -0.4444 -0.4595 -0.4790 -0.4912
+## FIRE      -0.1721 -0.3097 -0.2892 -0.1087</code></pre>
+<p>It would be easy to add an option for sampling weights as <code>fmean</code> also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using <code>plm</code> to do it).</p>
+<pre class="r"><code># Benchmark on VA data    
+microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;))
+## Unit: milliseconds
+##  expr    min       lq     mean   median       uq      max neval
+##  call 2.0215 2.705819 3.397926 3.067279 3.742897 8.572853   100</code></pre>
+<p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
+<div id="creating-grouped-functions-in-cc" class="section level2">
+<h2>Creating Grouped Functions in C/C++</h2>
+<p>It is also possible to just use ‘GRP’ objects as input to new grouped functions written in C or C++. Below I use <em>Rcpp</em> to create a generic grouped <code>anyNA</code> function for vectors:</p>
+<pre class="cpp"><code>// [[Rcpp::plugins(cpp11)]]
+#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// Inputs: 
+// x - A vector of any type 
+// ng - The number of groups - supplied by GRP() in R
+// g - An integer grouping vector - supplied by GRP() in R
+
+// Output: A plain logical vector of size ng
+
+template &lt;int RTYPE&gt;
+LogicalVector ganyNACppImpl(Vector&lt;RTYPE&gt; x, int ng, IntegerVector g) {
+  int l = x.size();
+  if(l != g.size()) stop(&quot;length(x) must match length(g)&quot;);
+  LogicalVector out(ng); // Initializes as false
+
+  if(RTYPE == REALSXP) { // Numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
+    for(int i = 0; i &lt; l; ++i) {
+      if(x[i] != x[i] &amp;&amp; !out[g[i]-1]) out[g[i]-1] = true;
+    }
+  } else { // other vectors
+    for(int i = 0; i &lt; l; ++i) {
+      if(x[i] == Vector&lt;RTYPE&gt;::get_na() &amp;&amp; !out[g[i]-1]) out[g[i]-1] = true;
+    }
+  }
+
+  return out;
+}
+
+// Disabling complex and non-atomic vector types
+template &lt;&gt;
+LogicalVector ganyNACppImpl(Vector&lt;CPLXSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+template &lt;&gt;
+LogicalVector ganyNACppImpl(Vector&lt;VECSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+template &lt;&gt;
+LogicalVector ganyNACppImpl(Vector&lt;RAWSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+template &lt;&gt; 
+LogicalVector ganyNACppImpl(Vector&lt;EXPRSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+// [[Rcpp::export]]
+LogicalVector ganyNACpp(const SEXP&amp; x, int ng = 0, const IntegerVector&amp; g = 0){
+  RCPP_RETURN_VECTOR(ganyNACppImpl, x, ng, g);
+}
+</code></pre>
+<p>On the R side things are then pretty simple:</p>
+<pre class="r"><code>library(Rcpp)    
+sourceCpp(&quot;ganyNA.cpp&quot;) 
+ 
+ganyNA &lt;- function(x, g, use.g.names = TRUE) { 
+  # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
+  g &lt;- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
+  res &lt;- ganyNACpp(x, g[[1L]], g[[2L]]) 
+  # GRPnames creates unique group names. For vectors they need not be character typed.
+  if(use.g.names) names(res) &lt;- GRPnames(g, force.char = FALSE)
+  res
+}</code></pre>
+<p>Strictly speaking there are different options to set this up: <code>GRP()</code> is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a ‘factor’ method converting factors to ‘GRP’ objects. Above I have used the generic <code>GRP</code> function with the option <code>group.sizes = FALSE</code>, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to <code>g</code>, but will not drop unused factor levels. The alternative is to use <code>g &lt;- GRP.default(g, return.groups = use.g.names, call = FALSE)</code>, which will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector.</p>
+<pre class="r"><code>GGDC10S %$% ganyNA(SUM, list(Country, Variable)) %&gt;% head
+## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
+##   FALSE   FALSE   FALSE    TRUE   FALSE    TRUE
+  
+# 10 million obs and 1 million groups, 1% of data missing  
+x &lt;- na_insert(rnorm(1e7), prop = 0.01)
+g &lt;- sample.int(1e6, 1e7, TRUE)
+system.time(ganyNA(x, g)) 
+##        User      System verstrichen 
+##        0.84        0.02        0.87
+system.time(ganyNA(x, g, use.g.names = FALSE))
+##        User      System verstrichen 
+##        0.67        0.02        0.69
+
+# Using a factor grouping variable: more efficient but does not drop any unused levels
+f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
+system.time(ganyNA(x, f))
+##        User      System verstrichen 
+##        0.04        0.03        0.06
+system.time(ganyNA(x, f, use.g.names = FALSE))
+##        User      System verstrichen 
+##        0.04        0.00        0.05
+
+# We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
+g &lt;- GRP(g)
+system.time(ganyNA(x, g))
+##        User      System verstrichen 
+##        0.03        0.00        0.03
+system.time(ganyNA(x, g, use.g.names = FALSE))
+##        User      System verstrichen 
+##        0.03        0.00        0.03</code></pre>
+<p>We could additionally add a <code>TRA</code> argument and then internally call the <code>TRA()</code> function to allow for replacing and sweeping out statistics, but this does not make much sense here.</p>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>By default (<code>sort = TRUE</code>) the grouping is ordered, which is equivalent to <em>data.table</em> grouping with <code>keyby</code>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><code>add_vars</code> is a faster alternative to <code>cbind</code> and <code>get_vars</code> is a faster alternative to <code>[.data.frame</code> for subsetting columns.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>A random effects estimator could easily be added, see the example <a href="https://sebkrantz.github.io/collapse/reference/fbetween_fwithin.html">here</a>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
       <title>Introducing collapse: Advanced and Fast Data Transformation in R</title>
       <link>/Rblog/2020/08/31/welcome-to-collapse/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
@@ -362,22 +650,16 @@ collap(wlddev, PCGDP + LIFEEX ~ region + income,
 ## 1    fmean East Asia &amp; Pacific         High income 26042.280 73.22799
 ## 2    fmean East Asia &amp; Pacific Lower middle income  1621.178 58.83796
 ## 3    fmean East Asia &amp; Pacific Upper middle income  3432.559 66.41750</code></pre>
-<p>The default (<code>keep.col.order = TRUE</code>) ensures that the data remains in the same order, and, when working with <em>Fast Statistical Functions</em>, all column attributes are preserved. It is also possible to provide fully customized calls:</p>
-<pre class="r"><code># Fully custom aggregation (also possible with weights)
-collapv(wlddev, c(&quot;iso3c&quot;, &quot;decade&quot;), # collapv allows names or indices of grouping variables
-        custom = list(fmean = 9:12, 
-                      fmax = 9:10, 
-                      flast = cat_vars(wlddev, &quot;indices&quot;),
-                      fmode = &quot;GINI&quot;), keep.col.order = FALSE) %&gt;% head(3)
-##   iso3c decade fmean.PCGDP fmean.LIFEEX fmean.GINI fmean.ODA fmax.PCGDP fmax.LIFEEX flast.country
-## 1   ABW   1960          NA     66.58583         NA        NA         NA      67.435         Aruba
-## 2   ABW   1970          NA     69.14178         NA        NA         NA      70.519         Aruba
-## 3   ABW   1980          NA     72.17600         NA  33630000         NA      73.181         Aruba
-##   flast.iso3c flast.date               flast.region flast.income flast.OECD fmode.GINI
-## 1         ABW 1966-01-01 Latin America &amp; Caribbean   High income      FALSE         NA
-## 2         ABW 1975-01-01 Latin America &amp; Caribbean   High income      FALSE         NA
-## 3         ABW 1986-01-01 Latin America &amp; Caribbean   High income      FALSE         NA</code></pre>
-<p>When aggregating with multiple functions, you can parallelize over them (internally done with <code>parallel::mclapply</code>).</p>
+<p>The default (<code>keep.col.order = TRUE</code>) ensures that the data remains in the same order, and, when working with <em>Fast Statistical Functions</em>, all column attributes are preserved. When aggregating with multiple functions, you can parallelize over them (internally done with <code>parallel::mclapply</code>).</p>
+<!-- It is also possible to provide fully customized calls: -->
+<!-- ```{r} -->
+<!-- # Fully custom aggregation (also possible with weights) -->
+<!-- collapv(wlddev, c("iso3c", "decade"), # collapv allows names or indices of grouping variables -->
+<!--         custom = list(fmean = 9:12,  -->
+<!--                       fmax = 9:10,  -->
+<!--                       flast = cat_vars(wlddev, "indices"), -->
+<!--                       fmode = "GINI"), keep.col.order = FALSE) %>% head(3) -->
+<!-- ``` -->
 <p>Time computations on panel data are also simple and computationally very fast.</p>
 <pre class="r"><code># Panel Lag and lead of PCGDP and LIFEEX
 L(wlddev, -1:1, PCGDP + LIFEEX ~ iso3c, ~year) %&gt;% head3
@@ -495,15 +777,15 @@ str(l, give.attr = FALSE)
 library(dplyr)
 library(data.table) # Default for this machine is 2 threads
 
-# Grouping (data.table:::forderv here does not compute the unique groups yet)
+# Grouping (data.table:::forderv does not compute the unique groups yet)
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year),
                data.table = data.table:::forderv(us_trade, c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;), retGrp = TRUE),
                dplyr = group_by(us_trade, partner_iso, group_code, year), times = 10)
 ## Unit: milliseconds
-##        expr        min        lq      mean    median        uq       max neval cld
-##    collapse   99.84064  144.8371  157.3384  151.0732  181.1736  215.7332    10  a 
-##  data.table  110.52157  144.1017  171.9027  165.0710  206.1773  246.5064    10  a 
-##       dplyr 1004.00418 1040.4791 1608.8417 1609.1076 1666.6173 2817.4733    10   b
+##        expr       min        lq      mean    median        uq        max neval cld
+##    collapse  97.23371  98.32389  123.7255  107.0449  135.9751   239.6009    10   a
+##  data.table 102.88811 107.66742 1267.0891  111.4340  118.1944 11658.7908    10   a
+##       dplyr 924.67524 979.54759 1042.8808 1008.5981 1078.1861  1354.4466    10   a
 
 # Sum
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fsum),
@@ -514,9 +796,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(sum, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean    median        uq       max neval cld
-##    collapse  121.6313  126.8872  138.0655  132.5655  139.3612  176.9097    10  a 
-##  data.table  178.2012  182.6521  189.1572  189.2764  191.2941  203.6373    10  a 
-##       dplyr 2313.2217 2510.0997 2767.9710 2762.0068 3013.4798 3305.7025    10   b
+##    collapse  107.1917  116.5861  128.3973  118.9365  150.3367  161.3135    10  a 
+##  data.table  169.3562  182.7400  198.2929  189.3267  221.8608  226.7869    10  a 
+##       dplyr 2332.0459 2426.7485 2652.3324 2568.5637 2791.4008 3263.4077    10   b
 
 # Mean
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fmean),
@@ -527,9 +809,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(mean, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
 ##        expr       min        lq      mean    median        uq       max neval cld
-##    collapse  133.3261  136.8323  156.4112  147.7642  170.5949  206.3643    10  a 
-##  data.table  192.3999  196.2688  259.2404  212.1575  329.3045  473.1112    10  a 
-##       dplyr 6989.4614 7160.9640 7507.8050 7559.4528 7763.4815 8021.8880    10   b
+##    collapse  121.3204  125.5664  142.8944  132.4904  137.1090  214.3933    10  a 
+##  data.table  177.7091  187.3493  210.5166  201.0806  224.2513  269.5401    10  a 
+##       dplyr 6303.0662 7037.0073 7270.0693 7242.0813 7872.5290 8066.6510    10   b
 
 # Variance
 microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fvar),
@@ -539,17 +821,17 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(var, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
-##        expr       min         lq       mean     median         uq        max neval cld
-##    collapse  137.4660   145.3172   149.2197   148.8888   153.0498   166.1369    10  a 
-##  data.table  298.3206   303.9032   324.4731   319.8797   325.1213   407.8484    10  a 
-##       dplyr 9966.0937 11013.0331 11428.4869 11281.9907 11816.9584 12970.7931    10   b
+##        expr        min         lq       mean     median         uq        max neval cld
+##    collapse   123.8475   126.6842   135.6485   134.5366   142.3431   153.3176    10  a 
+##  data.table   269.8578   284.1863   300.0291   287.6637   300.2628   365.7684    10  a 
+##       dplyr 10408.3787 10815.5928 11298.6246 11225.9573 11726.4892 12275.4899    10   b
 
 # Mode (forget trying to do this with dplyr or data.table using some mode function created in base R, it runs forever...)
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&gt;% 
                  fselect(export_value_usd, import_value_usd) %&gt;% fmode, times = 10)
 ## Unit: milliseconds
-##      expr      min       lq     mean  median       uq      max neval
-##  collapse 459.1816 514.8982 567.0183 562.834 572.5453 775.1321    10
+##      expr      min       lq     mean  median       uq     max neval
+##  collapse 413.1148 430.7063 451.1648 443.147 459.1362 525.748    10
 
 # Weighted Mean (not easily done with dplyr)
 settransform(us_trade, weights = abs(rnorm(length(year))))
@@ -558,9 +840,9 @@ microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~
                                             import_value_usd = weighted.mean(import_value_usd, weights, na.rm = TRUE)),
                                      by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)], times = 10)
 ## Unit: milliseconds
-##        expr       min       lq      mean   median        uq       max neval cld
-##    collapse  121.1436  124.922  145.6163  126.611  150.7958  219.8369    10  a 
-##  data.table 6186.1921 6602.255 7214.5573 6990.023 7880.3219 9001.5137    10   b
+##        expr       min        lq      mean    median        uq       max neval cld
+##    collapse  114.2594  115.2599  118.7735  118.5715  122.2374  124.0246    10  a 
+##  data.table 5808.7005 5867.3619 5957.9288 5904.3373 5963.8040 6507.7393    10   b
 
 
 # Replace values with group-sum
@@ -572,10 +854,10 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&g
                dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(sum, na.rm = TRUE), times = 10)
 ## Unit: milliseconds
-##        expr       min        lq      mean   median        uq       max neval cld
-##    collapse  143.2029  157.3766  197.5339  186.320  225.0063  315.4146    10 a  
-##  data.table  925.8516  945.3285 1153.0023 1159.254 1248.0763 1541.8163    10  b 
-##       dplyr 2662.5698 3003.1456 3234.8601 3079.397 3451.9015 4265.0801    10   c
+##        expr       min        lq      mean    median        uq       max neval cld
+##    collapse  128.8186  139.7133  154.8318  153.3190  167.7827  189.6136    10 a  
+##  data.table  823.7694  849.4982  861.1539  853.3544  869.0394  917.6767    10  b 
+##       dplyr 2464.5943 2653.9227 2812.6778 2772.3155 2884.5482 3335.0273    10   c
 
 # Centering, partner-product
 microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&gt;%
@@ -586,10 +868,10 @@ microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&gt;%
                dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
                  dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(function(x) x - mean(x, na.rm = TRUE)), times = 10)
 ## Unit: milliseconds
-##        expr        min        lq      mean    median       uq        max neval cld
-##    collapse   85.83697  101.2428  119.5651  118.1308  142.152   149.6829    10 a  
-##  data.table 5088.01465 5725.2149 6447.1259 6361.4546 7280.318  7896.1449    10  b 
-##       dplyr 7462.59981 8355.4014 8880.3973 8652.2751 9182.877 11433.8414    10   c
+##        expr       min         lq       mean     median        uq       max neval cld
+##    collapse   80.1893   88.50289   96.74396   96.62168  105.6455  109.0914    10 a  
+##  data.table 4537.3741 4578.44447 4788.89139 4816.80366 4876.4886 5071.2853    10  b 
+##       dplyr 6822.4752 7190.71493 7388.08024 7372.80011 7706.3514 7902.9720    10   c
 
 # Lag
 # Much better to sort data for dplyr
@@ -603,12 +885,12 @@ settransform(us_trade, id = seqid(year + unattrib(finteraction(partner_iso, prod
 # Notes: Normally id = seqid(year) would be enough on sorted data, but here we also have very different start and end dates, with the potential of overlaps...
 fNdistinct(us_trade$id)
 ## [1] 423884
-# Another nice comparison... 
+# Another comparison..
 microbenchmark(fNdistinct(us_trade$id), n_distinct(us_trade$id))
 ## Unit: milliseconds
 ##                     expr      min       lq     mean   median       uq       max neval cld
-##  fNdistinct(us_trade$id) 28.01718 28.73497 31.49064 29.71426 32.74784  51.38535   100  a 
-##  n_distinct(us_trade$id) 60.97431 69.68773 77.79539 72.97523 77.79939 182.42402   100   b
+##  fNdistinct(us_trade$id) 26.46380 26.84445 27.91192 27.25768 28.42417  37.60704   100  a 
+##  n_distinct(us_trade$id) 56.70598 64.67573 69.11154 65.50040 68.60963 145.39718   100   b
 
 # Here we go now:
 microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ id),
@@ -621,11 +903,11 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
                  mutate_all(lag), times = 10)
 ## Unit: milliseconds
 ##                expr         min          lq        mean      median          uq         max neval
-##            collapse    35.73457    44.51493    51.49317    48.56195    54.36985    80.13437    10
-##    collapse_ordered    56.17537    89.42078   193.20808   113.71357   158.16202   808.18381    10
-##          data.table  9343.16222  9890.05320 10794.46538 10080.19082 10772.00166 14362.05811    10
-##  data.table_ordered  9543.76858  9672.53630 13941.51504 10871.98131 16165.38408 33013.28433    10
-##               dplyr 40483.64482 41042.47380 43325.85502 42752.21350 45764.23428 47113.19593    10
+##            collapse    18.57103    29.47686    34.75352    34.34208    39.30635    55.87373    10
+##    collapse_ordered    51.26266    57.90416    67.40628    66.86212    73.63482    94.11623    10
+##          data.table  7594.63120  7820.26944  7968.29873  7879.71628  8266.03880  8353.21097    10
+##  data.table_ordered  7622.66044  7635.12055  8090.12031  7726.25161  8492.04252  9428.44336    10
+##               dplyr 32428.73832 32583.82844 33584.48046 32903.50014 34725.72392 36189.46410    10
 ##  cld
 ##  a  
 ##  a  
