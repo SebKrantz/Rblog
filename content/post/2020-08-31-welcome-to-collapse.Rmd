@@ -38,6 +38,8 @@ help('collapse-documentation')
 
 With this post I want to formally and briefly introduce *collapse*, provide a basic demonstration of important features, and end with a small benchmark comparing *collapse* to *dplyr* and *data.table*. I hope to convince that *collapse* provides a superior architecture for data manipulation and statistical computing in R, particularly in terms of flexibility, functionality, performance, and programmability.
 
+*Note:* Please read this article [here](<https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/>) for better code appearance. 
+
 <!-- My motivation, to but it briefly, for creating this package and expending that -->
 
 <!-- The key features and functions of the package are summarized in the figure below.  -->
