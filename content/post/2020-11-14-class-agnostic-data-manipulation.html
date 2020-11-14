@@ -1,0 +1,489 @@
+---
+title: "Fast Class-Agnostic Data Manipulation in R"
+author: "Sebastian Krantz"
+date: '2020-11-14'
+slug: class-agnostic-data-manipulation
+categories: ["R"]
+tags: ["R","collapse"]
+---
+
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p>In <a href="https://sebkrantz.github.io/Rblog/"><em>previous posts</em></a> I introduced <a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a>, a powerful (C/C++ based) new framework for data transformation and statistical computing in R - providing advanced grouped, weighted, time series, panel data and recursive computations in R at superior execution speeds, greater flexibility and programmability.</p>
+<!--  up to 20x faster than the popular *data.table* package -->
+<p><em>collapse</em> 1.4 released this week additionally introduces an enhanced attribute handling system which enables non-destructive manipulation of vector, matrix or data frame based objects in R. With this post I aim to briefly introduce this attribute handling system and demonstrate that:</p>
+<ol style="list-style-type: decimal">
+<li><p><em>collapse</em> non-destructively handles <strong>all</strong> major matrix (time series) and data frame based classes in R.</p></li>
+<li><p>Using <em>collapse</em> functions on these objects yields uniform handling at higher computation speeds.</p></li>
+</ol>
+<div id="data-frame-based-objects" class="section level1">
+<h1>Data Frame Based Objects</h1>
+<p>The three major data frame based classes in R are the base R <em>data.frame</em>, the <em>data.table</em> and the <em>tibble</em>, for which there also exists grouped (<em>dplyr</em>) and time based (<em>tsibble</em>, <em>tibbletime</em>) versions. Additional notable classes are the panel data frame (<em>plm</em>) and the spatial features data frame (<em>sf</em>).</p>
+<p>For the former three <em>collapse</em> offer extremely fast and versatile converters <code>qDF</code>, <code>qDT</code> and <code>qTBL</code> that can be used to turn many R objects into <em>data.frame</em>’s, <em>data.table</em>’s or <em>tibble</em>’s, respectively:</p>
+<pre class="r"><code>library(collapse); library(data.table); library(tibble)
+options(datatable.print.nrows = 10, 
+        datatable.print.topn = 2)
+
+identical(qDF(mtcars), mtcars)
+## [1] TRUE
+
+mtcarsDT &lt;- qDT(mtcars, row.names.col = &quot;car&quot;)
+mtcarsDT
+##               car  mpg cyl disp  hp drat    wt  qsec vs am gear carb
+##  1:     Mazda RX4 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+##  2: Mazda RX4 Wag 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+## ---                                                                 
+## 31: Maserati Bora 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
+## 32:    Volvo 142E 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2
+
+mtcarsTBL &lt;- qTBL(mtcars, row.names.col = &quot;car&quot;)
+print(mtcarsTBL, n = 3)
+## # A tibble: 32 x 12
+##   car             mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 Mazda RX4      21       6   160   110  3.9   2.62  16.5     0     1     4     4
+## 2 Mazda RX4 Wag  21       6   160   110  3.9   2.88  17.0     0     1     4     4
+## 3 Datsun 710     22.8     4   108    93  3.85  2.32  18.6     1     1     4     1
+## # ... with 29 more rows</code></pre>
+<p>These objects can then be manipulated using an advanced and attribute preserving set of (S3 generic) statistical and data manipulation functions. The following infographic summarizes the core <em>collapse</em> namespace:</p>
+<p><img src='collapse_header.png' width="100%" align="center"></p>
+<p>More details are provided in the freshly released <a href="https://raw.githubusercontent.com/SebKrantz/cheatsheets/master/collapse.pdf"><em>cheat sheet</em></a>, and further in the <a href="https://sebkrantz.github.io/collapse/reference/index.html"><em>documentation</em></a> and <a href="https://sebkrantz.github.io/collapse/articles/index.html"><em>vignettes</em></a>.</p>
+<!--
+
+The following graphic summarized the core fun `fselect(<-)`, `fsubset`, `(f/set)transform(<-)`, `fgroup_by`, `(f/set)rename`, `roworder`, `colorder`, `funique` `get_vars`, `(type)_vars`, `add_vars`, `na_omit`, etc.., as well as full sets of fast generic statistical and data transformation functions (supporting vectors, matrices and data frames) and further specialized functions.
+-->
+<!-- ```{r} -->
+<!-- # Macro storing names of collapse fast functions for statistical computation and data transformation -->
+<!-- .FAST_FUN  -->
+<!-- # Some additional convenience operators for data transformations -->
+<!-- .OPERATOR_FUN -->
+<!-- # Also relevant: Aggregating, sweeping, row-and column apply -->
+<!-- .c(collap, BY, TRA, dapply) -->
+<!-- # Recode and replace values -->
+<!-- .c(recode_num, recode_char, replace_NA, replace_Inf, replace_outliers) -->
+<!-- ``` -->
+<p>The statistical functions internally handle grouped and / or weighted computations on vectors, matrices and data frames, and seek to keep the attributes of the object.</p>
+<pre class="r"><code># Simple data frame: Grouped mean by cyl -&gt; groups = row.names  
+fmean(fselect(mtcars, mpg, disp, drat), g = mtcars$cyl)
+##        mpg     disp     drat
+## 4 26.66364 105.1364 4.070909
+## 6 19.74286 183.3143 3.585714
+## 8 15.10000 353.1000 3.229286</code></pre>
+<p>With <code>fgroup_by</code>, collapse also introduces a fast grouping mechanism that works together with <em>grouped_df</em> versions of all statistical and transformation functions:</p>
+<pre class="r"><code># Using Pipe operators and grouped data frames
+library(magrittr)
+mtcars %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(mpg, disp, drat, wt) %&gt;% fmean  
+##   cyl      mpg     disp     drat       wt
+## 1   4 26.66364 105.1364 4.070909 2.285727
+## 2   6 19.74286 183.3143 3.585714 3.117143
+## 3   8 15.10000 353.1000 3.229286 3.999214
+
+# This is still a data.table 
+mtcarsDT %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(mpg, disp, drat, wt) %&gt;% fmean
+##    cyl      mpg     disp     drat       wt
+## 1:   4 26.66364 105.1364 4.070909 2.285727
+## 2:   6 19.74286 183.3143 3.585714 3.117143
+## 3:   8 15.10000 353.1000 3.229286 3.999214
+
+# Same with tibble: here computing weighted group means -&gt; also saves sum of weights in each group
+mtcarsTBL %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(mpg, disp, drat, wt) %&gt;% fmean(wt)
+## # A tibble: 3 x 5
+##     cyl sum.wt   mpg  disp  drat
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     4   25.1  25.9  110.  4.03
+## 2     6   21.8  19.6  185.  3.57
+## 3     8   56.0  14.8  362.  3.21</code></pre>
+<p>A specialty of the grouping mechanism is that it fully preserves the structure / attributes of the object, and thus permits the creation of a grouped version of any data frame like object.</p>
+<pre class="r"><code># This created a grouped data.table
+gmtcarsDT &lt;- mtcarsDT %&gt;% fgroup_by(cyl)
+gmtcarsDT
+##               car  mpg cyl disp  hp drat    wt  qsec vs am gear carb
+##  1:     Mazda RX4 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+##  2: Mazda RX4 Wag 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+## ---                                                                 
+## 31: Maserati Bora 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
+## 32:    Volvo 142E 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]
+# The print shows: [N. groups | Avg. group size (SD around avg. group size)]
+
+# Subsetting drops groups 
+gmtcarsDT[1:2]
+##              car mpg cyl disp  hp drat    wt  qsec vs am gear carb
+## 1:     Mazda RX4  21   6  160 110  3.9 2.620 16.46  0  1    4    4
+## 2: Mazda RX4 Wag  21   6  160 110  3.9 2.875 17.02  0  1    4    4
+
+# Any class-specific methods are independent of the attached groups
+gmtcarsDT[, new := mean(mpg)]
+gmtcarsDT[, lapply(.SD, mean), by = vs, .SDcols = -1L] # Again groups are dropped
+##    vs      mpg      cyl     disp        hp     drat       wt     qsec        am     gear     carb
+## 1:  0 16.61667 7.444444 307.1500 189.72222 3.392222 3.688556 16.69389 0.3333333 3.555556 3.611111
+## 2:  1 24.55714 4.571429 132.4571  91.35714 3.859286 2.611286 19.33357 0.5000000 3.857143 1.785714
+##         new
+## 1: 20.09062
+## 2: 20.09062
+
+# Groups are always preserved in column-subsetting operations
+gmtcarsDT[, 9:13] 
+##     vs am gear carb      new
+##  1:  0  1    4    4 20.09062
+##  2:  0  1    4    4 20.09062
+## ---                         
+## 31:  0  1    5    8 20.09062
+## 32:  1  1    4    2 20.09062
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]</code></pre>
+<p>The grouping is also dropped in aggregations, but preserved in transformations keeping data dimensions:</p>
+<pre class="r"><code># Grouped medians 
+fmedian(gmtcarsDT[, 9:13])
+##    cyl vs am gear carb      new
+## 1:   4  1  1    4  2.0 20.09062
+## 2:   6  1  0    4  4.0 20.09062
+## 3:   8  0  0    3  3.5 20.09062
+# Note: unique grouping columns are stored in the attached grouping object 
+# and added if keep.group_vars = TRUE (the default)
+
+# Replacing data by grouped median (grouping columns are not selected and thus not present)
+fmedian(gmtcarsDT[, 4:5], TRA = &quot;replace&quot;)
+##      disp    hp
+##  1: 167.6 110.0
+##  2: 167.6 110.0
+## ---            
+## 31: 350.5 192.5
+## 32: 108.0  91.0
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]
+
+# Weighted scaling and centering data (here also selecting grouping column)
+mtcarsDT %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(cyl, mpg, disp, drat, wt) %&gt;% fscale(wt)
+##     cyl    wt         mpg       disp      drat
+##  1:   6 2.620  0.96916875 -0.6376553 0.7123846
+##  2:   6 2.875  0.96916875 -0.6376553 0.7123846
+## ---                                           
+## 31:   8 3.570  0.07335466 -0.8685527 0.9844833
+## 32:   4 2.780 -1.06076989  0.3997723 0.2400387
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]</code></pre>
+<p>As mentioned, this works for any data frame like object, even a suitable list:</p>
+<pre class="r"><code># Here computing a weighted grouped standard deviation
+as.list(mtcars) %&gt;% fgroup_by(cyl, vs, am) %&gt;% 
+  fsd(wt) %&gt;% str
+## List of 11
+##  $ cyl   : num [1:7] 4 4 4 6 6 8 8
+##  $ vs    : num [1:7] 0 1 1 0 1 0 0
+##  $ am    : num [1:7] 1 0 1 1 0 0 1
+##  $ sum.wt: num [1:7] 2.14 8.8 14.2 8.27 13.55 ...
+##  $ mpg   : num [1:7] 0 1.236 4.833 0.655 1.448 ...
+##  $ disp  : num [1:7] 0 11.6 19.25 7.55 39.93 ...
+##  $ hp    : num [1:7] 0 17.3 22.7 32.7 8.3 ...
+##  $ drat  : num [1:7] 0 0.115 0.33 0.141 0.535 ...
+##  $ qsec  : num [1:7] 0 1.474 0.825 0.676 0.74 ...
+##  $ gear  : num [1:7] 0 0.477 0.32 0.503 0.519 ...
+##  $ carb  : num [1:7] 0 0.477 0.511 1.007 1.558 ...
+##  - attr(*, &quot;row.names&quot;)= int [1:7] 1 2 3 4 5 6 7</code></pre>
+<p>The function <code>fungroup</code> can be used to undo any grouping operation.</p>
+<pre class="r"><code>identical(mtcarsDT,
+          mtcarsDT %&gt;% fgroup_by(cyl, vs, am) %&gt;% fungroup)
+## [1] TRUE</code></pre>
+<p>Apart from the grouping mechanism with <code>fgroup_by</code>, which is very fast and versatile, <em>collapse</em> also supports regular grouped tibbles created with <em>dplyr</em>:</p>
+<pre class="r"><code>library(dplyr)
+# Same as summarize_all(sum) and considerably faster
+mtcars %&gt;% group_by(cyl) %&gt;% fsum
+## # A tibble: 3 x 11
+##     cyl   mpg  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     4  293. 1157.   909  44.8  25.1  211.    10     8    45    17
+## 2     6  138. 1283.   856  25.1  21.8  126.     4     3    27    24
+## 3     8  211. 4943.  2929  45.2  56.0  235.     0     2    46    49
+
+# Same as muatate_all(sum)
+mtcars %&gt;% group_by(cyl) %&gt;% fsum(TRA = &quot;replace_fill&quot;) %&gt;% head(3)
+## # A tibble: 3 x 11
+## # Groups:   cyl [2]
+##     cyl   mpg  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     6  138. 1283.   856  25.1  21.8  126.     4     3    27    24
+## 2     6  138. 1283.   856  25.1  21.8  126.     4     3    27    24
+## 3     4  293. 1157.   909  44.8  25.1  211.    10     8    45    17</code></pre>
+<p>One major goal of the package is to make R suitable for (large) panel data, thus <em>collapse</em> also supports panel-data.frames created with the <em>plm</em> package:</p>
+<pre class="r"><code>library(plm)
+pwlddev &lt;- pdata.frame(wlddev, index = c(&quot;iso3c&quot;, &quot;year&quot;))
+
+# Centering (within-transforming) columns 9-12 using the within operator W()
+head(W(pwlddev, cols = 9:12), 3)
+##          iso3c year W.PCGDP  W.LIFEEX W.GINI W.ODA
+## ABW-1960   ABW 1960      NA -6.547351     NA    NA
+## ABW-1961   ABW 1961      NA -6.135351     NA    NA
+## ABW-1962   ABW 1962      NA -5.765351     NA    NA
+
+# Computing growth rates of columns 9-12 using the growth operator G()
+head(G(pwlddev, cols = 9:12), 3)
+##          iso3c year G1.PCGDP G1.LIFEEX G1.GINI G1.ODA
+## ABW-1960   ABW 1960       NA        NA      NA     NA
+## ABW-1961   ABW 1961       NA 0.6274558      NA     NA
+## ABW-1962   ABW 1962       NA 0.5599782      NA     NA</code></pre>
+<p>Perhaps a note about operators is necessary here before proceeding: <em>collapse</em> offers a set of transformation operators for its vector-valued fast functions:</p>
+<pre class="r"><code># Operators
+.OPERATOR_FUN
+##  [1] &quot;STD&quot;  &quot;B&quot;    &quot;W&quot;    &quot;HDB&quot;  &quot;HDW&quot;  &quot;L&quot;    &quot;F&quot;    &quot;D&quot;    &quot;Dlog&quot; &quot;G&quot;
+
+# Corresponding (programmers) functions
+setdiff(.FAST_FUN, .FAST_STAT_FUN)
+## [1] &quot;fscale&quot;     &quot;fbetween&quot;   &quot;fwithin&quot;    &quot;fHDbetween&quot; &quot;fHDwithin&quot;  &quot;flag&quot;       &quot;fdiff&quot;     
+## [8] &quot;fgrowth&quot;</code></pre>
+<p>These operators are principally just function shortcuts that exist for parsimony and in-formula use (e.g. to specify dynamic or fixed effects models using <code>lm()</code>, see the <a href="https://sebkrantz.github.io/collapse/reference/index.html">documentation</a>). They however also have some useful extra features in the data.frame method, such as internal column-subsetting using the <code>cols</code> argument or stub-renaming transformed columns (adding a ‘W.’ or ‘Gn.’ prefix as shown above). They also permit grouping variables to be passed using formulas, including options to keep (default) or drop those variables in the output. We will see this feature when using time series below.</p>
+<p>To round things off for data frames, I demonstrate the use of <em>collapse</em> with classes it was not directly built to support but can also handle very well. Through it’s built in capabilities for handling panel data, <em>tsibble</em>’s can seamlessly be utilized:</p>
+<pre class="r"><code>library(tsibble)
+tsib &lt;- as_tsibble(EuStockMarkets)
+
+# Computing daily and annual growth rates on tsibble
+head(G(tsib, c(1, 260), by = ~ key, t = ~ index), 3)
+## # A tsibble: 3 x 4 [1s] &lt;UTC&gt;
+## # Key:       key [1]
+##   key   index               G1.value L260G1.value
+##   &lt;chr&gt; &lt;dttm&gt;                 &lt;dbl&gt;        &lt;dbl&gt;
+## 1 DAX   1991-07-01 02:18:33   NA               NA
+## 2 DAX   1991-07-02 12:00:00   -0.928           NA
+## 3 DAX   1991-07-03 21:41:27   -0.441           NA
+
+# Computing a compounded annual growth rate
+head(G(tsib, 260, by = ~ key, t = ~ index, power = 1/260), 3)
+## # A tsibble: 3 x 3 [1s] &lt;UTC&gt;
+## # Key:       key [1]
+##   key   index               L260G1.value
+##   &lt;chr&gt; &lt;dttm&gt;                     &lt;dbl&gt;
+## 1 DAX   1991-07-01 02:18:33           NA
+## 2 DAX   1991-07-02 12:00:00           NA
+## 3 DAX   1991-07-03 21:41:27           NA</code></pre>
+<p>Similarly for <em>tibbletime</em>:</p>
+<pre class="r"><code>library(tibbletime); library(tsbox)
+# Using the tsbox converter
+tibtm &lt;- ts_tibbletime(EuStockMarkets)
+
+# Computing daily and annual growth rates on tibbletime
+head(G(tibtm, c(1, 260), t = ~ time), 3)
+## # A time tibble: 3 x 9
+## # Index: time
+##   time                G1.DAX L260G1.DAX G1.SMI L260G1.SMI G1.CAC L260G1.CAC G1.FTSE L260G1.FTSE
+##   &lt;dttm&gt;               &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;
+## 1 1991-07-01 02:18:27 NA             NA NA             NA  NA            NA  NA              NA
+## 2 1991-07-02 12:01:32 -0.928         NA  0.620         NA  -1.26         NA   0.679          NA
+## 3 1991-07-03 21:44:38 -0.441         NA -0.586         NA  -1.86         NA  -0.488          NA
+# ...</code></pre>
+<p>Finally lets consider the simple features data frame:</p>
+<pre class="r"><code>library(sf)
+nc &lt;- st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
+## Reading layer `nc&#39; from data source `C:\Users\Sebastian Krantz\Documents\R\win-library\4.0\sf\shape\nc.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 100 features and 14 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965
+## geographic CRS: NAD27
+
+# Fast selecting columns (need to add &#39;geometry&#39; column to not break the class)
+plot(fselect(nc, AREA, geometry))</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-13-1.png" width="100%" /></p>
+<pre class="r"><code>
+# Subsetting 
+fsubset(nc, AREA &gt; 0.23, NAME, AREA, geometry)
+## Simple feature collection with 3 features and 2 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965
+## geographic CRS: NAD27
+##       NAME  AREA                       geometry
+## 1  Sampson 0.241 MULTIPOLYGON (((-78.11377 3...
+## 2  Robeson 0.240 MULTIPOLYGON (((-78.86451 3...
+## 3 Columbus 0.240 MULTIPOLYGON (((-78.65572 3...
+
+# Standardizing numeric columns (by reference)
+settransformv(nc, is.numeric, STD, apply = FALSE)
+# Note: Here using using operator STD() instead of fscale() to stub-rename standardized columns.
+# apply = FALSE uses STD.data.frame on all numeric columns instead of lapply(data, STD)
+head(nc, 2)
+## Simple feature collection with 2 features and 26 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -81.74107 ymin: 36.23436 xmax: -80.90344 ymax: 36.58965
+## geographic CRS: NAD27
+##    AREA PERIMETER CNTY_ CNTY_ID      NAME  FIPS FIPSNO CRESS_ID BIR74 SID74 NWBIR74 BIR79 SID79
+## 1 0.114     1.442  1825    1825      Ashe 37009  37009        5  1091     1      10  1364     0
+## 2 0.061     1.231  1827    1827 Alleghany 37005  37005        3   487     0      10   542     3
+##   NWBIR79                       geometry  STD.AREA STD.PERIMETER STD.CNTY_ STD.CNTY_ID STD.FIPSNO
+## 1      19 MULTIPOLYGON (((-81.47276 3... -0.249186    -0.4788595 -1.511125   -1.511125  -1.568344
+## 2      12 MULTIPOLYGON (((-81.23989 3... -1.326418    -0.9163351 -1.492349   -1.492349  -1.637282
+##   STD.CRESS_ID  STD.BIR74  STD.SID74 STD.NWBIR74  STD.BIR79  STD.SID79 STD.NWBIR79
+## 1    -1.568344 -0.5739411 -0.7286824  -0.7263602 -0.5521659 -0.8863574  -0.6750055
+## 2    -1.637282 -0.7308990 -0.8571979  -0.7263602 -0.7108697 -0.5682866  -0.6785480</code></pre>
+<!-- A salient feature of this class is the added 'geometry' column, so to select columns one has to also select this column to not break the class: -->
+<!-- ```{r} -->
+<!-- fselect(nc, NAME, AREA, geometry) %>% head(3) -->
+<!-- ``` -->
+</div>
+<div id="matrix-based-objects" class="section level1">
+<h1>Matrix Based Objects</h1>
+<p><em>collapse</em> also offers a converter <code>qM</code> to efficiently convert various objects to matrix:</p>
+<pre class="r"><code>m &lt;- qM(mtcars)</code></pre>
+<p>Grouped and / or weighted computations and transformations work as with with data frames:</p>
+<pre class="r"><code># Grouped means
+fmean(m, g = mtcars$cyl)
+##        mpg cyl     disp        hp     drat       wt     qsec        vs        am     gear     carb
+## 4 26.66364   4 105.1364  82.63636 4.070909 2.285727 19.13727 0.9090909 0.7272727 4.090909 1.545455
+## 6 19.74286   6 183.3143 122.28571 3.585714 3.117143 17.97714 0.5714286 0.4285714 3.857143 3.428571
+## 8 15.10000   8 353.1000 209.21429 3.229286 3.999214 16.77214 0.0000000 0.1428571 3.285714 3.500000
+
+# Grouped and weighted standardizing
+head(fscale(m, g = mtcars$cyl, w = mtcars$wt), 3)
+##                      mpg cyl        disp         hp       drat         wt       qsec         vs
+## Mazda RX4      0.9691687 NaN -0.63765527 -0.5263758  0.7123846 -1.6085211 -1.0438559 -1.2509539
+## Mazda RX4 Wag  0.9691687 NaN -0.63765527 -0.5263758  0.7123846 -0.8376064 -0.6921302 -1.2509539
+## Datsun 710    -0.7333024 NaN -0.08822497  0.4896429 -0.5526066 -0.1688057 -0.4488514  0.2988833
+##                     am        gear      carb
+## Mazda RX4     1.250954  0.27612029  0.386125
+## Mazda RX4 Wag 1.250954  0.27612029  0.386125
+## Datsun 710    0.719370 -0.09429567 -1.133397</code></pre>
+<p>Various matrix-based time series classes such as <em>xts</em> / <em>zoo</em> and <em>timeSeries</em> are also easily handled:</p>
+<pre class="r"><code># ts / mts
+# Note: G() by default renames the columns, fgrowth() does not
+plot(G(EuStockMarkets))</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-1.png" width="100%" /></p>
+<pre class="r"><code># xts
+library(xts) 
+ESM_xts &lt;- ts_xts(EuStockMarkets) # using tsbox::ts_xts
+head(G(ESM_xts), 3)
+##                         G1.DAX     G1.SMI    G1.CAC    G1.FTSE
+## 1991-07-01 02:18:27         NA         NA        NA         NA
+## 1991-07-02 12:01:32 -0.9283193  0.6197485 -1.257897  0.6793256
+## 1991-07-03 21:44:38 -0.4412412 -0.5863192 -1.856612 -0.4877652
+
+plot(G(ESM_xts), legend.loc = &quot;bottomleft&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-2.png" width="100%" /></p>
+<pre class="r"><code># timeSeries
+library(timeSeries) # using tsbox::ts_timeSeries
+ESM_timeSeries &lt;- ts_timeSeries(EuStockMarkets)
+# Note: G() here also renames the columns but the names of the series are also stored in an attribute
+head(G(ESM_timeSeries), 3)
+## GMT
+##                            DAX        SMI       CAC       FTSE
+## 1991-06-30 23:18:27         NA         NA        NA         NA
+## 1991-07-02 09:01:32 -0.9283193  0.6197485 -1.257897  0.6793256
+## 1991-07-03 18:44:38 -0.4412412 -0.5863192 -1.856612 -0.4877652
+
+plot(G(ESM_timeSeries), plot.type = &quot;single&quot;, at = &quot;pretty&quot;)
+legend(&quot;bottomleft&quot;, colnames(G(qM(ESM_timeSeries))), lty = 1, col = 1:4)</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-3.png" width="100%" /></p>
+<p>Aggregating these objects yields a plain matrix with groups in the row-names:</p>
+<pre class="r"><code># Aggregating by year: creates plain matrix with row-names (g is second argument)
+EuStockMarkets %&gt;% fmedian(round(time(.)))
+##           DAX     SMI    CAC    FTSE
+## 1991 1628.750 1678.10 1772.8 2443.60
+## 1992 1649.550 1733.30 1863.5 2558.50
+## 1993 1606.640 2061.70 1837.5 2773.40
+## 1994 2089.770 2727.10 2148.0 3111.40
+## 1995 2072.680 2591.60 1918.5 3091.70
+## 1996 2291.820 3251.60 1946.2 3661.65
+## 1997 2861.240 3906.55 2297.1 4075.35
+## 1998 4278.725 6077.40 3002.7 5222.20
+## 1999 5905.150 8102.70 4205.4 5884.50
+
+# Same thing with the other objects
+all_obj_equal(ESM_xts %&gt;% fmedian(substr(time(.), 1L, 4L)),
+              ESM_timeSeries %&gt;% fmedian(substr(time(.), 1L, 4L)))
+## [1] TRUE</code></pre>
+</div>
+<div id="benchmarks" class="section level1">
+<h1>Benchmarks</h1>
+<!-- , particularly for `:=` transformations and weighted aggregations -->
+<p>Extensive benchmarks and examples against native <em>dplyr</em> / <em>tibble</em> and <em>plm</em> are provided <a href="https://sebkrantz.github.io/collapse/articles/collapse_and_dplyr.html#3-benchmarks"><em>here</em></a> and <a href="https://sebkrantz.github.io/collapse/articles/collapse_and_plm.html#benchmarks-1"><em>here</em></a>, making it evident that <em>collapse</em> provides both greater versatility and massive performance improvements over the methods defined for these objects. Benchmarks against <em>data.table</em> were provided in a <a href="https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/"><em>previous post</em></a>, where <em>collapse</em> compared favorably on a 2-core machine (particularly for weighted and <code>:=</code> type operations). In general <em>collapse</em> functions are extremely well optimized, with basic execution speeds below 30 microseconds, and efficiently scale to larger operations. Most importantly, they preserve the data structure and attributes (including column attributes) of the objects passed to them. They also efficiently skip missing values and avoid some of the undesirable behavior endemic of base R<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+<p>Here I will add to the above resources just a small benchmark to prove that computations with <em>collapse</em> are also faster than any native methods and suggested programming principles for the various time series classes:</p>
+<pre class="r"><code>library(dplyr) # needed for tibbletime / tsibble comparison    
+library(microbenchmark)
+
+# Computing the first difference
+microbenchmark(ts = diff(EuStockMarkets),
+               collapse_ts = fdiff(EuStockMarkets),
+               xts = diff(ESM_xts),
+               collapse_xts = fdiff(ESM_xts),
+               timeSeries = diff(ESM_timeSeries),
+               collapse_timeSeries = fdiff(ESM_timeSeries),
+               # taking difference function from tsibble
+               dplyr_tibbletime = mutate_at(tibtm, 2:5, difference, order_by = tibtm$time),
+               collapse_tibbletime_D = D(tibtm, t = ~ time),
+               # collapse equivalent to the dplyr method (tfmv() abbreviates ftransformv())
+               collapse_tibbletime_tfmv = tfmv(tibtm, 2:5, fdiff, t = time, apply = FALSE),
+               # dplyr helpers provided by tsibble package
+               dplyr_tsibble = mutate(group_by_key(tsib), value = difference(value, order_by = index)),
+               collapse_tsibble_D = D(tsib, 1, 1, ~ key, ~ index),
+               # Again we can do the same using collapse (tfm() abbreviates ftransform())
+               collapse_tsibble_tfm = tfm(tsib, value = fdiff(value, 1, 1, key, index)))
+## Unit: microseconds
+##                      expr      min        lq        mean    median         uq        max neval cld
+##                        ts 1344.993 1458.7855  1843.66603 1591.7675  1790.3480   9325.697   100 a  
+##               collapse_ts   20.974   37.4850    50.27008   49.5340    58.4585    135.213   100 a  
+##                       xts   84.788  131.4205   319.51851  147.7085   161.9885  15576.297   100 a  
+##              collapse_xts   38.824   60.2440    77.00934   73.1845    85.9030    214.199   100 a  
+##                timeSeries 1364.628 1630.3680  1907.73838 1775.3990  2051.8495   2887.227   100 a  
+##       collapse_timeSeries   42.840   62.9220    86.59470   77.8705    91.0350    671.157   100 a  
+##          dplyr_tibbletime 5835.143 6267.7805  7371.78980 6681.0065  7534.0105  37462.544   100  b 
+##     collapse_tibbletime_D  430.630  479.9400   565.78952  536.1675   601.0960    923.288   100 a  
+##  collapse_tibbletime_tfmv  412.780  464.9910   557.34657  511.6240   612.4760   1460.570   100 a  
+##             dplyr_tsibble 7539.811 8328.7780 11490.09014 8791.9835 10098.8220 223112.537   100   c
+##        collapse_tsibble_D  757.730  821.9900  1015.04996  909.2310   996.0265   6766.910   100 a  
+##      collapse_tsibble_tfm  729.616  783.8350  1035.57745  862.5980   907.0000  13540.958   100 a
+
+# Sequence of lagged/leaded and iterated differences (not supported by either of these methods)
+head(fdiff(ESM_xts, -1:1, diff = 1:2)[, 1:6], 3) 
+##                     FD1.DAX FD2.DAX     DAX D1.DAX D2.DAX FD1.SMI
+## 1991-07-01 02:18:27   15.12    8.00 1628.75     NA     NA   -10.4
+## 1991-07-02 12:01:32    7.12   21.65 1613.63 -15.12     NA     9.9
+## 1991-07-03 21:44:38  -14.53  -17.41 1606.51  -7.12      8    -5.5
+head(D(tibtm, -1:1, diff = 1:2, t = ~ time), 3)
+## # A time tibble: 3 x 21
+## # Index: time
+##   time                FD1.DAX FD2.DAX   DAX D1.DAX D2.DAX FD1.SMI FD2.SMI   SMI D1.SMI D2.SMI FD1.CAC
+##   &lt;dttm&gt;                &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
+## 1 1991-07-01 02:18:27   15.1     8.00 1629.  NA     NA      -10.4   -20.3 1678.   NA     NA      22.3
+## 2 1991-07-02 12:01:32    7.12   21.7  1614. -15.1   NA        9.9    15.4 1688.   10.4   NA      32.5
+## 3 1991-07-03 21:44:38  -14.5   -17.4  1607.  -7.12   8.00    -5.5    -3   1679.   -9.9  -20.3     9.9
+## # ... with 9 more variables: FD2.CAC &lt;dbl&gt;, CAC &lt;dbl&gt;, D1.CAC &lt;dbl&gt;, D2.CAC &lt;dbl&gt;, FD1.FTSE &lt;dbl&gt;,
+## #   FD2.FTSE &lt;dbl&gt;, FTSE &lt;dbl&gt;, D1.FTSE &lt;dbl&gt;, D2.FTSE &lt;dbl&gt;
+head(D(tsib, -1:1, diff = 1:2, ~ key, ~ index), 3)
+## # A tsibble: 3 x 7 [1s] &lt;UTC&gt;
+## # Key:       key [1]
+##   key   index               FD1.value FD2.value value D1.value D2.value
+##   &lt;chr&gt; &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 DAX   1991-07-01 02:18:33     15.1       8.00 1629.    NA       NA   
+## 2 DAX   1991-07-02 12:00:00      7.12     21.7  1614.   -15.1     NA   
+## 3 DAX   1991-07-03 21:41:27    -14.5     -17.4  1607.    -7.12     8.00
+
+microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
+               collapse_tibbletime = D(tibtm, -1:1, diff = 1:2, t = ~ time),
+               collapse_tsibble = D(tsib, -1:1, diff = 1:2, ~ key, ~ index))
+## Unit: microseconds
+##                 expr     min      lq      mean    median        uq        max neval cld
+##         collapse_xts  99.067 127.404 4328.5683  146.8155  177.1610 222804.179   100   a
+##  collapse_tibbletime 504.707 561.827  613.9219  585.7020  614.7075   1100.003   100   a
+##     collapse_tsibble 849.657 945.600 1060.1478 1011.1990 1083.4915   1729.659   100   a</code></pre>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>This concludes this short demonstration. <em>collapse</em> is an advanced, fast and versatile data manipulation package. If you have followed until here I am convinced you will find it very useful, particularly if you are working in advanced statistics, econometrics, surveys, time series, panel data and the like, or if you care much about performance and non-destructive working in R. For more information about the package see the <a href="https://sebkrantz.github.io/collapse/index.html"><em>website</em></a>, study the <a href="https://raw.githubusercontent.com/SebKrantz/cheatsheets/master/collapse.pdf"><em>cheat sheet</em></a> or call <code>help("collapse-documentation")</code> after install to bring up the built-in documentation.</p>
+</div>
+<div id="appendix-so-how-does-this-all-actually-work" class="section level1">
+<h1>Appendix: So how does this all actually work?</h1>
+<p>Statistical functions like <code>fmean</code> are S3 generic with user visible ‘default’, ‘matrix’ and ‘data.frame’ methods, and hidden ‘list’ and ‘grouped_df’ methods. Transformation functions like <code>fwithin</code> additionally have ‘pseries’ and ‘pdata.frame’ methods to support <em>plm</em> objects.</p>
+<p>The ‘default’, ‘matrix’ and ‘data.frame’ methods handle object attributes intelligently. In the case of ‘data.frame’s’ only the ‘row.names’ attribute is modified accordingly, other attributes (including column attributes) are preserved. This also holds for data manipulation functions like <code>fselect</code>, <code>fsubset</code>, <code>ftransform</code> etc.. ‘default’ and ‘matrix’ methods preserve attributes as long as the data dimensions are kept.</p>
+<p>In addition, the ‘default’ method checks if its argument is actually a matrix, and calls the matrix method if <code>is.matrix(x) &amp;&amp; !inherits(x, "matrix")</code> is <code>TRUE</code>. This prevents classed matrix-based objects (such as <em>xts</em> time series) not inheriting from ‘matrix’ being handled by the default method.</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>For example. <code>mean(NA, na.rm = TRUE)</code> gives <code>NaN</code>, <code>sum(NA, na.rm = TRUE)</code> gives <code>0</code> and <code>max(NA, na.rm = TRUE)</code> gives <code>-Inf</code> whereas <code>all_identical(NA_real_, fmean(NA), fsum(NA), fmax(NA))</code>. <code>na.rm = TRUE</code> is the default setting for all <em>collapse</em> functions. Setting <code>na.rm = FALSE</code> also checks for missing values and returns <code>NA</code> if found instead of just running through the entire computation and then returning a <code>NA</code> or <code>NaN</code> value which is unreliable and inefficient.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

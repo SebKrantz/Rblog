@@ -9,7 +9,9 @@ tags: ["R", "collapse", "grouped", "weighted", "statistical", "programming"]
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, fig.width = 8, fig.height = 5, out.width = '100%', cache = TRUE)
+knitr::opts_chunk$set(collapse = TRUE, fig.width = 8, fig.height = 5, out.width = '100%', 
+                      cache = FALSE, 
+                      message = FALSE, error = FALSE, warning = FALSE)
 
 oldopts <- options(width = 101L)
 ```
@@ -67,21 +69,25 @@ microbenchmark(call = add_vars(g[["groups"]], fmean(get_vars(GGDC10S, 6:16), g, 
 We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data^[A random effects estimator could easily be added, see the example [here](https://sebkrantz.github.io/collapse/reference/fbetween_fwithin.html).]:
 
 ```{r}
-Panel_Ests <- function(formula, data, pids) {
+Panel_Ests <- function(formula, data, pids, weights = NULL, ...) {
   # Get variables as character string, first variable is dependent variable
   vars <- all.vars(formula)
   # na_omit is a fast replacement for na.omit
-  data_cc <- na_omit(get_vars(data, c(vars, pids)))
+  data_cc <- na_omit(get_vars(data, c(vars, pids, weights)))
+  # Create grouped object (pids should be a character vector)
   g <- GRP(data_cc, pids, return.groups = FALSE, call = FALSE)
+  # Getting weights from data (weights should be character string)
+  if(length(weights)) weights <- .subset2(data_cc, weights)
   # qM is a faster as.matrix
   data_cc <- qM(get_vars(data_cc, vars))
-  # Computing group means
-  mean_data_cc <- fmean(data_cc, g, use.g.names = FALSE)
-  # This computes regression coefficients
-  reg <- function(x) qr.coef(qr(cbind(Intercept = 1, x[, -1L, drop = FALSE])), x[, 1L])
+  # Computing group means 
+  mean_data_cc <- fmean(data_cc, g, weights, use.g.names = FALSE)
+  # This computes regression coefficients, dots options regard different fitting methods
+  reg <- function(x, w = weights, ...) 
+    drop(flm(x[, 1L], x[, -1L, drop = FALSE], w, add.icpt = TRUE, ...))
   
   qM(list(Pooled = reg(data_cc),
-          Means = reg(mean_data_cc),
+          Means = reg(mean_data_cc, w = if(length(weights)) fsum(weights, g) else NULL),
           # This replaces data values with the group-mean -> between-group estimator
           Between = reg(TRA(data_cc, mean_data_cc, "replace_fill", g)),
           # This subtracts the group-means -> within-group estimator
@@ -100,10 +106,16 @@ Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, "Country") %>% round(4)
 fsubset(GGDC10S, Variable == "EMP") %>% ftransformv(6:16, `*`, 100/SUM) %>%
   Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, "Country") %>% round(4)
 ```
-It would be easy to add an option for sampling weights as `fmean` also supports weighted grouped computations. A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using `plm` to do it). 
+A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using `plm` to do it). 
 ```{r}
+VA_shares$weights <- abs(rnorm(fnrow(VA_shares))) # Random weights
+
 # Benchmark on VA data    
-microbenchmark(call = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, "Country"))
+microbenchmark(lm.fit = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, "Country"), 
+               chol = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, "Country", method = "chol"),
+               lm.fit.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, "Country", "weights"), 
+               chol.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, "Country", "weights", method = "chol"))
+
 ```
 
 There are lots and lots of other applications that can be devised in R using the `.FAST_FUN` and efficient programming with grouping objects.
@@ -171,20 +183,22 @@ LogicalVector ganyNACpp(const SEXP& x, int ng = 0, const IntegerVector& g = 0){
 
 ```
 On the R side things are then pretty simple: 
-```{r, message=FALSE, cache=TRUE}
+```{r, message=FALSE}
 library(Rcpp)    
 sourceCpp("ganyNA.cpp") 
  
-ganyNA <- function(x, g, use.g.names = TRUE) { 
+ganyNA <- function(x, g, use.g.names = TRUE, ...) { 
   # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
-  g <- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE)
+  g <- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE, ...)
   res <- ganyNACpp(x, g[[1L]], g[[2L]]) 
   # GRPnames creates unique group names. For vectors they need not be character typed.
   if(use.g.names) names(res) <- GRPnames(g, force.char = FALSE)
   res
 }
 ```
-Strictly speaking there are different options to set this up: `GRP()` is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a 'factor' method converting factors to 'GRP' objects. Above I have used the generic `GRP` function with the option `group.sizes = FALSE`, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to `g`, but will not drop unused factor levels. The alternative is to use `g <- GRP.default(g, return.groups = use.g.names, call = FALSE)`, which will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector. 
+Regarding the grouping step, there are actually different options to set this up: `GRP()` is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a 'factor' method converting factors to 'GRP' objects. Above I have used the generic `GRP` function with the option `group.sizes = FALSE`, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to `g`. Since collapse 1.4.0, the factor method additionally supports efficient dropping of unused factor levels through setting an argument `drop = TRUE`, which internally calls a C++ function function `fdroplevels` on the factor. By default `drop = FALSE` and this default is kept here. The cost of dropping levels on a large factor can be seen in the benchmark below. 
+
+While the generic version of `GRP()` offers a lot of flexibility and faster methods for grouping different objects (for example you can also apply `GRP()` on a grouped tibble to get at 'GRP' object from the attached 'groups' attribute), a viable alternative is to just use the default method `g <- GRP.default(g, return.groups = use.g.names, call = FALSE)`. This will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector. 
 
 ```{r}
 GGDC10S %$% ganyNA(SUM, list(Country, Variable)) %>% head
@@ -195,10 +209,11 @@ g <- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 system.time(ganyNA(x, g, use.g.names = FALSE))
 
-# Using a factor grouping variable: more efficient but does not drop any unused levels
+# Using a factor grouping variable: more efficient 
 f <- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
-system.time(ganyNA(x, f, use.g.names = FALSE))
+system.time(ganyNA(x, f, drop = TRUE)) # This also checks for unused levels and drops them (if found)
+# Note: use.g.names = FALSE does not give a performance improvement with factors because unique factor levels are already computed
 
 # We can also efficiently pass a 'GRP' object: both GRP.GRP and GRP.default simply return it.
 g <- GRP(g)
