@@ -119,8 +119,8 @@ Grouping is done very efficiently using radix-based ordering in C (thanks to <em
 <pre class="r"><code>library(microbenchmark) 
 microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ## Unit: microseconds
-##  expr     min      lq     mean  median       uq      max neval
-##  call 336.917 368.602 538.4524 443.125 596.6345 1859.071   100</code></pre>
+##  expr     min      lq    mean   median      uq      max neval
+##  call 263.734 296.533 406.328 342.9425 430.631 1265.117   100</code></pre>
 <p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
 <pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids, weights = NULL, ...) {
   # Get variables as character string, first variable is dependent variable
@@ -177,11 +177,11 @@ microbenchmark(lm.fit = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Count
                lm.fit.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;), 
                chol.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;, method = &quot;chol&quot;))
 ## Unit: milliseconds
-##      expr      min       lq     mean   median       uq       max neval cld
-##    lm.fit 1.432458 1.850815 2.547426 2.134406 2.711181  8.563059   100   a
-##      chol 1.413715 1.934932 2.543539 2.170775 2.621708 10.759493   100   a
-##  lm.fit.w 1.652458 2.256009 2.910913 2.632642 3.082237  8.343505   100   a
-##    chol.w 1.707792 1.992276 3.023913 2.479579 3.085361 13.799782   100   a</code></pre>
+##      expr      min       lq     mean   median       uq      max neval cld
+##    lm.fit 1.219600 1.280289 1.612638 1.422643 1.704896 4.678477   100  a 
+##      chol 1.227632 1.343434 1.663439 1.448748 1.675667 6.298362   100  a 
+##  lm.fit.w 1.411933 1.505200 1.802218 1.599134 1.848365 4.860994   100  ab
+##    chol.w 1.423535 1.554733 1.965242 1.681691 2.081530 6.923111   100   b</code></pre>
 <p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
 <div id="creating-grouped-functions-in-cc" class="section level2">
 <h2>Creating Grouped Functions in C/C++</h2>
@@ -265,26 +265,26 @@ x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 ##    user  system elapsed 
-##    0.72    0.05    0.78
+##    0.67    0.03    0.75
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##    user  system elapsed 
-##    0.55    0.05    0.59
+##    0.56    0.00    0.56
 
 # Using a factor grouping variable: more efficient 
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##    user  system elapsed 
-##    0.04    0.02    0.04
+##    0.05    0.00    0.04
 system.time(ganyNA(x, f, drop = TRUE)) # This also checks for unused levels and drops them (if found)
 ##    user  system elapsed 
-##    0.14    0.00    0.14
+##    0.11    0.02    0.12
 # Note: use.g.names = FALSE does not give a performance improvement with factors because unique factor levels are already computed
 
 # We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
 g &lt;- GRP(g)
 system.time(ganyNA(x, g))
 ##    user  system elapsed 
-##    0.02    0.00    0.01
+##    0.03    0.00    0.03
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##    user  system elapsed 
 ##    0.03    0.00    0.03</code></pre>

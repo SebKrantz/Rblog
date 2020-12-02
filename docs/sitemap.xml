@@ -4,7 +4,57 @@
   
   <url>
     <loc>/Rblog/categories/</loc>
-    <lastmod>2020-11-14T00:00:00+00:00</lastmod>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/ecm/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/econometrics/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/categories/econometrics/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/forecasting/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/post/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/r/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/categories/r/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/</loc>
+    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -14,31 +64,6 @@
   
   <url>
     <loc>/Rblog/2020/11/14/class-agnostic-data-manipulation/</loc>
-    <lastmod>2020-11-14T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/post/</loc>
-    <lastmod>2020-11-14T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/r/</loc>
-    <lastmod>2020-11-14T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/categories/r/</loc>
-    <lastmod>2020-11-14T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/</loc>
-    <lastmod>2020-11-14T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/</loc>
     <lastmod>2020-11-14T00:00:00+00:00</lastmod>
   </url>
   

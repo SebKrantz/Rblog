@@ -8,6 +8,896 @@
     <language>en-us</language>
     <lastBuildDate>Sun, 13 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/weighted/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Forecasting Tax Revenue with Error Correction Models</title>
+      <link>/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</link>
+      <pubDate>Wed, 02 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</guid>
+      <description><![CDATA[ 
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p>There are several ways to forecast tax revenue. The IMF <a href="https://courses.edx.org/asset-v1:IMFx+FPP.1x+1T2017+type@asset+block@FPP1x_Manual.pdf"><em>Financial Programming Manual</em></a> reviews 3 of them: (i) the effective tax rate approach; (ii) the elasticity approach; and (iii) the regression approach. Approach (iii) typically results in the most accurate short-term forecasts. The simple regression approach regresses tax revenue on its own lags and GDP with some lags.</p>
+<p>In the absence of large abrupt shifts in the tax base, domestic revenue can be assumed to have a linear relationship with GDP. Since however both revenue and GDP are typically non-stationary series, this relationship often takes the form of cointegration. The correct way to deal with cointegrated variables is to specify and Error Correction Model (ECM). This blog post will briefly demonstrate the specification of an ECM to forecast the tax revenue of a developing economy<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. First we examine the data, which is in local currency and was transformed using the natural logarithm.</p>
+<pre class="r"><code>library(haven)      # Import from STATA
+library(collapse)   # Data transformation
+library(magrittr)   # Pipe operators %&gt;% 
+library(tseries)    # Time series tests
+library(lmtest)     # Linear model tests
+library(sandwich)   # Robust standard errors
+library(dynlm)      # Dynamic linear models
+library(jtools)     # Enhanced regression summary
+library(xts)        # Extensible time-series + pretty plots
+
+# Loading the data from STATA
+data &lt;- read_dta(&quot;data.dta&quot;) %&gt;% as_factor
+
+# Generating a date variable
+settfm(data, Date = as.Date(paste(Year, unattrib(Quarter) * 3L, &quot;1&quot;, sep = &quot;/&quot;)))
+
+# Creating time series matrix X
+X &lt;- data %$% xts(cbind(lrev, lgdp), order.by = Date, frequency = 4L)
+
+# (Optional) seasonal adjustment using X-13 ARIMA SEATS
+  # library(seasonal)
+  # X &lt;- dapply(X, function(x) predict(seas(ts(x, start = c(1997L, 3L), frequency = 4L))))
+  # # X &lt;- X[&quot;2015/&quot;, ] # Optionally restricting the sample to after 2014
+
+# Plotting the raw data
+plot(na_omit(X)[-1L, ] %&gt;% setColnames(.c(Revenue, GDP)), 
+     multi.panel = TRUE, yaxis.same = FALSE, 
+     main = &quot;Domestic Revenue and GDP (in Logs)&quot;, 
+     major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-1.png" width="100%" /></p>
+<pre class="r"><code># Plotting the log-differenced data
+plot(na_omit(D(X)), legend.loc = &quot;topleft&quot;, 
+     main = &quot;Revenue and GDP in Quarterly Log-Differences&quot;,
+     major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-2.png" width="100%" />
+The data was not seasonally adjusted as revenue and GDP exhibit similar seasonal patterns. Summarizing the log-differenced using a function designed for panel data allows us to assess the extent of seasonality relative to overall variation.</p>
+<pre class="r"><code># Summarize between and within quarters
+tfmv(data, 3:4, D) %&gt;% qsu(pid = lrev + lgdp ~ Quarter)
+## , , lrev
+## 
+##            N/T    Mean      SD      Min     Max
+## Overall     91  0.0316  0.1545  -0.5456  0.6351
+## Between      4  0.0302  0.1275  -0.0997  0.1428
+## Within   22.75  0.0316  0.1077  -0.4144  0.5239
+## 
+## , , lgdp
+## 
+##            N/T    Mean      SD      Min     Max
+## Overall     45  0.0271   0.183  -0.3702  0.5888
+## Between      4  0.0291  0.0767  -0.0593  0.1208
+## Within   11.25  0.0271    0.17  -0.3771  0.4951</code></pre>
+<p>For log revenue, the standard deviation between quarters is actually slightly higher than the within-quarter standard deviation, indicating a strong seasonal component. The summary also shows that we have 23 years of quarterly revenue data but only 11 years of quarterly GDP data.</p>
+<p>An ECM is only well specified if both series are integrated of the same order and cointegrated. This requires a battery of tests to examine the properties of the data before specifying a model<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. For simplicity I will follow the 2-Step approach of Engele &amp; Granger here, although I note that the more sophisticated Johannsen procedure is available in the <em>urca</em> package.</p>
+<pre class="r"><code># Testing log-transformed series for stationarity: Revenue is clearly non-stationary
+adf.test(X[, &quot;lrev&quot;])
+## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  X[, &quot;lrev&quot;]
+## Dickey-Fuller = -0.90116, Lag order = 4, p-value = 0.949
+## alternative hypothesis: stationary
+
+kpss.test(X[, &quot;lrev&quot;], null = &quot;Trend&quot;)
+## 
+##  KPSS Test for Trend Stationarity
+## 
+## data:  X[, &quot;lrev&quot;]
+## KPSS Trend = 0.24371, Truncation lag parameter = 3, p-value = 0.01
+
+# ADF test fails to reject the null of non-stationarity at 5% level
+adf.test(na_omit(X[, &quot;lgdp&quot;]))
+## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  na_omit(X[, &quot;lgdp&quot;])
+## Dickey-Fuller = -3.4532, Lag order = 3, p-value = 0.06018
+## alternative hypothesis: stationary
+
+kpss.test(na_omit(X[, &quot;lgdp&quot;]), null = &quot;Trend&quot;)
+## 
+##  KPSS Test for Trend Stationarity
+## 
+## data:  na_omit(X[, &quot;lgdp&quot;])
+## KPSS Trend = 0.065567, Truncation lag parameter = 3, p-value = 0.1
+
+# Cointegrated: We reject the null of no cointegration
+po.test(X[, .c(lrev, lgdp)])
+## 
+##  Phillips-Ouliaris Cointegration Test
+## 
+## data:  X[, .c(lrev, lgdp)]
+## Phillips-Ouliaris demeaned = -33.219, Truncation lag parameter = 0, p-value = 0.01</code></pre>
+<p>The differenced revenue and GDP series are stationary (tests not shown), so both series are I(1), and GDP is possibly trend-stationary. The Phillips-Ouliaris test rejected the null that both series are not cointegrated.</p>
+<p>Below the cointegration relationship is estimated. A dummy is included for extreme GDP fluctuations between Q3 2013 and Q3 2014, which may also be related to a GDP rebasing. Since the nature of these events is an increase in volatility rather than the level of GDP, the dummy is not a very effective way of dealing with this irregularity in the data, but for simplicity we will go with it.</p>
+<pre class="r"><code># Adding extreme GDP events dummy
+X &lt;- cbind(X, GDPdum = 0)
+X[&quot;2013-09/2014-09&quot;, &quot;GDPdum&quot;] &lt;- 1
+
+# This estimates the cointegration equation
+cieq &lt;- dynlm(lrev ~ lgdp + GDPdum, as.zoo(X))
+
+# Summarizing the model with heteroskedasticity and autocorrelation consistent (HAC) errors
+summ(cieq, digits = 4L, vcov = vcovHAC(cieq))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+46 (44 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+lrev
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(2,43)
+</td>
+<td style="text-align:right;">
+64.4122
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.7497
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.7381
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+-4.7667
+</td>
+<td style="text-align:right;">
+1.2958
+</td>
+<td style="text-align:right;">
+-3.6787
+</td>
+<td style="text-align:right;">
+0.0006
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+lgdp
+</td>
+<td style="text-align:right;">
+1.1408
+</td>
+<td style="text-align:right;">
+0.1293
+</td>
+<td style="text-align:right;">
+8.8208
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+GDPdum
+</td>
+<td style="text-align:right;">
+0.0033
+</td>
+<td style="text-align:right;">
+0.2080
+</td>
+<td style="text-align:right;">
+0.0160
+</td>
+<td style="text-align:right;">
+0.9873
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: User-specified
+</td>
+</tr>
+</tfoot>
+</table>
+<pre class="r"><code># Residuals of cointegration equation
+res &lt;- as.xts(cieq$residuals)
+plot(res[-1L, ], main = &quot;Residuals from Cointegration Equation&quot;, 
+     major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
+<pre class="r"><code># Testing residuals: Stationary
+adf.test(res)
+## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  res
+## Dickey-Fuller = -4.3828, Lag order = 3, p-value = 0.01
+## alternative hypothesis: stationary
+
+kpss.test(res, null = &quot;Trend&quot;)
+## 
+##  KPSS Test for Trend Stationarity
+## 
+## data:  res
+## KPSS Trend = 0.045691, Truncation lag parameter = 3, p-value = 0.1</code></pre>
+<p>Apart from a cointegration relationship which governs the medium-term relationship of revenue and GDP, revenue may also be affected by past revenue collection and short-term fluctuations in GDP. A sensible and simple specification to forecast revenue in the short to medium term (assuming away shifts in the tax base) is thus provided by the general form of a bivariate ECM:</p>
+<p><span class="math display">\[\begin{equation}
+A(L)\Delta r_t = \gamma + B(L)\Delta y_t + \alpha (r_{t-t} - \beta_0 - \beta_i y_{t-1}) + v_t,
+\end{equation}\]</span>
+where
+<span class="math display">\[\begin{align*}
+A(L) &amp;= 1- \sum_{i=1}^p L^i = 1 - L - L^2 -  \dots - L^p, \\
+B(L) &amp;= \sum_{i=0}^q L^i= 1 + L + L^2 + \dots + L^q
+\end{align*}\]</span>
+are polynomials in the lag operator <span class="math inline">\(L\)</span> of order <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>, respectively. Some empirical investigation of the fit of the model for different lag-orders <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> established that <span class="math inline">\(p = 2\)</span> and <span class="math inline">\(q = 1\)</span> gives a good fit, so that the model estimated is</p>
+<p><span class="math display">\[\begin{equation} 
+\Delta r_t = \gamma  + \Delta r_{t-1} + \Delta r_{t-2}  + \Delta y_t + \Delta y_{t-1} + \alpha (r_{t-t} - \beta_0 - \beta_i y_{t-1}) + v_t.
+\end{equation}\]</span></p>
+<pre class="r"><code># Estimating Error Correction Model (ECM)
+ecm &lt;- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, 
+             as.zoo(merge(X, res)))
+
+summ(ecm, digits = 4L, vcov = vcovHAC(ecm))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+44 (44 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+D(lrev)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(6,37)
+</td>
+<td style="text-align:right;">
+12.9328
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.6771
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.6248
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.0817
+</td>
+<td style="text-align:right;">
+0.0197
+</td>
+<td style="text-align:right;">
+4.1440
+</td>
+<td style="text-align:right;">
+0.0002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)1
+</td>
+<td style="text-align:right;">
+-0.9195
+</td>
+<td style="text-align:right;">
+0.1198
+</td>
+<td style="text-align:right;">
+-7.6747
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)2
+</td>
+<td style="text-align:right;">
+-0.3978
+</td>
+<td style="text-align:right;">
+0.1356
+</td>
+<td style="text-align:right;">
+-2.9342
+</td>
+<td style="text-align:right;">
+0.0057
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lgdp), 0:1)1
+</td>
+<td style="text-align:right;">
+0.1716
+</td>
+<td style="text-align:right;">
+0.0942
+</td>
+<td style="text-align:right;">
+1.8211
+</td>
+<td style="text-align:right;">
+0.0767
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lgdp), 0:1)2
+</td>
+<td style="text-align:right;">
+-0.2654
+</td>
+<td style="text-align:right;">
+0.1128
+</td>
+<td style="text-align:right;">
+-2.3532
+</td>
+<td style="text-align:right;">
+0.0240
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(res)
+</td>
+<td style="text-align:right;">
+-0.2412
+</td>
+<td style="text-align:right;">
+0.1096
+</td>
+<td style="text-align:right;">
+-2.2008
+</td>
+<td style="text-align:right;">
+0.0341
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+GDPdum
+</td>
+<td style="text-align:right;">
+0.0212
+</td>
+<td style="text-align:right;">
+0.0207
+</td>
+<td style="text-align:right;">
+1.0213
+</td>
+<td style="text-align:right;">
+0.3138
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: User-specified
+</td>
+</tr>
+</tfoot>
+</table>
+<pre class="r"><code># Regression diagnostic plots
+# plot(ecm)
+
+# No heteroskedasticity (null of homoskedasticity not rejected)
+bptest(ecm)
+## 
+##  studentized Breusch-Pagan test
+## 
+## data:  ecm
+## BP = 9.0161, df = 6, p-value = 0.1727
+
+# Some autocorrelation remainig in the residuals, but negative 
+cor.test(resid(ecm), L(resid(ecm)))
+## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  resid(ecm) and L(resid(ecm))
+## t = -1.8774, df = 41, p-value = 0.06759
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.5363751  0.0207394
+## sample estimates:
+##       cor 
+## -0.281357
+
+dwtest(ecm)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm
+## DW = 2.552, p-value = 0.9573
+## alternative hypothesis: true autocorrelation is greater than 0
+
+dwtest(ecm, alternative = &quot;two.sided&quot;)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm
+## DW = 2.552, p-value = 0.08548
+## alternative hypothesis: true autocorrelation is not 0</code></pre>
+<p>The regression table shows that the log-difference in revenue strongly responds to its own lags, the lagged log-difference of GDP and the deviation from the previous period equilibrium, with an adjustment speed of <span class="math inline">\(\alpha = -0.24\)</span>.</p>
+<p>The statistical properties of the equation are also acceptable. Errors are homoskedastic and serially uncorrelated at the 5% level. The model is nevertheless reported with heteroskedasticity and autocorrelation consistent (HAC) standard errors.</p>
+<p>Curiously, changes in revenue in the current quarter do not seem to be very strongly related to changes in GDP in the current quarter, which could also be accounted for by data being published with a lag. For forecasting this is advantageous since if a specification without the difference of GDP can be estimated that fits the data well, then it may not be necessary to first forecast quarterly GDP and include it in the model in order to get a decent forecasts of the revenue number for the next quarter. Below a specification without the difference in GDP is estimated.</p>
+<pre class="r"><code># Same using only lagged differences in GDP
+ecm2 &lt;- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, 
+              as.zoo(merge(X, res)))
+
+summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+45 (44 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+D(lrev)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(5,39)
+</td>
+<td style="text-align:right;">
+15.1630
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.6603
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.6168
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.0839
+</td>
+<td style="text-align:right;">
+0.0206
+</td>
+<td style="text-align:right;">
+4.0653
+</td>
+<td style="text-align:right;">
+0.0002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)1
+</td>
+<td style="text-align:right;">
+-0.9111
+</td>
+<td style="text-align:right;">
+0.1162
+</td>
+<td style="text-align:right;">
+-7.8424
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)2
+</td>
+<td style="text-align:right;">
+-0.3910
+</td>
+<td style="text-align:right;">
+0.1305
+</td>
+<td style="text-align:right;">
+-2.9950
+</td>
+<td style="text-align:right;">
+0.0047
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lgdp))
+</td>
+<td style="text-align:right;">
+-0.2345
+</td>
+<td style="text-align:right;">
+0.0995
+</td>
+<td style="text-align:right;">
+-2.3574
+</td>
+<td style="text-align:right;">
+0.0235
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(res)
+</td>
+<td style="text-align:right;">
+-0.1740
+</td>
+<td style="text-align:right;">
+0.0939
+</td>
+<td style="text-align:right;">
+-1.8524
+</td>
+<td style="text-align:right;">
+0.0716
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+GDPdum
+</td>
+<td style="text-align:right;">
+0.0244
+</td>
+<td style="text-align:right;">
+0.0328
+</td>
+<td style="text-align:right;">
+0.7428
+</td>
+<td style="text-align:right;">
+0.4621
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: User-specified
+</td>
+</tr>
+</tfoot>
+</table>
+<pre class="r"><code># plot(ecm2)
+
+bptest(ecm2)
+## 
+##  studentized Breusch-Pagan test
+## 
+## data:  ecm2
+## BP = 7.0511, df = 5, p-value = 0.2169
+
+cor.test(resid(ecm2), L(resid(ecm2)))
+## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  resid(ecm2) and L(resid(ecm2))
+## t = -1.701, df = 42, p-value = 0.09634
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.51214976  0.04651674
+## sample estimates:
+##        cor 
+## -0.2538695
+
+dwtest(ecm2)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm2
+## DW = 2.4973, p-value = 0.942
+## alternative hypothesis: true autocorrelation is greater than 0
+
+dwtest(ecm2, alternative = &quot;two.sided&quot;)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm2
+## DW = 2.4973, p-value = 0.1161
+## alternative hypothesis: true autocorrelation is not 0</code></pre>
+<p>We can also compare the fitted values of the two models:</p>
+<pre class="r"><code># Get ECM fitted values
+ECM1_fit &lt;- fitted(ecm)
+ECM2_fit &lt;- fitted(ecm2)
+
+# Plot together with revenue
+plot(merge(D(X[, &quot;lrev&quot;]), ECM1_fit, ECM2_fit) %&gt;% na_omit, 
+     main = &quot;Dlog Revenue and ECM Fit&quot;, 
+     legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p>Both the fit statistics and fitted values suggest that ECM2 is a feasible forecasting specification that avoids the need to first forecast quarterly GDP.</p>
+<p>The true forecasting performance of the model can only be estimated through out of sample forecasts. Below I compute 1 quarter ahead forecasts for quarters 2018Q1 through 2019Q4 using an expanding window where both the cointegration equation and the ECM are re-estimated for each new period.</p>
+<pre class="r"><code># Function to forecast with expanding window from start year (using ECM2 specification)
+forecast_oos &lt;- function(x, start = 2018) {
+  n &lt;- nrow(x[paste0(&quot;/&quot;, start - 1), ]) 
+  xzoo &lt;- as.zoo(x)
+  fc &lt;- numeric(0L)
+  # Forecasting with expanding window
+  for(i in n:(nrow(x)-1L)) {
+    samp &lt;- xzoo[1:i, ]
+    ci &lt;- dynlm(lrev ~ lgdp + GDPdum, samp)
+    samp &lt;- cbind(samp, res = resid(ci))
+    mod &lt;- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+    fc &lt;- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+  }
+  xfc &lt;- cbind(D(x[, &quot;lrev&quot;]), ECM2_fc = NA)
+  xfc[(n+1L):nrow(x), &quot;ECM2_fc&quot;] &lt;- unattrib(fc)
+  return(xfc)
+}
+
+# Forecasting
+ECM_oos_fc &lt;- forecast_oos(na_omit(X))
+
+# Plotting
+plot(ECM_oos_fc[&quot;2009/&quot;, ], 
+     main = &quot;Out of Sample Expanding Window Forecast from ECM&quot;, 
+     legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p>The graph suggests that the forecasting performance is quite acceptable. When seasonally adjusting GDP and revenue beforehand, the forecast becomes less accurate, so a part of this fit is accounted for by seasonal patterns in the two series. Finally, we could formally evaluate the forecast computing a sophisticated set of forecast evaluation metrics and also comparing the forecast to a naive forecast provided by the value of revenue in the previous quarter.</p>
+<pre class="r"><code>eval_forecasts &lt;- function(y, fc, add.naive = TRUE, n.ahead = 1) {
+  mfc &lt;- eval(substitute(qDF(fc))) # eval substitute to get the name of the forecast if only a vector is passed
+  lagy &lt;- flag(y, n.ahead)
+  if (add.naive) mfc &lt;- c(list(Naive = lagy), mfc)
+  if (!all(length(y) == lengths(mfc))) stop(&quot;All supplied quantities must be of equal length&quot;)
+  res &lt;- vapply(mfc, function(fcy) {
+    # Preparation
+    cc &lt;- complete.cases(y, fcy)
+    y &lt;- y[cc]
+    fcy &lt;- fcy[cc]
+    lagycc &lt;- lagy[cc]
+    n &lt;- sum(cc)
+    nobessel &lt;- sqrt((n - 1) / n) # Undo bessel correction (n-1) instead of n in denominator
+    sdy &lt;- sd(y) * nobessel
+    sdfcy &lt;- sd(fcy) * nobessel
+    diff &lt;- fcy - y
+    # Calculate Measures
+    bias &lt;- sum(diff) / n         # Bias
+    MSE &lt;- sum(diff^2) / n        # Mean Squared Error
+    BP &lt;- bias^2 / MSE            # Bias Proportion
+    VP &lt;- (sdy - sdfcy)^2 / MSE   # Variance Proportion
+    CP &lt;- 2 * (1 - cor(y, fcy)) * sdy * sdfcy / MSE # Covariance Proportion
+    RMSE &lt;- sqrt(MSE)             # Root MSE
+    R2 &lt;- 1 - MSE / sdy^2         # R-Squared
+    SE &lt;- sd(diff) * nobessel     # Standard Forecast Error
+    MAE &lt;- sum(abs(diff)) / n     # Mean Absolute Error
+    MPE &lt;- sum(diff / y) / n * 100 # Mean Percentage Error
+    MAPE &lt;- sum(abs(diff / y)) / n * 100 # Mean Absolute Percentage Error
+    U1 &lt;- RMSE / (sqrt(sum(y^2) / n) + sqrt(sum(fcy^2) / n))   # Theils U1
+    U2 &lt;- sqrt(mean.default((diff / lagycc)^2, na.rm = TRUE) / # Theils U2 (= MSE(fc)/MSE(Naive))
+               mean.default((y / lagycc - 1)^2, na.rm = TRUE))
+    # Output
+    return(c(Bias = bias, MSE = MSE, RMSE = RMSE, `R-Squared` = R2, SE = SE,
+      MAE = MAE, MPE = MPE, MAPE = MAPE, U1 = U1, U2 = U2,
+      `Bias Prop.` = BP, `Var. Prop.` = VP, `Cov. Prop.` = CP))
+  }, numeric(13))
+  attr(res, &quot;naive.added&quot;) &lt;- add.naive
+  attr(res, &quot;n.ahead&quot;) &lt;- n.ahead
+  attr(res, &quot;call&quot;) &lt;- match.call()
+  class(res) &lt;- &quot;eval_forecasts&quot;
+  return(res)
+}
+
+# Print method
+print.eval_forecasts &lt;- function(x, digits = 3, ...) print.table(round(x, digits))
+
+ECM_oos_fc_cc &lt;- na_omit(ECM_oos_fc)
+eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_fc&quot;])
+##               Naive  ECM2_fc
+## Bias         -0.041    0.001
+## MSE           0.072    0.005
+## RMSE          0.268    0.070
+## R-Squared    -2.414    0.748
+## SE            0.265    0.070
+## MAE           0.260    0.060
+## MPE        -194.319   48.495
+## MAPE        194.319   62.696
+## U1            0.974    0.219
+## U2            1.000    0.233
+## Bias Prop.    0.024    0.000
+## Var. Prop.    0.006    0.248
+## Cov. Prop.    0.970    0.752</code></pre>
+<p>The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.25, suggesting, together with the plot, that the variance of the forecasts is a bit too large compared to the variance of the data.</p>
+<div id="further-references-on-vecms" class="section level3">
+<h3>Further References on (V)ECM’s</h3>
+<p>Engle, Robert, and Clive Granger. 1987. <em>Co-integration and Error Correction: Representation, Estimation and Testing.</em> Econometrica 55 (2): 251–76.</p>
+<p>Johansen, Søren (1991). <em>Estimation and Hypothesis Testing of Cointegration Vectors in Gaussian Vector Autoregressive Models</em>. Econometrica. 59 (6): 1551–1580. JSTOR 2938278.</p>
+<p>Enders, Walter (2010). <em>Applied Econometric Time Series (Third ed.).</em> New York: John Wiley &amp; Sons. pp. 272–355. ISBN 978-0-470-50539-7.</p>
+<p>Lütkepohl, Helmut (2006). <em>New Introduction to Multiple Time Series Analysis.</em> Berlin: Springer. pp. 237–352. ISBN 978-3-540-26239-8.</p>
+<p>Alogoskoufis, G., &amp; Smith, R. (1991). <em>On error correction models: specification, interpretation, estimation.</em> Journal of Economic Surveys, 5(1), 97-128.</p>
+<p><a href="https://en.wikipedia.org/wiki/Error_correction_model" class="uri">https://en.wikipedia.org/wiki/Error_correction_model</a></p>
+<p><a href="https://www.econometrics-with-r.org/16-3-cointegration.html" class="uri">https://www.econometrics-with-r.org/16-3-cointegration.html</a></p>
+<p><a href="https://bookdown.org/ccolonescu/RPoE4/time-series-nonstationarity.html#the-error-correction-model" class="uri">https://bookdown.org/ccolonescu/RPoE4/time-series-nonstationarity.html#the-error-correction-model</a></p>
+<p><a href="https://www.youtube.com/watch?v=wYQ_v_0tk_c" class="uri">https://www.youtube.com/watch?v=wYQ_v_0tk_c</a></p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The data is unpublished so I will not make public which country it is<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>The Augmented Dickey Fuller test tests the null of non-stationarity against the alternative of trend stationarity. The Kwiatkowski–Phillips–Schmidt–Shin (KPSS) test tests the null of trend stationarity. The Phillips-Ouliaris test tests the null hypothesis that the variables are not cointegrated.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
       <title>Fast Class-Agnostic Data Manipulation in R</title>
       <link>/Rblog/2020/11/14/class-agnostic-data-manipulation/</link>
       <pubDate>Sat, 14 Nov 2020 00:00:00 +0000</pubDate>
@@ -430,19 +1320,19 @@ microbenchmark(ts = diff(EuStockMarkets),
                # Again we can do the same using collapse (tfm() abbreviates ftransform())
                collapse_tsibble_tfm = tfm(tsib, value = fdiff(value, 1, 1, key, index)))
 ## Unit: microseconds
-##                      expr      min        lq        mean    median         uq        max neval cld
-##                        ts 1344.993 1458.7855  1843.66603 1591.7675  1790.3480   9325.697   100 a  
-##               collapse_ts   20.974   37.4850    50.27008   49.5340    58.4585    135.213   100 a  
-##                       xts   84.788  131.4205   319.51851  147.7085   161.9885  15576.297   100 a  
-##              collapse_xts   38.824   60.2440    77.00934   73.1845    85.9030    214.199   100 a  
-##                timeSeries 1364.628 1630.3680  1907.73838 1775.3990  2051.8495   2887.227   100 a  
-##       collapse_timeSeries   42.840   62.9220    86.59470   77.8705    91.0350    671.157   100 a  
-##          dplyr_tibbletime 5835.143 6267.7805  7371.78980 6681.0065  7534.0105  37462.544   100  b 
-##     collapse_tibbletime_D  430.630  479.9400   565.78952  536.1675   601.0960    923.288   100 a  
-##  collapse_tibbletime_tfmv  412.780  464.9910   557.34657  511.6240   612.4760   1460.570   100 a  
-##             dplyr_tsibble 7539.811 8328.7780 11490.09014 8791.9835 10098.8220 223112.537   100   c
-##        collapse_tsibble_D  757.730  821.9900  1015.04996  909.2310   996.0265   6766.910   100 a  
-##      collapse_tsibble_tfm  729.616  783.8350  1035.57745  862.5980   907.0000  13540.958   100 a
+##                      expr      min        lq        mean     median         uq       max neval  cld
+##                        ts 1420.858 1637.7350  2408.76004  1768.9325  2463.2960  8879.022   100  b  
+##               collapse_ts   22.759   45.0715    61.58715    56.8970    69.8385   210.630   100 a   
+##                       xts   91.481  151.5025   301.52639   167.5670   220.2240  9544.826   100 a   
+##              collapse_xts   39.716   70.7305   148.07912    85.2340   107.1000  5592.396   100 a   
+##                timeSeries 1459.236 1825.1600  2657.92782  2046.2765  2718.3275 26753.983   100  b  
+##       collapse_timeSeries   45.964   75.1930   116.77469    89.2500   117.5875   792.093   100 a   
+##          dplyr_tibbletime 6219.822 7421.1260 10848.90469  8427.6410 10920.1665 53338.838   100   c 
+##     collapse_tibbletime_D  467.670  544.4245   711.13858   579.0085   825.5610  3391.048   100 a   
+##  collapse_tibbletime_tfmv  459.637  515.1945   694.54710   548.4410   753.9385  4761.034   100 a   
+##             dplyr_tsibble 8346.200 9518.9435 13443.04548 10588.8265 13615.7345 80620.734   100    d
+##        collapse_tsibble_D  780.491  942.2560  1425.48558   988.8890  1417.2875 24538.355   100 ab  
+##      collapse_tsibble_tfm  801.464  895.1765  1229.20727   946.9415  1323.3520  4744.076   100 ab
 
 # Sequence of lagged/leaded and iterated differences (not supported by either of these methods)
 head(fdiff(ESM_xts, -1:1, diff = 1:2)[, 1:6], 3) 
@@ -473,10 +1363,10 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
                collapse_tibbletime = D(tibtm, -1:1, diff = 1:2, t = ~ time),
                collapse_tsibble = D(tsib, -1:1, diff = 1:2, ~ key, ~ index))
 ## Unit: microseconds
-##                 expr     min      lq      mean    median        uq        max neval cld
-##         collapse_xts  99.067 127.404 4328.5683  146.8155  177.1610 222804.179   100   a
-##  collapse_tibbletime 504.707 561.827  613.9219  585.7020  614.7075   1100.003   100   a
-##     collapse_tsibble 849.657 945.600 1060.1478 1011.1990 1083.4915   1729.659   100   a</code></pre>
+##                 expr     min        lq     mean    median       uq        max neval cld
+##         collapse_xts 107.100  142.3535 2274.435  168.9055  193.449 205392.477   100   a
+##  collapse_tibbletime 533.715  609.5765  737.329  654.2015  731.849   5997.591   100   a
+##     collapse_tsibble 983.088 1071.6680 1167.027 1120.0860 1242.582   1722.076   100   a</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
@@ -616,8 +1506,8 @@ Grouping is done very efficiently using radix-based ordering in C (thanks to <em
 <pre class="r"><code>library(microbenchmark) 
 microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ## Unit: microseconds
-##  expr     min      lq     mean  median       uq      max neval
-##  call 336.917 368.602 538.4524 443.125 596.6345 1859.071   100</code></pre>
+##  expr     min      lq    mean   median      uq      max neval
+##  call 263.734 296.533 406.328 342.9425 430.631 1265.117   100</code></pre>
 <p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
 <pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids, weights = NULL, ...) {
   # Get variables as character string, first variable is dependent variable
@@ -674,11 +1564,11 @@ microbenchmark(lm.fit = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Count
                lm.fit.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;), 
                chol.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;, method = &quot;chol&quot;))
 ## Unit: milliseconds
-##      expr      min       lq     mean   median       uq       max neval cld
-##    lm.fit 1.432458 1.850815 2.547426 2.134406 2.711181  8.563059   100   a
-##      chol 1.413715 1.934932 2.543539 2.170775 2.621708 10.759493   100   a
-##  lm.fit.w 1.652458 2.256009 2.910913 2.632642 3.082237  8.343505   100   a
-##    chol.w 1.707792 1.992276 3.023913 2.479579 3.085361 13.799782   100   a</code></pre>
+##      expr      min       lq     mean   median       uq      max neval cld
+##    lm.fit 1.219600 1.280289 1.612638 1.422643 1.704896 4.678477   100  a 
+##      chol 1.227632 1.343434 1.663439 1.448748 1.675667 6.298362   100  a 
+##  lm.fit.w 1.411933 1.505200 1.802218 1.599134 1.848365 4.860994   100  ab
+##    chol.w 1.423535 1.554733 1.965242 1.681691 2.081530 6.923111   100   b</code></pre>
 <p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
 <div id="creating-grouped-functions-in-cc" class="section level2">
 <h2>Creating Grouped Functions in C/C++</h2>
@@ -762,26 +1652,26 @@ x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 ##    user  system elapsed 
-##    0.72    0.05    0.78
+##    0.67    0.03    0.75
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##    user  system elapsed 
-##    0.55    0.05    0.59
+##    0.56    0.00    0.56
 
 # Using a factor grouping variable: more efficient 
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##    user  system elapsed 
-##    0.04    0.02    0.04
+##    0.05    0.00    0.04
 system.time(ganyNA(x, f, drop = TRUE)) # This also checks for unused levels and drops them (if found)
 ##    user  system elapsed 
-##    0.14    0.00    0.14
+##    0.11    0.02    0.12
 # Note: use.g.names = FALSE does not give a performance improvement with factors because unique factor levels are already computed
 
 # We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
 g &lt;- GRP(g)
 system.time(ganyNA(x, g))
 ##    user  system elapsed 
-##    0.02    0.00    0.01
+##    0.03    0.00    0.03
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##    user  system elapsed 
 ##    0.03    0.00    0.03</code></pre>

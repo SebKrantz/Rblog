@@ -5,7 +5,10 @@ library(blogdown)
 blogdown::build_site()
 blogdown::serve_site()
 blogdown::stop_server()
-# blogdown::new_post("Welcome to collapse")
+# Note: png's provided by the user (noe graphical output) need to also be added into the docs folder
+# to appreat in the RSS feed !!!!!!
+
+# blogdown::new_post("Welcome to collapse", ext = ".Rmd")
 
 # <description>{{ .Content | html }}</description>
 # <description>{{ "<![CDATA[" | safeHTML }} {{ .Content }}]]></description>

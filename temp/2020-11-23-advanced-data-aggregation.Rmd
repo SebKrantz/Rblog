@@ -1,0 +1,79 @@
+---
+title: "Fast Aggregation of Multi-Type and Survey Data in R - with the collapse Package"
+author: "Sebastian Krantz"
+date: '2020-11-23'
+slug: advanced-data-aggregation
+categories: ["R"]
+tags: ["R", "collapse", "weighted", "aggregation", "survey"]
+---
+
+In response to the recent surge of interest in [*collapse*](https://sebkrantz.github.io/collapse/), and in particular the fast data aggregation facilities based on one-pass C/C++ algorithms, I decided to write a short post exploring the topic with a survey data example while also responding to some common challenges.
+
+As an example I will take a birth dataset from the 2016 Demographic and Health Survey for Uganda. This data may not be disseminated with this post but can be obtained from the [*DHS website*](https://dhsprogram.com/data/dataset/Uganda_Standard-DHS_2016.cfm?flag=0). 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, fig.width = 8, fig.height = 5, 
+                      out.width = '100%', cache = FALSE, message = FALSE, 
+                      warning = FALSE, error = FALSE)
+
+oldopts <- options(width = 101L)
+
+library(haven)
+library(magrittr)
+library(collapse)
+
+DHSBR <- read_dta("C:/Users/Sebastian Krantz/Google Drive/6. Data and Data Systems/DHS2016/Data/UGBR7BDT - Births Recode/UGBR7BFL.DTA") %>%
+  get_vars(fNobs(.) > 0L) %>% as_factor
+
+```
+
+First the STATA file is is imported using the *haven* library, columns with only missing values are removed, encoded columns are converted to factor variables.
+
+```{r, eval=FALSE}
+
+library(haven)
+library(magrittr)
+library(collapse)
+
+DHSBR <- read_dta("DHS2016/Data/UGBR7BDT - Births Recode/UGBR7BFL.DTA") %>%
+             get_vars(fNobs(.) > 0L) %>% as_factor
+
+```
+
+This data has 786 variables, most of which are categorical:
+
+```{r}
+fdim(DHSBR)
+
+table(vclasses(DHSBR))
+
+```
+We can obtain a detailed statistical summary of the data using `descr`. The output prints nicely to the console, but can also be converted to a data.frame.
+
+```{r}
+head(as.data.frame(descr(DHSBR, table = FALSE)), 10L)
+```
+
+The sample is based on a stratified two-stage cluster design. 696 Enumeration Areas (Clusters) Were drawn from the sampling frame of the 2014 Census and a sample of households is drawn from an updated list of households within the cluster (on average a cluster had 130 households). The sample comprises 20,880 selected households and 18,506 women being interviewed. 
+
+```{r}
+setrename(DHSBR, v005 = weights)
+
+table(varying(DHSBR, ~ caseid))
+
+varying(DHSBR, weights ~ caseid)
+```
+
+```{r}
+DHSBR %>% fgroup_by(caseid) %>% num_vars %>% 
+  get_vars(varying(.)) %>% namlab
+```
+
+```{r}
+DHSBR_agg <- collap(DHSBR, ~ casid) %>% fdroplevels
+
+identical(names(DHSBR_agg), names(DHSBR))
+identical(vlabels(DHSBR_agg), vlabels(DHSBR))
+identical(vclasses(DHSBR_agg), vclasses(DHSBR))
+```
