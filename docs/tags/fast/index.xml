@@ -21,12 +21,11 @@
 <p>There are several ways to forecast tax revenue. The IMF <a href="https://courses.edx.org/asset-v1:IMFx+FPP.1x+1T2017+type@asset+block@FPP1x_Manual.pdf"><em>Financial Programming Manual</em></a> reviews 3 of them: (i) the effective tax rate approach; (ii) the elasticity approach; and (iii) the regression approach. Approach (iii) typically results in the most accurate short-term forecasts. The simple regression approach regresses tax revenue on its own lags and GDP with some lags.</p>
 <p>In the absence of large abrupt shifts in the tax base, domestic revenue can be assumed to have a linear relationship with GDP. Since however both revenue and GDP are typically non-stationary series, this relationship often takes the form of cointegration. The correct way to deal with cointegrated variables is to specify and Error Correction Model (ECM). This blog post will briefly demonstrate the specification of an ECM to forecast the tax revenue of a developing economy<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. First we examine the data, which is in local currency and was transformed using the natural logarithm.</p>
 <pre class="r"><code>library(haven)      # Import from STATA
-library(collapse)   # Data transformation
+library(collapse)   # Data transformation and time series operators
 library(magrittr)   # Pipe operators %&gt;% 
 library(tseries)    # Time series tests
 library(lmtest)     # Linear model tests
 library(sandwich)   # Robust standard errors
-library(dynlm)      # Dynamic linear models
 library(jtools)     # Enhanced regression summary
 library(xts)        # Extensible time-series + pretty plots
 
@@ -119,7 +118,7 @@ X &lt;- cbind(X, GDPdum = 0)
 X[&quot;2013-09/2014-09&quot;, &quot;GDPdum&quot;] &lt;- 1
 
 # This estimates the cointegration equation
-cieq &lt;- dynlm(lrev ~ lgdp + GDPdum, as.zoo(X))
+cieq &lt;- lm(lrev ~ lgdp + GDPdum, X)
 
 # Summarizing the model with heteroskedasticity and autocorrelation consistent (HAC) errors
 summ(cieq, digits = 4L, vcov = vcovHAC(cieq))</code></pre>
@@ -130,7 +129,7 @@ summ(cieq, digits = 4L, vcov = vcovHAC(cieq))</code></pre>
 Observations
 </td>
 <td style="text-align:right;">
-46 (44 missing obs. deleted)
+46 (46 missing obs. deleted)
 </td>
 </tr>
 <tr>
@@ -260,7 +259,7 @@ GDPdum
 </tfoot>
 </table>
 <pre class="r"><code># Residuals of cointegration equation
-res &lt;- as.xts(cieq$residuals)
+res &lt;- resid(cieq) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 plot(res[-1L, ], main = &quot;Residuals from Cointegration Equation&quot;, 
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
 <p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
@@ -293,8 +292,7 @@ are polynomials in the lag operator <span class="math inline">\(L\)</span> of or
 \Delta r_t = \gamma  + \Delta r_{t-1} + \Delta r_{t-2}  + \Delta y_t + \Delta y_{t-1} + \alpha (r_{t-t} - \beta_0 - \beta_i y_{t-1}) + v_t.
 \end{equation}\]</span></p>
 <pre class="r"><code># Estimating Error Correction Model (ECM)
-ecm &lt;- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, 
-             as.zoo(merge(X, res)))
+ecm &lt;- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, merge(X, res))
 
 summ(ecm, digits = 4L, vcov = vcovHAC(ecm))</code></pre>
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -304,7 +302,7 @@ summ(ecm, digits = 4L, vcov = vcovHAC(ecm))</code></pre>
 Observations
 </td>
 <td style="text-align:right;">
-44 (44 missing obs. deleted)
+44 (48 missing obs. deleted)
 </td>
 </tr>
 <tr>
@@ -392,7 +390,7 @@ p
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)1
+L(D(lrev), 1:2)L1
 </td>
 <td style="text-align:right;">
 -0.9195
@@ -409,7 +407,7 @@ L(D(lrev), 1:2)1
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)2
+L(D(lrev), 1:2)L2
 </td>
 <td style="text-align:right;">
 -0.3978
@@ -426,7 +424,7 @@ L(D(lrev), 1:2)2
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lgdp), 0:1)1
+L(D(lgdp), 0:1)–
 </td>
 <td style="text-align:right;">
 0.1716
@@ -443,7 +441,7 @@ L(D(lgdp), 0:1)1
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lgdp), 0:1)2
+L(D(lgdp), 0:1)L1
 </td>
 <td style="text-align:right;">
 -0.2654
@@ -545,8 +543,7 @@ dwtest(ecm, alternative = &quot;two.sided&quot;)
 <p>The statistical properties of the equation are also acceptable. Errors are homoskedastic and serially uncorrelated at the 5% level. The model is nevertheless reported with heteroskedasticity and autocorrelation consistent (HAC) standard errors.</p>
 <p>Curiously, changes in revenue in the current quarter do not seem to be very strongly related to changes in GDP in the current quarter, which could also be accounted for by data being published with a lag. For forecasting this is advantageous since if a specification without the difference of GDP can be estimated that fits the data well, then it may not be necessary to first forecast quarterly GDP and include it in the model in order to get a decent forecasts of the revenue number for the next quarter. Below a specification without the difference in GDP is estimated.</p>
 <pre class="r"><code># Same using only lagged differences in GDP
-ecm2 &lt;- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, 
-              as.zoo(merge(X, res)))
+ecm2 &lt;- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, merge(X, res))
 
 summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))</code></pre>
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -556,7 +553,7 @@ summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))</code></pre>
 Observations
 </td>
 <td style="text-align:right;">
-45 (44 missing obs. deleted)
+45 (47 missing obs. deleted)
 </td>
 </tr>
 <tr>
@@ -644,7 +641,7 @@ p
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)1
+L(D(lrev), 1:2)L1
 </td>
 <td style="text-align:right;">
 -0.9111
@@ -661,7 +658,7 @@ L(D(lrev), 1:2)1
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)2
+L(D(lrev), 1:2)L2
 </td>
 <td style="text-align:right;">
 -0.3910
@@ -775,11 +772,11 @@ dwtest(ecm2, alternative = &quot;two.sided&quot;)
 ## alternative hypothesis: true autocorrelation is not 0</code></pre>
 <p>We can also compare the fitted values of the two models:</p>
 <pre class="r"><code># Get ECM fitted values
-ECM1_fit &lt;- fitted(ecm)
-ECM2_fit &lt;- fitted(ecm2)
+ECM1_fit &lt;- fitted(ecm) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
+ECM2_fit &lt;- fitted(ecm2) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 
 # Plot together with revenue
-plot(merge(D(X[, &quot;lrev&quot;]), ECM1_fit, ECM2_fit) %&gt;% na_omit, 
+plot(D(X[, &quot;lrev&quot;]) %&gt;% merge(ECM1_fit, ECM2_fit) %&gt;% na_omit, 
      main = &quot;Dlog Revenue and ECM Fit&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
 <p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
@@ -787,16 +784,16 @@ plot(merge(D(X[, &quot;lrev&quot;]), ECM1_fit, ECM2_fit) %&gt;% na_omit,
 <p>The true forecasting performance of the model can only be estimated through out of sample forecasts. Below I compute 1 quarter ahead forecasts for quarters 2018Q1 through 2019Q4 using an expanding window where both the cointegration equation and the ECM are re-estimated for each new period.</p>
 <pre class="r"><code># Function to forecast with expanding window from start year (using ECM2 specification)
 forecast_oos &lt;- function(x, start = 2018) {
-  n &lt;- nrow(x[paste0(&quot;/&quot;, start - 1), ]) 
-  xzoo &lt;- as.zoo(x)
+  n &lt;- nrow(x[paste0(&quot;/&quot;, start - 1), ])
   fc &lt;- numeric(0L)
+  xdf &lt;- qDF(x)
   # Forecasting with expanding window
   for(i in n:(nrow(x)-1L)) {
-    samp &lt;- xzoo[1:i, ]
-    ci &lt;- dynlm(lrev ~ lgdp + GDPdum, samp)
-    samp &lt;- cbind(samp, res = resid(ci))
-    mod &lt;- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
-    fc &lt;- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+    samp &lt;- ss(xdf, 1:i)
+    ci &lt;- lm(lrev ~ lgdp + GDPdum, samp)
+    samp &lt;- tfm(samp, res = resid(ci))
+    mod &lt;- lm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+    fc &lt;- c(fc, flast(predict(mod, newdata = rbind(samp, 0)))) # predict does not re-estimate
   }
   xfc &lt;- cbind(D(x[, &quot;lrev&quot;]), ECM2_fc = NA)
   xfc[(n+1L):nrow(x), &quot;ECM2_fc&quot;] &lt;- unattrib(fc)
@@ -811,6 +808,25 @@ plot(ECM_oos_fc[&quot;2009/&quot;, ],
      main = &quot;Out of Sample Expanding Window Forecast from ECM&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
 <p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<!-- Old forecasting: Problematic !!
+# library(dynlm)
+# forecast_oos <- function(x, start = 2018) {
+#   n <- nrow(x[paste0("/", start - 1), ]) 
+#   xzoo <- as.zoo(x)
+#   fc <- numeric(0L)
+#   # Forecasting with expanding window
+#   for(i in n:(nrow(x)-1L)) {
+#     samp <- xzoo[1:i, ]
+#     ci <- dynlm(lrev ~ lgdp + GDPdum, samp)
+#     samp <- cbind(samp, res = resid(ci))
+#     mod <- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+#     fc <- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+#   }
+#   xfc <- cbind(D(x[, "lrev"]), ECM2_fc = NA)
+#   xfc[(n+1L):nrow(x), "ECM2_fc"] <- unattrib(fc)
+#   return(xfc)
+# }
+-->
 <p>The graph suggests that the forecasting performance is quite acceptable. When seasonally adjusting GDP and revenue beforehand, the forecast becomes less accurate, so a part of this fit is accounted for by seasonal patterns in the two series. Finally, we could formally evaluate the forecast computing a sophisticated set of forecast evaluation metrics and also comparing the forecast to a naive forecast provided by the value of revenue in the previous quarter.</p>
 <pre class="r"><code>eval_forecasts &lt;- function(y, fc, add.naive = TRUE, n.ahead = 1) {
   mfc &lt;- eval(substitute(qDF(fc))) # eval substitute to get the name of the forecast if only a vector is passed
@@ -861,20 +877,20 @@ print.eval_forecasts &lt;- function(x, digits = 3, ...) print.table(round(x, dig
 ECM_oos_fc_cc &lt;- na_omit(ECM_oos_fc)
 eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_fc&quot;])
 ##               Naive  ECM2_fc
-## Bias         -0.041    0.001
-## MSE           0.072    0.005
-## RMSE          0.268    0.070
-## R-Squared    -2.414    0.748
-## SE            0.265    0.070
-## MAE           0.260    0.060
-## MPE        -194.319   48.495
-## MAPE        194.319   62.696
-## U1            0.974    0.219
-## U2            1.000    0.233
+## Bias         -0.041   -0.001
+## MSE           0.072    0.007
+## RMSE          0.268    0.082
+## R-Squared    -2.414    0.653
+## SE            0.265    0.082
+## MAE           0.260    0.066
+## MPE        -194.319  -48.213
+## MAPE        194.319   48.213
+## U1            0.974    0.364
+## U2            1.000    0.423
 ## Bias Prop.    0.024    0.000
-## Var. Prop.    0.006    0.248
-## Cov. Prop.    0.970    0.752</code></pre>
-<p>The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.25, suggesting, together with the plot, that the variance of the forecasts is a bit too large compared to the variance of the data.</p>
+## Var. Prop.    0.006    0.564
+## Cov. Prop.    0.970    0.436</code></pre>
+<p>The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.56, suggesting, together with the plot, that the variance of the forecasts is too small compared to the variance of the data.</p>
 <div id="further-references-on-vecms" class="section level3">
 <h3>Further References on (V)ECM’s</h3>
 <p>Engle, Robert, and Clive Granger. 1987. <em>Co-integration and Error Correction: Representation, Estimation and Testing.</em> Econometrica 55 (2): 251–76.</p>
@@ -1320,19 +1336,19 @@ microbenchmark(ts = diff(EuStockMarkets),
                # Again we can do the same using collapse (tfm() abbreviates ftransform())
                collapse_tsibble_tfm = tfm(tsib, value = fdiff(value, 1, 1, key, index)))
 ## Unit: microseconds
-##                      expr      min        lq        mean     median         uq       max neval  cld
-##                        ts 1420.858 1637.7350  2408.76004  1768.9325  2463.2960  8879.022   100  b  
-##               collapse_ts   22.759   45.0715    61.58715    56.8970    69.8385   210.630   100 a   
-##                       xts   91.481  151.5025   301.52639   167.5670   220.2240  9544.826   100 a   
-##              collapse_xts   39.716   70.7305   148.07912    85.2340   107.1000  5592.396   100 a   
-##                timeSeries 1459.236 1825.1600  2657.92782  2046.2765  2718.3275 26753.983   100  b  
-##       collapse_timeSeries   45.964   75.1930   116.77469    89.2500   117.5875   792.093   100 a   
-##          dplyr_tibbletime 6219.822 7421.1260 10848.90469  8427.6410 10920.1665 53338.838   100   c 
-##     collapse_tibbletime_D  467.670  544.4245   711.13858   579.0085   825.5610  3391.048   100 a   
-##  collapse_tibbletime_tfmv  459.637  515.1945   694.54710   548.4410   753.9385  4761.034   100 a   
-##             dplyr_tsibble 8346.200 9518.9435 13443.04548 10588.8265 13615.7345 80620.734   100    d
-##        collapse_tsibble_D  780.491  942.2560  1425.48558   988.8890  1417.2875 24538.355   100 ab  
-##      collapse_tsibble_tfm  801.464  895.1765  1229.20727   946.9415  1323.3520  4744.076   100 ab
+##                      expr       min         lq       mean     median         uq        max neval cld
+##                        ts  1681.018  2061.2220  2719.8758  2313.1290  3055.6870   9473.855   100  a 
+##               collapse_ts    25.883    56.4505   163.3896    70.9540    88.1340   8732.636   100  a 
+##                       xts    93.713   176.7150   279.5615   200.3655   257.0395   3656.561   100  a 
+##              collapse_xts    42.840    78.0940   116.1231    99.7370   126.5120    597.973   100  a 
+##                timeSeries  1964.386  2287.4700  3185.6565  2742.4210  3310.7180  17093.102   100  a 
+##       collapse_timeSeries    52.658    93.9355  2483.3061   108.4390   132.7590 235259.074   100  a 
+##          dplyr_tibbletime  8097.625 10173.1265 14784.9888 11176.0700 12863.3355 239144.113   100   b
+##     collapse_tibbletime_D   568.967   630.5490   857.0829   751.2595   850.3270   8017.301   100  a 
+##  collapse_tibbletime_tfmv   501.137   585.4780   773.2819   664.2410   817.0815   2922.035   100  a 
+##             dplyr_tsibble 10386.434 12641.1040 14690.4243 13558.5910 15970.5640  32364.171   100   b
+##        collapse_tsibble_D   963.897  1056.4935  1338.5404  1210.8955  1477.7525   3665.485   100  a 
+##      collapse_tsibble_tfm   940.246   993.5720  1272.6027  1114.9525  1420.6320   6188.128   100  a
 
 # Sequence of lagged/leaded and iterated differences (not supported by either of these methods)
 head(fdiff(ESM_xts, -1:1, diff = 1:2)[, 1:6], 3) 
@@ -1363,10 +1379,10 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
                collapse_tibbletime = D(tibtm, -1:1, diff = 1:2, t = ~ time),
                collapse_tsibble = D(tsib, -1:1, diff = 1:2, ~ key, ~ index))
 ## Unit: microseconds
-##                 expr     min        lq     mean    median       uq        max neval cld
-##         collapse_xts 107.100  142.3535 2274.435  168.9055  193.449 205392.477   100   a
-##  collapse_tibbletime 533.715  609.5765  737.329  654.2015  731.849   5997.591   100   a
-##     collapse_tsibble 983.088 1071.6680 1167.027 1120.0860 1242.582   1722.076   100   a</code></pre>
+##                 expr      min        lq      mean   median       uq       max neval cld
+##         collapse_xts  147.263  218.2155  358.0477  254.362  290.508  8398.843   100 a  
+##  collapse_tibbletime  750.144  988.4405 1348.9559 1026.149 1085.722 13947.942   100  b 
+##     collapse_tsibble 1258.421 1653.3505 1793.5130 1707.793 1757.327  8411.784   100   c</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
@@ -1506,8 +1522,8 @@ Grouping is done very efficiently using radix-based ordering in C (thanks to <em
 <pre class="r"><code>library(microbenchmark) 
 microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
 ## Unit: microseconds
-##  expr     min      lq    mean   median      uq      max neval
-##  call 263.734 296.533 406.328 342.9425 430.631 1265.117   100</code></pre>
+##  expr     min       lq     mean  median      uq      max neval
+##  call 394.038 434.6465 582.3857 471.685 566.959 2403.495   100</code></pre>
 <p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
 <pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids, weights = NULL, ...) {
   # Get variables as character string, first variable is dependent variable
@@ -1564,11 +1580,11 @@ microbenchmark(lm.fit = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Count
                lm.fit.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;), 
                chol.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;, method = &quot;chol&quot;))
 ## Unit: milliseconds
-##      expr      min       lq     mean   median       uq      max neval cld
-##    lm.fit 1.219600 1.280289 1.612638 1.422643 1.704896 4.678477   100  a 
-##      chol 1.227632 1.343434 1.663439 1.448748 1.675667 6.298362   100  a 
-##  lm.fit.w 1.411933 1.505200 1.802218 1.599134 1.848365 4.860994   100  ab
-##    chol.w 1.423535 1.554733 1.965242 1.681691 2.081530 6.923111   100   b</code></pre>
+##      expr      min       lq     mean   median       uq       max neval cld
+##    lm.fit 1.490470 1.663838 2.185618 1.942743 2.187956  9.982579   100   a
+##      chol 1.469943 1.668300 2.161204 1.903919 2.140430  8.107889   100   a
+##  lm.fit.w 1.686819 1.926232 2.469664 2.243068 2.611892 10.030328   100   a
+##    chol.w 1.719842 1.935603 2.500210 2.326963 2.647592  7.600058   100   a</code></pre>
 <p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
 <div id="creating-grouped-functions-in-cc" class="section level2">
 <h2>Creating Grouped Functions in C/C++</h2>
@@ -1652,19 +1668,19 @@ x &lt;- na_insert(rnorm(1e7), prop = 0.01)
 g &lt;- sample.int(1e6, 1e7, TRUE)
 system.time(ganyNA(x, g)) 
 ##    user  system elapsed 
-##    0.67    0.03    0.75
+##    0.82    0.04    0.84
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##    user  system elapsed 
-##    0.56    0.00    0.56
+##    0.57    0.06    0.64
 
 # Using a factor grouping variable: more efficient 
 f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
 system.time(ganyNA(x, f))
 ##    user  system elapsed 
-##    0.05    0.00    0.04
+##    0.03    0.01    0.04
 system.time(ganyNA(x, f, drop = TRUE)) # This also checks for unused levels and drops them (if found)
 ##    user  system elapsed 
-##    0.11    0.02    0.12
+##    0.13    0.03    0.15
 # Note: use.g.names = FALSE does not give a performance improvement with factors because unique factor levels are already computed
 
 # We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
@@ -1674,7 +1690,7 @@ system.time(ganyNA(x, g))
 ##    0.03    0.00    0.03
 system.time(ganyNA(x, g, use.g.names = FALSE))
 ##    user  system elapsed 
-##    0.03    0.00    0.03</code></pre>
+##    0.04    0.00    0.05</code></pre>
 <p>We could additionally add a <code>TRA</code> argument and then internally call the <code>TRA()</code> function to allow for replacing and sweeping out statistics, but this does not make much sense here.</p>
 </div>
 </div>

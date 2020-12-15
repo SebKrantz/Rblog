@@ -20,12 +20,11 @@ In the absence of large abrupt shifts in the tax base, domestic revenue can be a
 
 ```{r}
 library(haven)      # Import from STATA
-library(collapse)   # Data transformation
+library(collapse)   # Data transformation and time series operators
 library(magrittr)   # Pipe operators %>% 
 library(tseries)    # Time series tests
 library(lmtest)     # Linear model tests
 library(sandwich)   # Robust standard errors
-library(dynlm)      # Dynamic linear models
 library(jtools)     # Enhanced regression summary
 library(xts)        # Extensible time-series + pretty plots
 
@@ -88,12 +87,12 @@ X <- cbind(X, GDPdum = 0)
 X["2013-09/2014-09", "GDPdum"] <- 1
 
 # This estimates the cointegration equation
-cieq <- dynlm(lrev ~ lgdp + GDPdum, as.zoo(X))
+cieq <- lm(lrev ~ lgdp + GDPdum, X)
 
 # Summarizing the model with heteroskedasticity and autocorrelation consistent (HAC) errors
 summ(cieq, digits = 4L, vcov = vcovHAC(cieq))
 # Residuals of cointegration equation
-res <- as.xts(cieq$residuals)
+res <- resid(cieq) %>% as.xts(dateFormat = "Date")
 plot(res[-1L, ], main = "Residuals from Cointegration Equation", 
      major.ticks = "years", grid.ticks.on = "years")
 # Testing residuals: Stationary
@@ -121,8 +120,7 @@ are polynomials in the lag operator $L$ of order $p$ and $q$, respectively. Some
 
 ```{r}
 # Estimating Error Correction Model (ECM)
-ecm <- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, 
-             as.zoo(merge(X, res)))
+ecm <- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, merge(X, res))
 
 summ(ecm, digits = 4L, vcov = vcovHAC(ecm))
 # Regression diagnostic plots
@@ -146,8 +144,7 @@ Curiously, changes in revenue in the current quarter do not seem to be very stro
 
 ```{r}
 # Same using only lagged differences in GDP
-ecm2 <- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, 
-              as.zoo(merge(X, res)))
+ecm2 <- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, merge(X, res))
 
 summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))
 # plot(ecm2)
@@ -164,11 +161,11 @@ dwtest(ecm2, alternative = "two.sided")
 We can also compare the fitted values of the two models:
 ```{r}
 # Get ECM fitted values
-ECM1_fit <- fitted(ecm)
-ECM2_fit <- fitted(ecm2)
+ECM1_fit <- fitted(ecm) %>% as.xts(dateFormat = "Date")
+ECM2_fit <- fitted(ecm2) %>% as.xts(dateFormat = "Date")
 
 # Plot together with revenue
-plot(merge(D(X[, "lrev"]), ECM1_fit, ECM2_fit) %>% na_omit, 
+plot(D(X[, "lrev"]) %>% merge(ECM1_fit, ECM2_fit) %>% na_omit, 
      main = "Dlog Revenue and ECM Fit", 
      legend.loc = "topleft", major.ticks = "years", grid.ticks.on = "years")
 ```
@@ -181,16 +178,16 @@ The true forecasting performance of the model can only be estimated through out 
 ```{r}
 # Function to forecast with expanding window from start year (using ECM2 specification)
 forecast_oos <- function(x, start = 2018) {
-  n <- nrow(x[paste0("/", start - 1), ]) 
-  xzoo <- as.zoo(x)
+  n <- nrow(x[paste0("/", start - 1), ])
   fc <- numeric(0L)
+  xdf <- qDF(x)
   # Forecasting with expanding window
   for(i in n:(nrow(x)-1L)) {
-    samp <- xzoo[1:i, ]
-    ci <- dynlm(lrev ~ lgdp + GDPdum, samp)
-    samp <- cbind(samp, res = resid(ci))
-    mod <- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
-    fc <- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+    samp <- ss(xdf, 1:i)
+    ci <- lm(lrev ~ lgdp + GDPdum, samp)
+    samp <- tfm(samp, res = resid(ci))
+    mod <- lm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+    fc <- c(fc, flast(predict(mod, newdata = rbind(samp, 0)))) # predict does not re-estimate
   }
   xfc <- cbind(D(x[, "lrev"]), ECM2_fc = NA)
   xfc[(n+1L):nrow(x), "ECM2_fc"] <- unattrib(fc)
@@ -206,6 +203,26 @@ plot(ECM_oos_fc["2009/", ],
      legend.loc = "topleft", major.ticks = "years", grid.ticks.on = "years")
 
 ```
+
+<!-- Old forecasting: Problematic !!
+# library(dynlm)
+# forecast_oos <- function(x, start = 2018) {
+#   n <- nrow(x[paste0("/", start - 1), ]) 
+#   xzoo <- as.zoo(x)
+#   fc <- numeric(0L)
+#   # Forecasting with expanding window
+#   for(i in n:(nrow(x)-1L)) {
+#     samp <- xzoo[1:i, ]
+#     ci <- dynlm(lrev ~ lgdp + GDPdum, samp)
+#     samp <- cbind(samp, res = resid(ci))
+#     mod <- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+#     fc <- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+#   }
+#   xfc <- cbind(D(x[, "lrev"]), ECM2_fc = NA)
+#   xfc[(n+1L):nrow(x), "ECM2_fc"] <- unattrib(fc)
+#   return(xfc)
+# }
+-->
 
 The graph suggests that the forecasting performance is quite acceptable. When seasonally adjusting GDP and revenue beforehand, the forecast becomes less accurate, so a part of this fit is accounted for by seasonal patterns in the two series. Finally, we could formally evaluate the forecast computing a sophisticated set of forecast evaluation metrics and also comparing the forecast to a naive forecast provided by the value of revenue in the previous quarter.
 
@@ -259,7 +276,7 @@ print.eval_forecasts <- function(x, digits = 3, ...) print.table(round(x, digits
 ECM_oos_fc_cc <- na_omit(ECM_oos_fc)
 eval_forecasts(ECM_oos_fc_cc[, "D1.lrev"], ECM_oos_fc_cc[, "ECM2_fc"])
 ```
-The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.25, suggesting, together with the plot, that the variance of the forecasts is a bit too large compared to the variance of the data. 
+The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.56, suggesting, together with the plot, that the variance of the forecasts is too small compared to the variance of the data. 
 
 ### Further References on (V)ECM's
 

@@ -423,19 +423,19 @@ microbenchmark(ts = diff(EuStockMarkets),
                # Again we can do the same using collapse (tfm() abbreviates ftransform())
                collapse_tsibble_tfm = tfm(tsib, value = fdiff(value, 1, 1, key, index)))
 ## Unit: microseconds
-##                      expr      min        lq        mean     median         uq       max neval  cld
-##                        ts 1420.858 1637.7350  2408.76004  1768.9325  2463.2960  8879.022   100  b  
-##               collapse_ts   22.759   45.0715    61.58715    56.8970    69.8385   210.630   100 a   
-##                       xts   91.481  151.5025   301.52639   167.5670   220.2240  9544.826   100 a   
-##              collapse_xts   39.716   70.7305   148.07912    85.2340   107.1000  5592.396   100 a   
-##                timeSeries 1459.236 1825.1600  2657.92782  2046.2765  2718.3275 26753.983   100  b  
-##       collapse_timeSeries   45.964   75.1930   116.77469    89.2500   117.5875   792.093   100 a   
-##          dplyr_tibbletime 6219.822 7421.1260 10848.90469  8427.6410 10920.1665 53338.838   100   c 
-##     collapse_tibbletime_D  467.670  544.4245   711.13858   579.0085   825.5610  3391.048   100 a   
-##  collapse_tibbletime_tfmv  459.637  515.1945   694.54710   548.4410   753.9385  4761.034   100 a   
-##             dplyr_tsibble 8346.200 9518.9435 13443.04548 10588.8265 13615.7345 80620.734   100    d
-##        collapse_tsibble_D  780.491  942.2560  1425.48558   988.8890  1417.2875 24538.355   100 ab  
-##      collapse_tsibble_tfm  801.464  895.1765  1229.20727   946.9415  1323.3520  4744.076   100 ab
+##                      expr       min         lq       mean     median         uq        max neval cld
+##                        ts  1681.018  2061.2220  2719.8758  2313.1290  3055.6870   9473.855   100  a 
+##               collapse_ts    25.883    56.4505   163.3896    70.9540    88.1340   8732.636   100  a 
+##                       xts    93.713   176.7150   279.5615   200.3655   257.0395   3656.561   100  a 
+##              collapse_xts    42.840    78.0940   116.1231    99.7370   126.5120    597.973   100  a 
+##                timeSeries  1964.386  2287.4700  3185.6565  2742.4210  3310.7180  17093.102   100  a 
+##       collapse_timeSeries    52.658    93.9355  2483.3061   108.4390   132.7590 235259.074   100  a 
+##          dplyr_tibbletime  8097.625 10173.1265 14784.9888 11176.0700 12863.3355 239144.113   100   b
+##     collapse_tibbletime_D   568.967   630.5490   857.0829   751.2595   850.3270   8017.301   100  a 
+##  collapse_tibbletime_tfmv   501.137   585.4780   773.2819   664.2410   817.0815   2922.035   100  a 
+##             dplyr_tsibble 10386.434 12641.1040 14690.4243 13558.5910 15970.5640  32364.171   100   b
+##        collapse_tsibble_D   963.897  1056.4935  1338.5404  1210.8955  1477.7525   3665.485   100  a 
+##      collapse_tsibble_tfm   940.246   993.5720  1272.6027  1114.9525  1420.6320   6188.128   100  a
 
 # Sequence of lagged/leaded and iterated differences (not supported by either of these methods)
 head(fdiff(ESM_xts, -1:1, diff = 1:2)[, 1:6], 3) 
@@ -466,10 +466,10 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
                collapse_tibbletime = D(tibtm, -1:1, diff = 1:2, t = ~ time),
                collapse_tsibble = D(tsib, -1:1, diff = 1:2, ~ key, ~ index))
 ## Unit: microseconds
-##                 expr     min        lq     mean    median       uq        max neval cld
-##         collapse_xts 107.100  142.3535 2274.435  168.9055  193.449 205392.477   100   a
-##  collapse_tibbletime 533.715  609.5765  737.329  654.2015  731.849   5997.591   100   a
-##     collapse_tsibble 983.088 1071.6680 1167.027 1120.0860 1242.582   1722.076   100   a</code></pre>
+##                 expr      min        lq      mean   median       uq       max neval cld
+##         collapse_xts  147.263  218.2155  358.0477  254.362  290.508  8398.843   100 a  
+##  collapse_tibbletime  750.144  988.4405 1348.9559 1026.149 1085.722 13947.942   100  b 
+##     collapse_tsibble 1258.421 1653.3505 1793.5130 1707.793 1757.327  8411.784   100   c</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>

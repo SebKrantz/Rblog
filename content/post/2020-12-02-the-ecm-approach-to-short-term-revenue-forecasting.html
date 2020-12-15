@@ -14,12 +14,11 @@ tags: ["R", "econometrics", "ecm", "forecasting"]
 <p>There are several ways to forecast tax revenue. The IMF <a href="https://courses.edx.org/asset-v1:IMFx+FPP.1x+1T2017+type@asset+block@FPP1x_Manual.pdf"><em>Financial Programming Manual</em></a> reviews 3 of them: (i) the effective tax rate approach; (ii) the elasticity approach; and (iii) the regression approach. Approach (iii) typically results in the most accurate short-term forecasts. The simple regression approach regresses tax revenue on its own lags and GDP with some lags.</p>
 <p>In the absence of large abrupt shifts in the tax base, domestic revenue can be assumed to have a linear relationship with GDP. Since however both revenue and GDP are typically non-stationary series, this relationship often takes the form of cointegration. The correct way to deal with cointegrated variables is to specify and Error Correction Model (ECM). This blog post will briefly demonstrate the specification of an ECM to forecast the tax revenue of a developing economy<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. First we examine the data, which is in local currency and was transformed using the natural logarithm.</p>
 <pre class="r"><code>library(haven)      # Import from STATA
-library(collapse)   # Data transformation
+library(collapse)   # Data transformation and time series operators
 library(magrittr)   # Pipe operators %&gt;% 
 library(tseries)    # Time series tests
 library(lmtest)     # Linear model tests
 library(sandwich)   # Robust standard errors
-library(dynlm)      # Dynamic linear models
 library(jtools)     # Enhanced regression summary
 library(xts)        # Extensible time-series + pretty plots
 
@@ -112,7 +111,7 @@ X &lt;- cbind(X, GDPdum = 0)
 X[&quot;2013-09/2014-09&quot;, &quot;GDPdum&quot;] &lt;- 1
 
 # This estimates the cointegration equation
-cieq &lt;- dynlm(lrev ~ lgdp + GDPdum, as.zoo(X))
+cieq &lt;- lm(lrev ~ lgdp + GDPdum, X)
 
 # Summarizing the model with heteroskedasticity and autocorrelation consistent (HAC) errors
 summ(cieq, digits = 4L, vcov = vcovHAC(cieq))</code></pre>
@@ -123,7 +122,7 @@ summ(cieq, digits = 4L, vcov = vcovHAC(cieq))</code></pre>
 Observations
 </td>
 <td style="text-align:right;">
-46 (44 missing obs. deleted)
+46 (46 missing obs. deleted)
 </td>
 </tr>
 <tr>
@@ -253,7 +252,7 @@ GDPdum
 </tfoot>
 </table>
 <pre class="r"><code># Residuals of cointegration equation
-res &lt;- as.xts(cieq$residuals)
+res &lt;- resid(cieq) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 plot(res[-1L, ], main = &quot;Residuals from Cointegration Equation&quot;, 
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
 <p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
@@ -286,8 +285,7 @@ are polynomials in the lag operator <span class="math inline">\(L\)</span> of or
 \Delta r_t = \gamma  + \Delta r_{t-1} + \Delta r_{t-2}  + \Delta y_t + \Delta y_{t-1} + \alpha (r_{t-t} - \beta_0 - \beta_i y_{t-1}) + v_t.
 \end{equation}\]</span></p>
 <pre class="r"><code># Estimating Error Correction Model (ECM)
-ecm &lt;- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, 
-             as.zoo(merge(X, res)))
+ecm &lt;- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, merge(X, res))
 
 summ(ecm, digits = 4L, vcov = vcovHAC(ecm))</code></pre>
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -297,7 +295,7 @@ summ(ecm, digits = 4L, vcov = vcovHAC(ecm))</code></pre>
 Observations
 </td>
 <td style="text-align:right;">
-44 (44 missing obs. deleted)
+44 (48 missing obs. deleted)
 </td>
 </tr>
 <tr>
@@ -385,7 +383,7 @@ p
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)1
+L(D(lrev), 1:2)L1
 </td>
 <td style="text-align:right;">
 -0.9195
@@ -402,7 +400,7 @@ L(D(lrev), 1:2)1
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)2
+L(D(lrev), 1:2)L2
 </td>
 <td style="text-align:right;">
 -0.3978
@@ -419,7 +417,7 @@ L(D(lrev), 1:2)2
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lgdp), 0:1)1
+L(D(lgdp), 0:1)–
 </td>
 <td style="text-align:right;">
 0.1716
@@ -436,7 +434,7 @@ L(D(lgdp), 0:1)1
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lgdp), 0:1)2
+L(D(lgdp), 0:1)L1
 </td>
 <td style="text-align:right;">
 -0.2654
@@ -538,8 +536,7 @@ dwtest(ecm, alternative = &quot;two.sided&quot;)
 <p>The statistical properties of the equation are also acceptable. Errors are homoskedastic and serially uncorrelated at the 5% level. The model is nevertheless reported with heteroskedasticity and autocorrelation consistent (HAC) standard errors.</p>
 <p>Curiously, changes in revenue in the current quarter do not seem to be very strongly related to changes in GDP in the current quarter, which could also be accounted for by data being published with a lag. For forecasting this is advantageous since if a specification without the difference of GDP can be estimated that fits the data well, then it may not be necessary to first forecast quarterly GDP and include it in the model in order to get a decent forecasts of the revenue number for the next quarter. Below a specification without the difference in GDP is estimated.</p>
 <pre class="r"><code># Same using only lagged differences in GDP
-ecm2 &lt;- dynlm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, 
-              as.zoo(merge(X, res)))
+ecm2 &lt;- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, merge(X, res))
 
 summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))</code></pre>
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -549,7 +546,7 @@ summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))</code></pre>
 Observations
 </td>
 <td style="text-align:right;">
-45 (44 missing obs. deleted)
+45 (47 missing obs. deleted)
 </td>
 </tr>
 <tr>
@@ -637,7 +634,7 @@ p
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)1
+L(D(lrev), 1:2)L1
 </td>
 <td style="text-align:right;">
 -0.9111
@@ -654,7 +651,7 @@ L(D(lrev), 1:2)1
 </tr>
 <tr>
 <td style="text-align:left;font-weight: bold;">
-L(D(lrev), 1:2)2
+L(D(lrev), 1:2)L2
 </td>
 <td style="text-align:right;">
 -0.3910
@@ -768,11 +765,11 @@ dwtest(ecm2, alternative = &quot;two.sided&quot;)
 ## alternative hypothesis: true autocorrelation is not 0</code></pre>
 <p>We can also compare the fitted values of the two models:</p>
 <pre class="r"><code># Get ECM fitted values
-ECM1_fit &lt;- fitted(ecm)
-ECM2_fit &lt;- fitted(ecm2)
+ECM1_fit &lt;- fitted(ecm) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
+ECM2_fit &lt;- fitted(ecm2) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 
 # Plot together with revenue
-plot(merge(D(X[, &quot;lrev&quot;]), ECM1_fit, ECM2_fit) %&gt;% na_omit, 
+plot(D(X[, &quot;lrev&quot;]) %&gt;% merge(ECM1_fit, ECM2_fit) %&gt;% na_omit, 
      main = &quot;Dlog Revenue and ECM Fit&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
 <p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
@@ -780,16 +777,16 @@ plot(merge(D(X[, &quot;lrev&quot;]), ECM1_fit, ECM2_fit) %&gt;% na_omit,
 <p>The true forecasting performance of the model can only be estimated through out of sample forecasts. Below I compute 1 quarter ahead forecasts for quarters 2018Q1 through 2019Q4 using an expanding window where both the cointegration equation and the ECM are re-estimated for each new period.</p>
 <pre class="r"><code># Function to forecast with expanding window from start year (using ECM2 specification)
 forecast_oos &lt;- function(x, start = 2018) {
-  n &lt;- nrow(x[paste0(&quot;/&quot;, start - 1), ]) 
-  xzoo &lt;- as.zoo(x)
+  n &lt;- nrow(x[paste0(&quot;/&quot;, start - 1), ])
   fc &lt;- numeric(0L)
+  xdf &lt;- qDF(x)
   # Forecasting with expanding window
   for(i in n:(nrow(x)-1L)) {
-    samp &lt;- xzoo[1:i, ]
-    ci &lt;- dynlm(lrev ~ lgdp + GDPdum, samp)
-    samp &lt;- cbind(samp, res = resid(ci))
-    mod &lt;- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
-    fc &lt;- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+    samp &lt;- ss(xdf, 1:i)
+    ci &lt;- lm(lrev ~ lgdp + GDPdum, samp)
+    samp &lt;- tfm(samp, res = resid(ci))
+    mod &lt;- lm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+    fc &lt;- c(fc, flast(predict(mod, newdata = rbind(samp, 0)))) # predict does not re-estimate
   }
   xfc &lt;- cbind(D(x[, &quot;lrev&quot;]), ECM2_fc = NA)
   xfc[(n+1L):nrow(x), &quot;ECM2_fc&quot;] &lt;- unattrib(fc)
@@ -804,6 +801,25 @@ plot(ECM_oos_fc[&quot;2009/&quot;, ],
      main = &quot;Out of Sample Expanding Window Forecast from ECM&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
 <p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<!-- Old forecasting: Problematic !!
+# library(dynlm)
+# forecast_oos <- function(x, start = 2018) {
+#   n <- nrow(x[paste0("/", start - 1), ]) 
+#   xzoo <- as.zoo(x)
+#   fc <- numeric(0L)
+#   # Forecasting with expanding window
+#   for(i in n:(nrow(x)-1L)) {
+#     samp <- xzoo[1:i, ]
+#     ci <- dynlm(lrev ~ lgdp + GDPdum, samp)
+#     samp <- cbind(samp, res = resid(ci))
+#     mod <- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+#     fc <- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+#   }
+#   xfc <- cbind(D(x[, "lrev"]), ECM2_fc = NA)
+#   xfc[(n+1L):nrow(x), "ECM2_fc"] <- unattrib(fc)
+#   return(xfc)
+# }
+-->
 <p>The graph suggests that the forecasting performance is quite acceptable. When seasonally adjusting GDP and revenue beforehand, the forecast becomes less accurate, so a part of this fit is accounted for by seasonal patterns in the two series. Finally, we could formally evaluate the forecast computing a sophisticated set of forecast evaluation metrics and also comparing the forecast to a naive forecast provided by the value of revenue in the previous quarter.</p>
 <pre class="r"><code>eval_forecasts &lt;- function(y, fc, add.naive = TRUE, n.ahead = 1) {
   mfc &lt;- eval(substitute(qDF(fc))) # eval substitute to get the name of the forecast if only a vector is passed
@@ -854,20 +870,20 @@ print.eval_forecasts &lt;- function(x, digits = 3, ...) print.table(round(x, dig
 ECM_oos_fc_cc &lt;- na_omit(ECM_oos_fc)
 eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_fc&quot;])
 ##               Naive  ECM2_fc
-## Bias         -0.041    0.001
-## MSE           0.072    0.005
-## RMSE          0.268    0.070
-## R-Squared    -2.414    0.748
-## SE            0.265    0.070
-## MAE           0.260    0.060
-## MPE        -194.319   48.495
-## MAPE        194.319   62.696
-## U1            0.974    0.219
-## U2            1.000    0.233
+## Bias         -0.041   -0.001
+## MSE           0.072    0.007
+## RMSE          0.268    0.082
+## R-Squared    -2.414    0.653
+## SE            0.265    0.082
+## MAE           0.260    0.066
+## MPE        -194.319  -48.213
+## MAPE        194.319   48.213
+## U1            0.974    0.364
+## U2            1.000    0.423
 ## Bias Prop.    0.024    0.000
-## Var. Prop.    0.006    0.248
-## Cov. Prop.    0.970    0.752</code></pre>
-<p>The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.25, suggesting, together with the plot, that the variance of the forecasts is a bit too large compared to the variance of the data.</p>
+## Var. Prop.    0.006    0.564
+## Cov. Prop.    0.970    0.436</code></pre>
+<p>The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.56, suggesting, together with the plot, that the variance of the forecasts is too small compared to the variance of the data.</p>
 <div id="further-references-on-vecms" class="section level3">
 <h3>Further References on (V)ECM’s</h3>
 <p>Engle, Robert, and Clive Granger. 1987. <em>Co-integration and Error Correction: Representation, Estimation and Testing.</em> Econometrica 55 (2): 251–76.</p>
