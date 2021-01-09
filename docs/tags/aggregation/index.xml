@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>advanced on R, Econometrics, High Performance</title>
-    <link>/Rblog/tags/advanced/</link>
-    <description>Recent content in advanced on R, Econometrics, High Performance</description>
+    <title>aggregation on R, Econometrics, High Performance</title>
+    <link>/Rblog/tags/aggregation/</link>
+    <description>Recent content in aggregation on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Aug 2020 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/advanced/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 09 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/aggregation/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Fast and Easy Aggregation of Multi-Type and Survey Data in R</title>
       <link>/Rblog/2021/01/09/advanced-data-aggregation/</link>

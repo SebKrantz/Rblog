@@ -1,15 +1,15 @@
 ---
-title: "Fast Aggregation of Multi-Type and Survey Data in R - with the collapse Package"
+title: "Fast and Easy Aggregation of Multi-Type and Survey Data in R"
 author: "Sebastian Krantz"
-date: '2020-11-23'
+date: '2021-01-09'
 slug: advanced-data-aggregation
 categories: ["R"]
 tags: ["R", "collapse", "weighted", "aggregation", "survey"]
 ---
 
-In response to the recent surge of interest in [*collapse*](https://sebkrantz.github.io/collapse/), and in particular the fast data aggregation facilities based on one-pass C/C++ algorithms, I decided to write a short post exploring the topic with a survey data example while also responding to some common challenges.
+[*collapse*](https://sebkrantz.github.io/collapse/) is a C/C++ based package to facilitate and speed up advanced statistical computations in R. Once of the key objectives for creating it was to introduce in R a fast, consistent, and easy to use toolset for aggregating complex datasets. This post showcases this functionality by aggregating 3 quite different survey datasets I happened to have used recently for a project:    
 
-As an example I will take a birth dataset from the 2016 Demographic and Health Survey for Uganda. This data may not be disseminated with this post but can be obtained from the [*DHS website*](https://dhsprogram.com/data/dataset/Uganda_Standard-DHS_2016.cfm?flag=0). 
+A birth dataset from the 2016 Demographic and Health Survey for Uganda (used for child mortality estimates, available [*here*](https://dhsprogram.com/data/dataset/Uganda_Standard-DHS_2016.cfm?flag=0)), a dataset of poverty estimates from the Uganda National Household Survey 2016/17 (used to compute district level poverty indicators, not available for direct download, documented [*here*](<https://ubos.org/wp-content/uploads/publications/03_20182016_UNHS_FINAL_REPORT.pdf>)), and the Uganda National Population and Housing Census 2014 (for district level population estimates and other data, available [*here*](<https://mepd.shinyapps.io/Macro-Data-Portal/>) under UBOS). 
 
 
 ```{r setup, include=FALSE}
@@ -23,25 +23,37 @@ library(haven)
 library(magrittr)
 library(collapse)
 
-DHSBR <- read_dta("C:/Users/Sebastian Krantz/Google Drive/6. Data and Data Systems/DHS2016/Data/UGBR7BDT - Births Recode/UGBR7BFL.DTA") %>%
-  get_vars(fNobs(.) > 0L) %>% as_factor
+# Set path to the Uganda National Household Survey 2016/17
+UNHS_path <- "C:/Users/Sebastian Krantz/Google Drive/6. Data and Data Systems/UNHS1617/UNHS2016_17"
+# Set path to the Uganda National Population and Housing Census 2014
+CENS_path <- "C:/Users/Sebastian Krantz/Google Drive/6. Data and Data Systems/UBOS 2014 Census"
+# Set path to the Uganda Demographic and Health Survey 2016
+DHS_path <- "C:/Users/Sebastian Krantz/Google Drive/6. Data and Data Systems/DHS2016"
 
 ```
 
-First the STATA file is is imported using the *haven* library, columns with only missing values are removed, encoded columns are converted to factor variables.
+First the STATA files are imported using the *haven* library, columns with only missing values are removed from the DHS dataset, encoded columns are converted to factor variables.
 
-```{r, eval=FALSE}
-
+```{r}
 library(haven)
 library(magrittr)
 library(collapse)
 
-DHSBR <- read_dta("DHS2016/Data/UGBR7BDT - Births Recode/UGBR7BFL.DTA") %>%
-             get_vars(fNobs(.) > 0L) %>% as_factor
+# Uganda Demographic and Health Survey 2016: Birth Recode
+DHSBR <- paste0(DHS_path, "/Data/UGBR7BDT - Births Recode/UGBR7BFL.dta") %>%  
+         read_dta %>% get_vars(fNobs(.) > 0L) %>% as_factor
+
+# Uganda National Household Survey 2016/17: Poverty Estimates
+UNHSPOV <- paste0(UNHS_path, "/Household/pov16_rev1.dta") %>% 
+           read_dta %>% as_factor
+
+# Uganda National Population and Housing Census 2014
+CENS <- paste0(CENS_path, "/UBOS 2014 Census.dta") %>% 
+        read_dta %>% as_factor
 
 ```
 
-This data has 786 variables, most of which are categorical:
+I start with aggregating the DHS dataset. This data has 786 variables, most of which are categorical:
 
 ```{r}
 fdim(DHSBR)
@@ -52,28 +64,112 @@ table(vclasses(DHSBR))
 We can obtain a detailed statistical summary of the data using `descr`. The output prints nicely to the console, but can also be converted to a data.frame.
 
 ```{r}
-head(as.data.frame(descr(DHSBR, table = FALSE)), 10L)
+descr(DHSBR, table = FALSE) %>% as.data.frame %>% head(10)
 ```
 
-The sample is based on a stratified two-stage cluster design. 696 Enumeration Areas (Clusters) Were drawn from the sampling frame of the 2014 Census and a sample of households is drawn from an updated list of households within the cluster (on average a cluster had 130 households). The sample comprises 20,880 selected households and 18,506 women being interviewed. 
+The sample is based on a stratified two-stage cluster design. 696 Enumeration Areas (Clusters) were drawn from the sampling frame of the 2014 Census and a sample of households is drawn from an updated list of households within the cluster (on average a cluster had 130 households). The sample comprises 20,880 selected households and 18,506 women being interviewed. Of these women 13,745 had given birth and are recorded in this dataset. As the descriptive statistics above show, the first column gives the women-id (caseid), and the second column an integer id for each of the children. 
 
+The aggregation task for this dataset shall simply be to aggregate over the children for each women. A first step to decide how this aggregation is to be done is to examine which variables vary by women i.e. contain child characteristics.
 ```{r}
-setrename(DHSBR, v005 = weights)
-
+# Tablate child-variant variables
 table(varying(DHSBR, ~ caseid))
 
-varying(DHSBR, weights ~ caseid)
-```
-
-```{r}
+# Examine the numeric child-variant variables
 DHSBR %>% fgroup_by(caseid) %>% num_vars %>% 
   get_vars(varying(.)) %>% namlab
+
+```
+These are all varibles that we would prefer to aggregate using the average, not the sum or extreme values. It is noteworthy that the weights don't vary by child, but only by women, so weighted aggregation is actually not necessary in this case.
+```{r}
+# Renaming weights variable
+setrename(DHSBR, v005 = weights)
+# Confirm that it does not vary by child
+varying(DHSBR, weights ~ caseid)
+```
+Thus aggregation in this case is very simple using the `collap()` function, which by default aggregates numeric columns using the mean, and categorical columns using the statistical mode (that is the most frequent value):
+
+```{r}
+# Aggregating, same as collap(DHSBR, ~ caseid, fmean, fmode), or collapv(1)
+DHSBR_agg <- collap(DHSBR, ~ caseid) %>% fdroplevels
+
+# Aggregating preserves column order and data types / classes + attributes
+identical(namlab(DHSBR_agg, class = TRUE), 
+          namlab(DHSBR, class = TRUE))
+```
+
+Apart from the simplicity and speed of this solution (faster than any other package in or outside of R), `collap()` by default preserves the original column order and all attributes of columns as well as the data frame itself. So we can truly speak of an aggregated version of this dataset. 
+
+Now with the next dataset things will be less straightforward
+
+```{r}
+fdim(UNHSPOV)
+
+table(vclasses(UNHSPOV))
+
+```
+
+
+```{r}
+descr(UNHSPOV, table = FALSE) %>% as.data.frame %>% head(10)
+```
+Using the `qsu()` function, we can also summarize the variation in two of the key variables between district averages and within districts, separetly for rural and urban districts. This can give us an idea of the variation in poverty levels we are erasing by aggregating this data to the district level. 
+```{r}
+qsu(UNHSPOV, fexp30 + welfare ~ urban, ~ district, ~ finalwgt, 
+    vlabels = TRUE)[,"SD",,] # Showing only the standard deviation (SD)
 ```
 
 ```{r}
-DHSBR_agg <- collap(DHSBR, ~ casid) %>% fdroplevels
-
-identical(names(DHSBR_agg), names(DHSBR))
-identical(vlabels(DHSBR_agg), vlabels(DHSBR))
-identical(vclasses(DHSBR_agg), vclasses(DHSBR))
+UNHSPOV %>% num_vars %>% namlab
 ```
+
+```{r}
+UNHSPOV %>% fselect(-hhid, -ea) %>% 
+  fgroup_by(district) %>% collapg(w = finalwgt)
+```
+
+Now the census dataset is a bit simpler, consisting of 5 character variables identifying from the macro-region to the parish level, followed by 270 numeric variables.
+```{r}
+fdim(CENS)
+
+table(vclasses(CENS))
+
+```
+The specialty of this data is however that some variables are recorded in population totals, and some in percentage terms. 
+
+```{r}
+descr(CENS, table = FALSE) %>% as.data.frame %>% head(15)
+```
+
+The population counts are easily aggregated by simply computing a sum, but variables providing percentages of the population need to be aggregated using a weighted mean, where the total population serves as the weighting variable.
+
+```{r}
+gvr(CENS, "_P$") %>% namlab %>% head(10)
+
+range(fmax(gvr(CENS, "_P$")))
+
+```
+
+```{r}
+perc_vars <- gvr(CENS, "_P$", return = "indices")
+pop_vars <- setdiff(num_vars(CENS, "indices"), perc_vars)
+
+collap(CENS, ~ Region + District, w = ~ POP,
+       custom = list(fmean = perc_vars, fsum_uw = pop_vars))
+```
+
+Since we are only aggregating numeric data here, we may compare the computation speed with a matching *data.table* expression^[Which does however not maintain the original column order.]: 
+
+```{r}
+library(microbenchmark)
+library(data.table)
+setDT(CENS)
+
+microbenchmark(
+  data.table = cbind(CENS[, lapply(.SD, weighted.mean, POP), by = .(Region, District), .SDcols = perc_vars], 
+                     CENS[, lapply(.SD, sum), by = .(Region, District), .SDcols = pop_vars][, -(1:2)]), 
+  collapse = collap(CENS, ~ Region + District, w = ~ POP,
+                     custom = list(fmean = perc_vars, fsum_uw = pop_vars))
+)
+
+```
+
