@@ -123,19 +123,19 @@ varying(DHSBR, weights ~ caseid)
 ## weights 
 ##   FALSE</code></pre>
 <p>Thus aggregation in this case is very simple using the <code>collap()</code> function, which by default aggregates numeric columns using the mean, and categorical columns using the statistical mode (i.e. the most frequent value):</p>
-<pre class="r"><code># Aggregating, same as collap(DHSBR, ~ caseid, fmean, fmode), or collapv(1)
+<pre class="r"><code># Aggregating, same as collap(DHSBR, ~ caseid, fmean, fmode), or collapv(DHSBR, 1)
 DHSBR_agg &lt;- collap(DHSBR, ~ caseid) %&gt;% fdroplevels
 
 head(DHSBR_agg)
 ## # A tibble: 6 x 786
-##   caseid   bidx v000   v001  v002  v003  v004 weights  v006  v007  v008 v008a  v009  v010  v011  v012
-##   &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 &quot;    0~   1.5 UG7       1     3     2     1 1099225     8  2016  1400 42613     7  1991  1099    25
-## 2 &quot;    0~   1.5 UG7       1     4     1     1 1099225     8  2016  1400 42609    12  1975   912    40
-## 3 &quot;    0~   1   UG7       1     4     2     1 1099225     8  2016  1400 42609     7  1995  1147    21
-## 4 &quot;    0~   1.5 UG7       1     4     6     1 1099225     8  2016  1400 42611     1  1993  1117    23
-## 5 &quot;    0~   1.5 UG7       1     4     7     1 1099225     8  2016  1400 42609     2  1986  1034    30
-## 6 &quot;    0~   1   UG7       1     4     8     1 1099225     8  2016  1400 42609     5  1989  1073    27
+##   caseid    bidx v000   v001  v002  v003  v004   v005  v006  v007  v008 v008a  v009  v010  v011  v012
+##   &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 &quot;    00~   1.5 UG7       1     3     2     1 1.10e6     8  2016  1400 42613     7  1991  1099    25
+## 2 &quot;    00~   1.5 UG7       1     4     1     1 1.10e6     8  2016  1400 42609    12  1975   912    40
+## 3 &quot;    00~   1   UG7       1     4     2     1 1.10e6     8  2016  1400 42609     7  1995  1147    21
+## 4 &quot;    00~   1.5 UG7       1     4     6     1 1.10e6     8  2016  1400 42611     1  1993  1117    23
+## 5 &quot;    00~   1.5 UG7       1     4     7     1 1.10e6     8  2016  1400 42609     2  1986  1034    30
+## 6 &quot;    00~   1   UG7       1     4     8     1 1.10e6     8  2016  1400 42609     5  1989  1073    27
 ## # ... with 770 more variables: v013 &lt;fct&gt;, v014 &lt;fct&gt;, v015 &lt;fct&gt;, v016 &lt;dbl&gt;, v017 &lt;dbl&gt;,
 ## #   v018 &lt;fct&gt;, v019 &lt;fct&gt;, v019a &lt;fct&gt;, v020 &lt;fct&gt;, v021 &lt;dbl&gt;, v022 &lt;fct&gt;, v023 &lt;fct&gt;, v024 &lt;fct&gt;,
 ## #   v025 &lt;fct&gt;, v027 &lt;dbl&gt;, v028 &lt;dbl&gt;, v030 &lt;dbl&gt;, v034 &lt;fct&gt;, v040 &lt;dbl&gt;, v042 &lt;fct&gt;, v044 &lt;fct&gt;,

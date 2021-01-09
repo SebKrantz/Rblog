@@ -104,7 +104,7 @@ varying(DHSBR, weights ~ caseid)
 Thus aggregation in this case is very simple using the `collap()` function, which by default aggregates numeric columns using the mean, and categorical columns using the statistical mode (i.e. the most frequent value):
 
 ```{r}
-# Aggregating, same as collap(DHSBR, ~ caseid, fmean, fmode), or collapv(1)
+# Aggregating, same as collap(DHSBR, ~ caseid, fmean, fmode), or collapv(DHSBR, 1)
 DHSBR_agg <- collap(DHSBR, ~ caseid) %>% fdroplevels
 
 head(DHSBR_agg)
