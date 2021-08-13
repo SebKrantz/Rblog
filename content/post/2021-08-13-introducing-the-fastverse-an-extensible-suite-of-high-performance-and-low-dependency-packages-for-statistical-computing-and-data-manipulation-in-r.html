@@ -1,0 +1,286 @@
+---
+title: "Introducing the fastverse: An Extensible Suite of High-Performance and Low-Dependency Packages for Statistical Computing and Data Manipulation"
+author: "Sebastian Krantz"
+date: '2021-08-13'
+slug: fastverse
+categories: ["R"]
+tags: ["R", "fastverse", "high-performance", "low-dependency", "statistical-computing", "data-manipulation"]
+---
+
+<script src="/Rblog/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p><img src='fastverse_logo.png' width="350px" align="right" /></p>
+<p>The <em>fastverse</em> is a suite of complementary high-performance packages for statistical computing and data manipulation in R. Developed independently by various people, <em>fastverse</em> packages jointly contribute to the objectives of:</p>
+<ul>
+<li>Speeding up R through heavy use of compiled code (C, C++, Fortran)</li>
+<li>Enabling more complex statistical and data manipulation operations in R</li>
+<li>Reducing the number of dependencies required for advanced computing in R.</li>
+</ul>
+<p>The <code>fastverse</code> package integrates, and provides utilities for easy installation, loading and management
+of such packages. It is an extensible framework that allows users to freely (and permanently) add or remove packages to create a ‘verse’ of packages suiting their general needs. Separate ‘verses’ can be created for different projects.</p>
+<p>The package thus extends the functionality provided by the <code>tidyverse</code> package, whereas <em>fastverse</em> packages themselves are quite different from <em>tidyverse</em> packages to the extent that they</p>
+<ol style="list-style-type: decimal">
+<li>Care less about having all data in tidy tibbbles but also support matrices and other objects</li>
+<li>Take R to the limits in terms of performance</li>
+<li>Don’t require a lot of dependencies (if any) and</li>
+<li>Themselves implement and extend a lot of the statistical functionality found in <code>base</code> and <code>stats</code>.</li>
+</ol>
+<div id="core-packages" class="section level1">
+<h1>Core Packages</h1>
+<p>The <em>fastverse</em> installs 6 core packages (<em>data.table</em>, <em>collapse</em>, <em>matrixStats</em>, <em>kit</em>, <em>magrittr</em> and <em>fst</em>) that are attached with <code>library(fastverse)</code>. These packages were selected because they provide high quality compiled code for most common statistical and data manipulation tasks, have carefully managed APIs, jointly depend only on base R and <em>Rcpp</em>, and work very well together. The functionality offered by these packages can be summarized as follows:</p>
+<ul>
+<li><p><strong>data.table</strong>: Enhanced data frame class with concise data manipulation framework offering powerful aggregation, extremely flexible split-apply-combine computing, reshaping, joins, rolling statistics, set operations on tables, fast csv read/write, and various utilities such as transposition of data.</p></li>
+<li><p><strong>collapse</strong>: Fast grouped &amp; weighted statistical computations, time series and panel data transformations, list-processing, data manipulation functions, summary statistics and various utilities such as support for variable labels. Class-agnostic framework designed to work with vectors, matrices, data frames, lists and related classes i.e. <em>xts</em>, <em>data.table</em>, <em>tibble</em>, <em>pdata.frame</em>, <em>sf</em>. <!-- *tsibble*, *tibbletime* --></p></li>
+<li><p><strong>matrixStats</strong>: Efficient row-and column-wise (weighted) statistics on matrices and vectors, including computations on subsets of rows and columns.</p></li>
+<li><p><strong>kit</strong>: Fast vectorized and nested switches, some parallel (row-wise) statistics, and some utilities such as efficient partial sorting and unique values.</p></li>
+<li><p><strong>magrittr</strong>: Efficient pipe operators for enhanced programming and code unnesting.</p></li>
+<li><p><strong>fst</strong>: A compressed data file format that is very fast to read and write. Full random access in both rows and columns allows reading subsets from a ‘.fst’ file.</p></li>
+</ul>
+<div id="fastverse-functions-and-options" class="section level2">
+<h2><em>fastverse</em> Functions and Options</h2>
+<p>The package then offers several functions starting with <code>fastverse_</code> that help manage dependencies, detect namespace conflicts, add/remove packages from the <em>fastverse</em> and update packages:</p>
+<div id="functions-to-extend-or-reduce-the-number-of-packages-in-the-fastverse" class="section level4">
+<h4>Functions to extend or reduce the number of packages in the <em>fastverse</em></h4>
+<ul>
+<li><code>fastverse_extend()</code></li>
+<li><code>fastverse_detach()</code></li>
+<li><code>fastverse_reset()</code></li>
+</ul>
+</div>
+<div id="function-to-display-conflicts-for-fastverse-packages" class="section level4">
+<h4>Function to display conflicts for <em>fastverse</em> packages</h4>
+<ul>
+<li><code>fastverse_conflicts()</code></li>
+</ul>
+</div>
+<div id="function-to-update-fastverse-packages" class="section level4">
+<h4>Function to update <em>fastverse</em> packages</h4>
+<ul>
+<li><code>fastverse_update()</code></li>
+</ul>
+</div>
+<div id="utilities-to-retrieve-the-names-of-fastverse-packages-their-depenencies-and-produce-a-situation-report" class="section level4">
+<h4>Utilities to retrieve the names of <em>fastverse</em> packages, their depenencies, and produce a situation report</h4>
+<ul>
+<li><code>fastverse_packages()</code></li>
+<li><code>fastverse_deps()</code></li>
+<li><code>fastverse_sitrep()</code></li>
+</ul>
+</div>
+<div id="options" class="section level4">
+<h4>Options</h4>
+<ul>
+<li><code>options(fastverse.quiet = TRUE)</code> disables all automatic messages (incl. conflict reporting).</li>
+<li><code>options(fastverse.styling = FALSE)</code> disables all styling applied to text printed to the console.</li>
+<li><code>options(fastverse.extend = c(...))</code> contains names of packages used to extend the <em>fastverse</em>.</li>
+</ul>
+</div>
+</div>
+<div id="extending-the-fastverse" class="section level2">
+<h2>Extending the <em>fastverse</em></h2>
+<p>As mentioned already, a notable feature of the <em>fastverse</em> is that it is not a ‘rigid’ set of core packages, but can be extended or reduced, temporarily or permanently, globally or for specific projects, thus allowing you to create ‘verses’ of packages to your liking.</p>
+<div id="extending-for-the-session" class="section level3">
+<h3>Extending for the Session</h3>
+<p>Let’s say I have loaded the <em>fastverse</em> and I want to load additionally packages in my R session. I can do that with <code>fastverse_extend()</code>, which has the additional advantage that it checks for conflicts, and I can install any packages not available using <code>install = TRUE</code> before attaching them.</p>
+<pre class="r"><code>options(fastverse.styling = FALSE) # Disabling coloured output for this post
+library(fastverse)
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v data.table  1.14.0     v collapse    1.6.5 
+## v magrittr    2.0.1      v matrixStats 0.60.0
+## v kit         0.0.7      v fst         0.9.4
+
+# Extending the fastverse for the session, installing packages if unavailable
+fastverse_extend(fixest, robustbase, xts, roll, ggplot2, Rfast, install = TRUE)
+## -- Attaching extension packages ----------------------------- fastverse 0.1.8 --
+## v fixest     0.8.4      v roll       1.1.6 
+## v robustbase 0.93.6     v ggplot2    3.3.5 
+## v xts        0.12.1     v Rfast      2.0.1
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x Rfast::colMads()    masks matrixStats::colMads()
+## x Rfast::colMaxs()    masks matrixStats::colMaxs()
+## x Rfast::colMedians() masks robustbase::colMedians(), matrixStats::colMedians()
+## x Rfast::colMins()    masks matrixStats::colMins()
+## x Rfast::colRanks()   masks matrixStats::colRanks()
+## x Rfast::colVars()    masks matrixStats::colVars()
+## x xts::first()        masks data.table::first()
+## x xts::last()         masks data.table::last()
+## x robustbase::plot()  masks graphics::plot(), base::plot()
+## x Rfast::rowMads()    masks matrixStats::rowMads()
+## x Rfast::rowMaxs()    masks matrixStats::rowMaxs()
+## x Rfast::rowMedians() masks robustbase::rowMedians(), matrixStats::rowMedians()
+## x Rfast::rowMins()    masks matrixStats::rowMins()
+## x Rfast::rowRanks()   masks matrixStats::rowRanks()
+## x Rfast::rowVars()    masks matrixStats::rowVars()
+## x Rfast::transpose()  masks data.table::transpose()</code></pre>
+<p>These packages are now part of the <em>fastverse</em>. For example when generating a situation report they and (by default) their direct dependencies are included:</p>
+<pre class="r"><code># Generate situation report
+fastverse_sitrep()
+## -- fastverse 0.1.8: Situation Report -------------------------------- R 4.1.0 --
+##  * Global config file: FALSE
+##  * Project config file: FALSE
+## -- Core packages --------------------------------------------------------------- 
+##  * data.table    (1.14.0)
+##  * magrittr      (2.0.1)
+##  * kit           (0.0.7)
+##  * collapse      (1.6.5)
+##  * matrixStats   (0.60.0)
+##  * fst           (0.9.4)
+## -- Extension packages ---------------------------------------------------------- 
+##  * fixest        (0.8.4 &lt; 0.9.0)
+##  * robustbase    (0.93.6 &lt; 0.93.8)
+##  * xts           (0.12.1)
+##  * roll          (1.1.6)
+##  * ggplot2       (3.3.5)
+##  * Rfast         (2.0.1 &lt; 2.0.3)
+## -- Dependencies ---------------------------------------------------------------- 
+##  * DEoptimR      (1.0.8 &lt; 1.0.9)
+##  * digest        (0.6.27)
+##  * dreamerr      (1.2.3)
+##  * glue          (1.4.2)
+##  * gtable        (0.3.0)
+##  * isoband       (0.2.5)
+##  * MASS          (7.3.54)
+##  * mgcv          (1.8.36)
+##  * nlme          (3.1.152)
+##  * numDeriv      (2016.8.1.1)
+##  * Rcpp          (1.0.7)
+##  * RcppArmadillo (0.10.2.1.0 &lt; 0.10.6.0.0)
+##  * RcppParallel  (5.0.2 &lt; 5.1.4)
+##  * RcppZiggurat  (0.1.5 &lt; 0.1.6)
+##  * rlang         (0.4.11)
+##  * sandwich      (3.0.0 &lt; 3.0.1)
+##  * scales        (1.1.1)
+##  * tibble        (3.1.3)
+##  * withr         (2.4.2)
+##  * zoo           (1.8.9)</code></pre>
+<p>The packages are saved in <code>options("fastverse.extend")</code>. Detaching the <em>fastverse</em> does not (by default) remove packages from the option, but this can be changed with <code>fastverse_detach(..., session = TRUE)</code>:</p>
+<pre class="r"><code># Extensions are here
+options(&quot;fastverse.extend&quot;)
+## $fastverse.extend
+## [1] &quot;fixest&quot;     &quot;robustbase&quot; &quot;xts&quot;        &quot;roll&quot;       &quot;ggplot2&quot;   
+## [6] &quot;Rfast&quot;
+
+# This detaches Rfast and roll, also removing them from options(&quot;fastverse.extend&quot;)
+fastverse_detach(Rfast, roll, session = TRUE)
+# This confirms that they were removed
+fastverse_packages()
+##  [1] &quot;data.table&quot;  &quot;magrittr&quot;    &quot;kit&quot;         &quot;collapse&quot;    &quot;matrixStats&quot;
+##  [6] &quot;fst&quot;         &quot;fixest&quot;      &quot;robustbase&quot;  &quot;xts&quot;         &quot;ggplot2&quot;    
+## [11] &quot;fastverse&quot;
+# Now detaching all packages
+fastverse_detach()
+# Attaching again includes extensions except for &quot;Rfast&quot; and &quot;roll&quot;
+library(fastverse)
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v data.table  1.14.0     v fst         0.9.4 
+## v magrittr    2.0.1      v fixest      0.8.4 
+## v kit         0.0.7      v robustbase  0.93.6
+## v collapse    1.6.5      v xts         0.12.1
+## v matrixStats 0.60.0     v ggplot2     3.3.5
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x matrixStats::colMedians() masks robustbase::colMedians()
+## x xts::first()              masks data.table::first()
+## x collapse::is.regular()    masks zoo::is.regular()
+## x xts::last()               masks data.table::last()
+## x robustbase::plot()        masks graphics::plot(), base::plot()
+## x matrixStats::rowMedians() masks robustbase::rowMedians()
+
+# This detaches all packages and clears all options
+fastverse_detach(session = TRUE)</code></pre>
+<p>Note that it is also possible to extend the <em>fastverse</em> for the session by simply populating <code>options("fastverse.extend")</code> before calling <code>library(fastverse)</code>, but using <code>fastverse_extend()</code> is more secure, especially with option <code>install = TRUE</code>.</p>
+</div>
+</div>
+<div id="permanent-extensions" class="section level2">
+<h2>Permanent Extensions</h2>
+<p><code>fasvtverse_extend()</code> and <code>fastverse_detach()</code> both have an argument <code>permanent = TRUE</code>, which can be used to make these changes persist across R sessions. This is implemented using a global configuration file saved to the package directory<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+<p>For example, suppose most of my work involves time series analysis, and I would like to add <em>xts</em>, <em>zoo</em>, <em>roll</em>, and <em>dygraphs</em> to my <em>fastverse</em>. Let’s say I also don’t really use the <em>fst</em> file format, and I don’t really need <em>matrixStats</em> either as I can do most of the time series statistics I need with base R and <em>collapse</em>. Let’s finally say that I don’t want <code>xts::first</code> and <code>xts::last</code> to mask <code>data.table::first</code> and <code>data.table::last</code>.</p>
+<p>Then I could permanently modify my <em>fastverse</em> as follows<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>:</p>
+<pre class="r"><code>options(fastverse.styling = FALSE)
+library(fastverse)
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v data.table  1.14.0     v collapse    1.6.5 
+## v magrittr    2.0.1      v matrixStats 0.60.0
+## v kit         0.0.7      v fst         0.9.4
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x collapse::is.regular() masks zoo::is.regular()
+
+# Adding extensions
+fastverse_extend(xts, zoo, roll, dygraphs, permanent = TRUE)
+## -- Attaching extension packages ----------------------------- fastverse 0.1.8 --
+## v xts      0.12.1      v dygraphs 1.1.1.6
+## v roll     1.1.6
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x zoo::as.Date()         masks base::as.Date()
+## x zoo::as.Date.numeric() masks base::as.Date.numeric()
+## x xts::first()           masks data.table::first()
+## x collapse::is.regular() masks zoo::is.regular()
+## x xts::last()            masks data.table::last()
+
+# Removing some core packages
+fastverse_detach(data.table, fst, matrixStats, permanent = TRUE)
+# Adding data.table again, so it is attached last
+fastverse_extend(data.table, permanent = TRUE)
+## -- Attaching extension packages ----------------------------- fastverse 0.1.8 --
+## v data.table 1.14.0
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x data.table::first() masks xts::first()
+## x data.table::last()  masks xts::last()</code></pre>
+<p>Note that <code>options("fastverse.extend")</code> is still empty, because we have written those changes to a config file<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. Now lets see if our permanent modification worked:</p>
+<pre class="r"><code># detach all packages and clear all options
+fastverse_detach(session = TRUE)
+options(fastverse.styling = FALSE)
+library(fastverse) 
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v magrittr   2.0.1       v zoo        1.8.9  
+## v kit        0.0.7       v roll       1.1.6  
+## v collapse   1.6.5       v dygraphs   1.1.1.6
+## v xts        0.12.1      v data.table 1.14.0
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x zoo::as.Date()         masks base::as.Date()
+## x zoo::as.Date.numeric() masks base::as.Date.numeric()
+## x data.table::first()    masks xts::first()
+## x zoo::is.regular()      masks collapse::is.regular()
+## x data.table::last()     masks xts::last()</code></pre>
+<p>After this permanent modification, the <em>fastverse</em> can still be extend for the session using <code>fastverse_extend()</code>. As long as the current installation of the <em>fastverse</em> is kept, these modifications will persist across R sessions, unless the config file is removed with <code>fastverse_reset()</code>. The <em>fastverse</em> also offers a more persistent mechanism to configure it inside projects:</p>
+</div>
+<div id="custom-fastverse-configurations-for-projects" class="section level2">
+<h2>Custom <em>fastverse</em> Configurations for Projects</h2>
+<p>The <em>fastverse</em> gives you the ability to put together a custom collection of packages for a project and load and manage them with <code>library(fastverse)</code>.</p>
+<p>To do this you need to include a configuration file named <code>.fastverse</code> (no file extension) inside a project directory, and place inside that file the names of packages to be loaded as core <em>fastvere</em><a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
+<p>Using a config file in a project will ignore any global configuration as discussed in the previous section. You can still extend the <em>fastverse</em> inside a project session using <code>fastverse_extend()</code> (or <code>options("fastvers.extend")</code> before <code>library(fastverse)</code>).</p>
+</div>
+<div id="suggested-extensions" class="section level2">
+<h2>Suggested Extensions</h2>
+<p>The <em>fastverse</em> can be freely extended with any R package, but I have put together a list of suggested high-performance and low-dependency packages in the <a href="https://sebkrantz.github.io/fastverse/#suggested-extensions">README</a> file. You are free to contribute to this list, so that it becomes a comprehensive showcase of R’s high-performance world as far as statistical computing and data manipulation is concerned.</p>
+</div>
+<div id="installation-versions-of-the-fastverse" class="section level2">
+<h2>Installation: Versions of the <em>fastverse</em></h2>
+<p>Currently, there are 2 different versions of the <em>fastverse</em> on CRAN and GitHub. The GitHub version is recommended if you want to have <em>matrixStats</em> consistently preserve attributes of your matrices: it modifies functions in the <em>matrixStats</em> namespace making them preserve attributes consistently (and by default) whenever the <em>fastverse</em> is attached<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>. The CRAN version takes <em>matrixStats</em> as it is, which means most functions do not (by default) preserve attributes such as dimension names in computations.</p>
+<pre class="r"><code># Install the CRAN version
+install.packages(&quot;fastverse&quot;)
+
+# Install the GitHub version (Requires Rtools)
+remotes::install_github(&quot;SebKrantz/fastverse&quot;)</code></pre>
+<p><em>matrixStats</em> is slowly evolving towards greater consistency, but it might take more than half a year until dimension names are handled consistently by default - due to the large number of reverse dependencies. Until then CRAN and GitHub versions of the <em>fastverse</em> are released together.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>The <em>fastverse</em> was developed principally for 2 reasons: to promote quality high-performance software development for R, and to provide a flexible approach to package loading and management in R, particularly for users wishing to combine various high-performance packages in statistical workflows.</p>
+<p>This post already introduced most of what there is to know about the <em>fastverse</em>. Additional details are found on the <a href="https://sebkrantz.github.io/fastverse/">website</a>.</p>
+<pre class="r"><code># Resetting the fastverse to defaults (clearing all permanent extensions and options)
+fastverse_reset()
+# Detaching 
+fastverse_detach()</code></pre>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Thus it will be removed when the <em>fastverse</em> is reinstalled.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>I note that namespace conflicts can also be detected and handled with the <a href="https://cran.r-project.org/package=conflicted">conflicted</a> package on CRAN.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>When fetching the names of <em>fastverse</em> packages, <code>fastverse_packages</code> first checks any config file and then checks <code>options("fastverse.extend")</code>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>You can place package names in that file any manner you deem suitable: separated using spaces or commas, on one or multiple lines. Note that the file will be read from left to right and from top to bottom. Packages are attached in the order found in the file. Note that <strong>all</strong> packages to be loaded as core <em>fastverse</em> for your project need to be included in that file, in the order they should be attached.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>The functions which are replaced are contained in a global variable <code>.matrixStats_replaced</code>, available in the GitHub version. Replacement happens whenever the <em>fastverse</em> is attached, regardless of whether <em>matrixStats</em> was attached before or is attached with the <em>fastverse</em>. Only if <em>matrixStats</em> is removed from the <em>fastverse</em> with <code>fastverse_detach(matrixStats, permanent = TRUE)</code> the functions will not be modified in the GitHub version.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

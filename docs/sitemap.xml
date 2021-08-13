@@ -3,12 +3,67 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/Rblog/tags/aggregation/</loc>
-    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
+    <loc>/Rblog/categories/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/Rblog/categories/</loc>
+    <loc>/Rblog/tags/data-manipulation/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/fastverse/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/high-performance/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/2021/08/13/fastverse/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/low-dependency/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/post/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/r/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/categories/r/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/statistical-computing/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/</loc>
+    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/Rblog/tags/aggregation/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
   </url>
   
@@ -23,32 +78,7 @@
   </url>
   
   <url>
-    <loc>/Rblog/post/</loc>
-    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/r/</loc>
-    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/categories/r/</loc>
-    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/</loc>
-    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/Rblog/tags/survey/</loc>
-    <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
   </url>
   
