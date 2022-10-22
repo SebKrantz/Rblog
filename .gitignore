@@ -5,3 +5,4 @@
 *.rdx
 *.Ruserdata
 .Rproj.user
+.DS_Store
