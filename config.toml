@@ -3,6 +3,7 @@ title = "R, Econometrics, High Performance"
 
 baseurl = "https://sebkrantz.github.io/Rblog/" # Rblog/
 publishDir = "docs"
+relativeURLs = true
 
 theme = "hugo-lithium"
 googleAnalytics = ""

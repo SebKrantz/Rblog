@@ -27,8 +27,8 @@
 
 
 
-<link rel="stylesheet" href="/Rblog/css/fonts.css" media="all">
-<link rel="stylesheet" href="/Rblog/css/main.css" media="all">
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
 
 
 
@@ -37,8 +37,8 @@
     <div class="wrapper">
       <header class="header">
         <nav class="nav">
-  <a href="/" class="nav-logo">
-    <img src="/Rblog/images/logo.png"
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
          width="50"
          height="50"
          alt="Logo">
@@ -46,7 +46,7 @@
 
   <ul class="nav-links">
     
-    <li><a href="/Rblog/about/">About</a></li>
+    <li><a href="../../../../about/">About</a></li>
     
     <li><a href="https://github.com/SebKrantz">GitHub</a></li>
     
@@ -73,8 +73,8 @@
 
     <div class="article-content">
       
-<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
-<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+<link href="../../../../Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="../../../../Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
 <p><img src='collapse_logo_small.png' width="150px" align="right" /></p>
@@ -205,7 +205,7 @@ plot(fwithin(., g, mean = &quot;overall.mean&quot;), col = g,
 plot(fscale(., g, mean = &quot;overall.mean&quot;, sd = &quot;within.sd&quot;), col = g,    
      main = &quot;Harmonized Mean and Variance&quot;)
 }</code></pre>
-<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p><img src="../../../../Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 <pre class="r"><code>par(oldpar)</code></pre>
 <!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It's replacement version `get_vars<-` is 6x faster than `[<-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). -->
 <p>For the manipulation of time series and panel series, <em>collapse</em> offers the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code>.</p>
@@ -220,7 +220,7 @@ flag(EuStockMarkets, -1:1) %&gt;% head(3)
 EuStockMarkets[, .c(DAX, SMI)] %&gt;% 
   fdiff(0:1 * frequency(.), 1:2) %&gt;% 
   plot(main = c(&quot;DAX and SMI&quot;)) </code></pre>
-<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="../../../../Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. -->
 <!-- At this point I will  -->
 <!-- ```{r, eval=FALSE} -->
@@ -327,7 +327,7 @@ qsu(wlddev, pid = PCGDP + GINI ~ iso3c,
 
 # Panel data ACF: Efficient grouped standardizing and computing covariance with panel-lags
 psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)</code></pre>
-<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
+<p><img src="../../../../Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
 <!--
 For fast grouped statistics we can keep programming in standard evaluation as before, or we can use piped expressions. 
 
@@ -737,10 +737,10 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
       <footer class="footer">
         <ul class="footer-links">
           <li>
-            <a href="/Rblog/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
           </li>
           <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/Rblog/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
           </li>
         </ul>
       </footer>
@@ -761,7 +761,7 @@ microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ i
 
 
     
-<script src="/js/math-code.js"></script>
+<script src="../../../../js/math-code.js"></script>
 <script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
 
