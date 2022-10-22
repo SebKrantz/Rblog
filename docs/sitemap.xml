@@ -1,184 +1,121 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
   <url>
-    <loc>/Rblog/categories/</loc>
+    <loc>https://sebkrantz.github.io/Rblog/tags/c&#43;&#43;/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/categories/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/dynamic-factor-models/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/econometrics/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/post/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/r/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/categories/r/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/time-series/</loc>
+    <lastmod>2022-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/data-manipulation/</loc>
     <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/data-manipulation/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/fastverse/</loc>
     <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/fastverse/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/high-performance/</loc>
     <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/high-performance/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</loc>
     <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2021/08/13/fastverse/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/low-dependency/</loc>
     <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/low-dependency/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/statistical-computing/</loc>
     <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/post/</loc>
-    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/r/</loc>
-    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/categories/r/</loc>
-    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/</loc>
-    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/statistical-computing/</loc>
-    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/</loc>
-    <lastmod>2021-08-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/aggregation/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/aggregation/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/collapse/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/collapse/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2021/01/09/advanced-data-aggregation/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/survey/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/survey/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/weighted/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/weighted/</loc>
     <lastmod>2021-01-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/ecm/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/ecm/</loc>
     <lastmod>2020-12-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/econometrics/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/categories/econometrics/</loc>
     <lastmod>2020-12-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/categories/econometrics/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/forecasting/</loc>
     <lastmod>2020-12-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/forecasting/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</loc>
     <lastmod>2020-12-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</loc>
-    <lastmod>2020-12-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2020/11/14/class-agnostic-data-manipulation/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</loc>
     <lastmod>2020-11-14T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2020/09/13/programming-with-collapse/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</loc>
     <lastmod>2020-09-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/grouped/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/grouped/</loc>
     <lastmod>2020-09-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/programming/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/programming/</loc>
     <lastmod>2020-09-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/statistical/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/statistical/</loc>
     <lastmod>2020-09-13T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/advanced/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/advanced/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/fast/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/fast/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/2020/08/31/welcome-to-collapse/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/manipulation/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/manipulation/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/multilevel/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/multilevel/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/panel/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/panel/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/tags/time-series/</loc>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/tags/transformation/</loc>
     <lastmod>2020-08-31T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/about/</loc>
   </url>
-  
-  <url>
-    <loc>/Rblog/tags/transformation/</loc>
-    <lastmod>2020-08-31T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/Rblog/about/</loc>
-  </url>
-  
 </urlset>

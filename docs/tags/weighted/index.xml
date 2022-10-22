@@ -2,17 +2,50 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>weighted on R, Econometrics, High Performance</title>
-    <link>/Rblog/tags/weighted/</link>
+    <link>https://sebkrantz.github.io/Rblog/tags/weighted/</link>
     <description>Recent content in weighted on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 09 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="/Rblog/tags/weighted/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 09 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/weighted/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Introducing dfms: Efficient Estimation of Dynamic Factor Models in R</title>
+      <link>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</link>
+      <pubDate>Sat, 22 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</guid>
+      <description><![CDATA[ 
+
+
+<p>This short post notifies you of the CRAN release of a new R package, <a href="https://CRAN.R-project.org/package=dfms">dfms</a>, to efficiently estimate dynamic factor models in R using the Expectation Maximization (EM) algorithm and Kalman Filtering. Estimation can be done in 3 different ways following:</p>
+<ul>
+<li><p>Doz, C., Giannone, D., &amp; Reichlin, L. (2011). A two-step estimator for large approximate dynamic factor models based on Kalman filtering. <em>Journal of Econometrics, 164</em>(1), 188-205. <a href="doi:10.1016/j.jeconom.2011.02.012" class="uri">doi:10.1016/j.jeconom.2011.02.012</a></p></li>
+<li><p>Doz, C., Giannone, D., &amp; Reichlin, L. (2012). A quasi-maximum likelihood approach for large, approximate dynamic factor models. <em>Review of economics and statistics, 94</em>(4), 1014-1024. <a href="doi:10.1162/REST_a_00225" class="uri">doi:10.1162/REST_a_00225</a></p></li>
+<li><p>Banbura, M., &amp; Modugno, M. (2014). Maximum likelihood estimation of factor models on datasets with arbitrary pattern of missing data. <em>Journal of Applied Econometrics, 29</em>(1), 133-160. <a href="doi:10.1002/jae.2306" class="uri">doi:10.1002/jae.2306</a></p></li>
+</ul>
+<p>The models is</p>
+<p><span class="math display">\[\textbf{x}_t = \textbf{C} \textbf{f}_t + \textbf{e}_t \ \sim\  N(\textbf{0}, \textbf{R})\]</span>
+<span class="math display">\[\textbf{f}_t = \sum_{i=1}^p \textbf{A}_p \textbf{f}_{t-p} + \textbf{u}_t \ \sim\  N(\textbf{0}, \textbf{Q})\]</span></p>
+<p>where the first equation is called the measurement or observation equation, the second equation is called transition, state or process equation, and</p>
+<ul>
+<li><span class="math inline">\(\textbf{x}_t\)</span> is a <span class="math inline">\(n \times 1\)</span> vector of observed series at time <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\textbf{f}_t\)</span> is a <span class="math inline">\(r \times 1\)</span> vector of unobserved factors at time <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\textbf{C}\)</span> is a <span class="math inline">\(n \times r\)</span> measurement (observation) matrix</li>
+<li><span class="math inline">\(\textbf{A}_j\)</span> is a <span class="math inline">\(r \times r\)</span> state transition matrix at lag <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(\textbf{Q}\)</span> is a <span class="math inline">\(r \times r\)</span> state covariance matrix</li>
+<li><span class="math inline">\(\textbf{R}\)</span> is a <span class="math inline">\(n \times n\)</span> measurement (observation) covariance matrix and assumed to be diagonal.</li>
+</ul>
+<p>Estimation is done by finding initial values of the model matrices through PCA, and using those to run a Kalman Filter and Smoother to obtain an estimate of <span class="math inline">\(\textbf{f}_t\)</span>. In EM estimation the system matrices are then updated with the estimates from the Kalman Filter and Smoother, and the data is filtered and smoothed again until convergence of the Kalman Filter log-likelihood.</p>
+<p>Estimation with <em>dfms</em> is very efficient, powered by <a href="https://CRAN.R-project.org/package=RcppArmadillo">RcppArmadillo</a> and <a href="https://CRAN.R-project.org/package=collapse">collapse</a>, and supports arbitrary patterns of missing data following Banbura and Modugno (2014). A comprehensive set of methods allows for easy model interpretation and forecasting. The present release v0.1.3 does not support advanced DFM estimation features, such as accounting for serial correlation in <span class="math inline">\(\textbf{e}_t\)</span> or <span class="math inline">\(\textbf{u}_t\)</span>, series of mixed frequency in <span class="math inline">\(\textbf{x}_t\)</span>, time-varying system matrices <span class="math inline">\(\textbf{C}_t\)</span> and <span class="math inline">\(\textbf{A}_t\)</span> or structural breaks in the estimation. Some of these features may be added in the future.</p>
+<p>To learn more about <em>dfms</em>, check out the <a href="https://sebkrantz.github.io/dfms/">website</a>, and in particular the <a href="https://sebkrantz.github.io/dfms/articles/introduction.html">introductory vignette</a>, which provides a short walk-through of the package.</p>
+]]></description>
+    </item>
+    
     <item>
       <title>Introducing the fastverse: An Extensible Suite of High-Performance and Low-Dependency Packages for Statistical Computing and Data Manipulation</title>
-      <link>/Rblog/2021/08/13/fastverse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</link>
       <pubDate>Fri, 13 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2021/08/13/fastverse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</guid>
       <description><![CDATA[ 
 <script src="/Rblog/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
@@ -296,10 +329,10 @@ fastverse_detach()</code></pre>
     
     <item>
       <title>Fast and Easy Aggregation of Multi-Type and Survey Data in R</title>
-      <link>/Rblog/2021/01/09/advanced-data-aggregation/</link>
+      <link>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</link>
       <pubDate>Sat, 09 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2021/01/09/advanced-data-aggregation/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -715,10 +748,10 @@ microbenchmark(
     
     <item>
       <title>Forecasting Tax Revenue with Error Correction Models</title>
-      <link>/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</link>
       <pubDate>Wed, 02 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -1621,10 +1654,10 @@ eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_
     
     <item>
       <title>Fast Class-Agnostic Data Manipulation in R</title>
-      <link>/Rblog/2020/11/14/class-agnostic-data-manipulation/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</link>
       <pubDate>Sat, 14 Nov 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/11/14/class-agnostic-data-manipulation/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -2111,10 +2144,10 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
     
     <item>
       <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
-      <link>/Rblog/2020/09/13/programming-with-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</link>
       <pubDate>Sun, 13 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/09/13/programming-with-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -2413,10 +2446,10 @@ system.time(ganyNA(x, g, use.g.names = FALSE))
     
     <item>
       <title>Introducing collapse: Advanced and Fast Data Transformation in R</title>
-      <link>/Rblog/2020/08/31/welcome-to-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>/Rblog/2020/08/31/welcome-to-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>

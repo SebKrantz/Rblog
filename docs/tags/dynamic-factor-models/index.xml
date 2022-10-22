@@ -1,0 +1,3088 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>dynamic factor models on R, Econometrics, High Performance</title>
+    <link>https://sebkrantz.github.io/Rblog/tags/dynamic-factor-models/</link>
+    <description>Recent content in dynamic factor models on R, Econometrics, High Performance</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 22 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/dynamic-factor-models/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Introducing dfms: Efficient Estimation of Dynamic Factor Models in R</title>
+      <link>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</link>
+      <pubDate>Sat, 22 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</guid>
+      <description><![CDATA[ 
+
+
+<p>This short post notifies you of the CRAN release of a new R package, <a href="https://CRAN.R-project.org/package=dfms">dfms</a>, to efficiently estimate dynamic factor models in R using the Expectation Maximization (EM) algorithm and Kalman Filtering. Estimation can be done in 3 different ways following:</p>
+<ul>
+<li><p>Doz, C., Giannone, D., &amp; Reichlin, L. (2011). A two-step estimator for large approximate dynamic factor models based on Kalman filtering. <em>Journal of Econometrics, 164</em>(1), 188-205. <a href="doi:10.1016/j.jeconom.2011.02.012" class="uri">doi:10.1016/j.jeconom.2011.02.012</a></p></li>
+<li><p>Doz, C., Giannone, D., &amp; Reichlin, L. (2012). A quasi-maximum likelihood approach for large, approximate dynamic factor models. <em>Review of economics and statistics, 94</em>(4), 1014-1024. <a href="doi:10.1162/REST_a_00225" class="uri">doi:10.1162/REST_a_00225</a></p></li>
+<li><p>Banbura, M., &amp; Modugno, M. (2014). Maximum likelihood estimation of factor models on datasets with arbitrary pattern of missing data. <em>Journal of Applied Econometrics, 29</em>(1), 133-160. <a href="doi:10.1002/jae.2306" class="uri">doi:10.1002/jae.2306</a></p></li>
+</ul>
+<p>The models is</p>
+<p><span class="math display">\[\textbf{x}_t = \textbf{C} \textbf{f}_t + \textbf{e}_t \ \sim\  N(\textbf{0}, \textbf{R})\]</span>
+<span class="math display">\[\textbf{f}_t = \sum_{i=1}^p \textbf{A}_p \textbf{f}_{t-p} + \textbf{u}_t \ \sim\  N(\textbf{0}, \textbf{Q})\]</span></p>
+<p>where the first equation is called the measurement or observation equation, the second equation is called transition, state or process equation, and</p>
+<ul>
+<li><span class="math inline">\(\textbf{x}_t\)</span> is a <span class="math inline">\(n \times 1\)</span> vector of observed series at time <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\textbf{f}_t\)</span> is a <span class="math inline">\(r \times 1\)</span> vector of unobserved factors at time <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\textbf{C}\)</span> is a <span class="math inline">\(n \times r\)</span> measurement (observation) matrix</li>
+<li><span class="math inline">\(\textbf{A}_j\)</span> is a <span class="math inline">\(r \times r\)</span> state transition matrix at lag <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(\textbf{Q}\)</span> is a <span class="math inline">\(r \times r\)</span> state covariance matrix</li>
+<li><span class="math inline">\(\textbf{R}\)</span> is a <span class="math inline">\(n \times n\)</span> measurement (observation) covariance matrix and assumed to be diagonal.</li>
+</ul>
+<p>Estimation is done by finding initial values of the model matrices through PCA, and using those to run a Kalman Filter and Smoother to obtain an estimate of <span class="math inline">\(\textbf{f}_t\)</span>. In EM estimation the system matrices are then updated with the estimates from the Kalman Filter and Smoother, and the data is filtered and smoothed again until convergence of the Kalman Filter log-likelihood.</p>
+<p>Estimation with <em>dfms</em> is very efficient, powered by <a href="https://CRAN.R-project.org/package=RcppArmadillo">RcppArmadillo</a> and <a href="https://CRAN.R-project.org/package=collapse">collapse</a>, and supports arbitrary patterns of missing data following Banbura and Modugno (2014). A comprehensive set of methods allows for easy model interpretation and forecasting. The present release v0.1.3 does not support advanced DFM estimation features, such as accounting for serial correlation in <span class="math inline">\(\textbf{e}_t\)</span> or <span class="math inline">\(\textbf{u}_t\)</span>, series of mixed frequency in <span class="math inline">\(\textbf{x}_t\)</span>, time-varying system matrices <span class="math inline">\(\textbf{C}_t\)</span> and <span class="math inline">\(\textbf{A}_t\)</span> or structural breaks in the estimation. Some of these features may be added in the future.</p>
+<p>To learn more about <em>dfms</em>, check out the <a href="https://sebkrantz.github.io/dfms/">website</a>, and in particular the <a href="https://sebkrantz.github.io/dfms/articles/introduction.html">introductory vignette</a>, which provides a short walk-through of the package.</p>
+]]></description>
+    </item>
+    
+    <item>
+      <title>Introducing the fastverse: An Extensible Suite of High-Performance and Low-Dependency Packages for Statistical Computing and Data Manipulation</title>
+      <link>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</link>
+      <pubDate>Fri, 13 Aug 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</guid>
+      <description><![CDATA[ 
+<script src="/Rblog/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p><img src='fastverse_logo.png' width="350px" align="right" /></p>
+<p>The <em>fastverse</em> is a suite of complementary high-performance packages for statistical computing and data manipulation in R. Developed independently by various people, <em>fastverse</em> packages jointly contribute to the objectives of:</p>
+<ul>
+<li>Speeding up R through heavy use of compiled code (C, C++, Fortran)</li>
+<li>Enabling more complex statistical and data manipulation operations in R</li>
+<li>Reducing the number of dependencies required for advanced computing in R.</li>
+</ul>
+<p>The <code>fastverse</code> package integrates, and provides utilities for easy installation, loading and management
+of such packages. It is an extensible framework that allows users to freely (and permanently) add or remove packages to create a ‘verse’ of packages suiting their general needs. Separate ‘verses’ can be created for different projects.</p>
+<p>The package thus extends the functionality provided by the <code>tidyverse</code> package, whereas <em>fastverse</em> packages themselves are quite different from <em>tidyverse</em> packages to the extent that they</p>
+<ol style="list-style-type: decimal">
+<li>Care less about having all data in tidy tibbbles but also support matrices and other objects</li>
+<li>Take R to the limits in terms of performance</li>
+<li>Don’t require a lot of dependencies (if any) and</li>
+<li>Themselves implement and extend a lot of the statistical functionality found in <code>base</code> and <code>stats</code>.</li>
+</ol>
+<div id="core-packages" class="section level1">
+<h1>Core Packages</h1>
+<p>The <em>fastverse</em> installs 6 core packages (<em>data.table</em>, <em>collapse</em>, <em>matrixStats</em>, <em>kit</em>, <em>magrittr</em> and <em>fst</em>) that are attached with <code>library(fastverse)</code>. These packages were selected because they provide high quality compiled code for most common statistical and data manipulation tasks, have carefully managed APIs, jointly depend only on base R and <em>Rcpp</em>, and work very well together. The functionality offered by these packages can be summarized as follows:</p>
+<ul>
+<li><p><strong>data.table</strong>: Enhanced data frame class with concise data manipulation framework offering powerful aggregation, extremely flexible split-apply-combine computing, reshaping, joins, rolling statistics, set operations on tables, fast csv read/write, and various utilities such as transposition of data.</p></li>
+<li><p><strong>collapse</strong>: Fast grouped &amp; weighted statistical computations, time series and panel data transformations, list-processing, data manipulation functions, summary statistics and various utilities such as support for variable labels. Class-agnostic framework designed to work with vectors, matrices, data frames, lists and related classes i.e. <em>xts</em>, <em>data.table</em>, <em>tibble</em>, <em>pdata.frame</em>, <em>sf</em>. <!-- *tsibble*, *tibbletime* --></p></li>
+<li><p><strong>matrixStats</strong>: Efficient row-and column-wise (weighted) statistics on matrices and vectors, including computations on subsets of rows and columns.</p></li>
+<li><p><strong>kit</strong>: Fast vectorized and nested switches, some parallel (row-wise) statistics, and some utilities such as efficient partial sorting and unique values.</p></li>
+<li><p><strong>magrittr</strong>: Efficient pipe operators for enhanced programming and code unnesting.</p></li>
+<li><p><strong>fst</strong>: A compressed data file format that is very fast to read and write. Full random access in both rows and columns allows reading subsets from a ‘.fst’ file.</p></li>
+</ul>
+<div id="fastverse-functions-and-options" class="section level2">
+<h2><em>fastverse</em> Functions and Options</h2>
+<p>The package then offers several functions starting with <code>fastverse_</code> that help manage dependencies, detect namespace conflicts, add/remove packages from the <em>fastverse</em> and update packages:</p>
+<div id="functions-to-extend-or-reduce-the-number-of-packages-in-the-fastverse" class="section level4">
+<h4>Functions to extend or reduce the number of packages in the <em>fastverse</em></h4>
+<ul>
+<li><code>fastverse_extend()</code></li>
+<li><code>fastverse_detach()</code></li>
+<li><code>fastverse_reset()</code></li>
+</ul>
+</div>
+<div id="function-to-display-conflicts-for-fastverse-packages" class="section level4">
+<h4>Function to display conflicts for <em>fastverse</em> packages</h4>
+<ul>
+<li><code>fastverse_conflicts()</code></li>
+</ul>
+</div>
+<div id="function-to-update-fastverse-packages" class="section level4">
+<h4>Function to update <em>fastverse</em> packages</h4>
+<ul>
+<li><code>fastverse_update()</code></li>
+</ul>
+</div>
+<div id="utilities-to-retrieve-the-names-of-fastverse-packages-their-depenencies-and-produce-a-situation-report" class="section level4">
+<h4>Utilities to retrieve the names of <em>fastverse</em> packages, their depenencies, and produce a situation report</h4>
+<ul>
+<li><code>fastverse_packages()</code></li>
+<li><code>fastverse_deps()</code></li>
+<li><code>fastverse_sitrep()</code></li>
+</ul>
+</div>
+<div id="options" class="section level4">
+<h4>Options</h4>
+<ul>
+<li><code>options(fastverse.quiet = TRUE)</code> disables all automatic messages (incl. conflict reporting).</li>
+<li><code>options(fastverse.styling = FALSE)</code> disables all styling applied to text printed to the console.</li>
+<li><code>options(fastverse.extend = c(...))</code> contains names of packages used to extend the <em>fastverse</em>.</li>
+</ul>
+</div>
+</div>
+<div id="extending-the-fastverse" class="section level2">
+<h2>Extending the <em>fastverse</em></h2>
+<p>As mentioned already, a notable feature of the <em>fastverse</em> is that it is not a ‘rigid’ set of core packages, but can be extended or reduced, temporarily or permanently, globally or for specific projects, thus allowing you to create ‘verses’ of packages to your liking.</p>
+<div id="extending-for-the-session" class="section level3">
+<h3>Extending for the Session</h3>
+<p>Let’s say I have loaded the <em>fastverse</em> and I want to load additionally packages in my R session. I can do that with <code>fastverse_extend()</code>, which has the additional advantage that it checks for conflicts, and I can install any packages not available using <code>install = TRUE</code> before attaching them.</p>
+<pre class="r"><code>options(fastverse.styling = FALSE) # Disabling coloured output for this post
+library(fastverse)
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v data.table  1.14.0     v collapse    1.6.5 
+## v magrittr    2.0.1      v matrixStats 0.60.0
+## v kit         0.0.7      v fst         0.9.4
+
+# Extending the fastverse for the session, installing packages if unavailable
+fastverse_extend(fixest, robustbase, xts, roll, ggplot2, Rfast, install = TRUE)
+## -- Attaching extension packages ----------------------------- fastverse 0.1.8 --
+## v fixest     0.8.4      v roll       1.1.6 
+## v robustbase 0.93.6     v ggplot2    3.3.5 
+## v xts        0.12.1     v Rfast      2.0.1
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x Rfast::colMads()    masks matrixStats::colMads()
+## x Rfast::colMaxs()    masks matrixStats::colMaxs()
+## x Rfast::colMedians() masks robustbase::colMedians(), matrixStats::colMedians()
+## x Rfast::colMins()    masks matrixStats::colMins()
+## x Rfast::colRanks()   masks matrixStats::colRanks()
+## x Rfast::colVars()    masks matrixStats::colVars()
+## x xts::first()        masks data.table::first()
+## x xts::last()         masks data.table::last()
+## x robustbase::plot()  masks graphics::plot(), base::plot()
+## x Rfast::rowMads()    masks matrixStats::rowMads()
+## x Rfast::rowMaxs()    masks matrixStats::rowMaxs()
+## x Rfast::rowMedians() masks robustbase::rowMedians(), matrixStats::rowMedians()
+## x Rfast::rowMins()    masks matrixStats::rowMins()
+## x Rfast::rowRanks()   masks matrixStats::rowRanks()
+## x Rfast::rowVars()    masks matrixStats::rowVars()
+## x Rfast::transpose()  masks data.table::transpose()</code></pre>
+<p>These packages are now part of the <em>fastverse</em>. For example when generating a situation report they and (by default) their direct dependencies are included:</p>
+<pre class="r"><code># Generate situation report
+fastverse_sitrep()
+## -- fastverse 0.1.8: Situation Report -------------------------------- R 4.1.0 --
+##  * Global config file: FALSE
+##  * Project config file: FALSE
+## -- Core packages --------------------------------------------------------------- 
+##  * data.table    (1.14.0)
+##  * magrittr      (2.0.1)
+##  * kit           (0.0.7)
+##  * collapse      (1.6.5)
+##  * matrixStats   (0.60.0)
+##  * fst           (0.9.4)
+## -- Extension packages ---------------------------------------------------------- 
+##  * fixest        (0.8.4 &lt; 0.9.0)
+##  * robustbase    (0.93.6 &lt; 0.93.8)
+##  * xts           (0.12.1)
+##  * roll          (1.1.6)
+##  * ggplot2       (3.3.5)
+##  * Rfast         (2.0.1 &lt; 2.0.3)
+## -- Dependencies ---------------------------------------------------------------- 
+##  * DEoptimR      (1.0.8 &lt; 1.0.9)
+##  * digest        (0.6.27)
+##  * dreamerr      (1.2.3)
+##  * glue          (1.4.2)
+##  * gtable        (0.3.0)
+##  * isoband       (0.2.5)
+##  * MASS          (7.3.54)
+##  * mgcv          (1.8.36)
+##  * nlme          (3.1.152)
+##  * numDeriv      (2016.8.1.1)
+##  * Rcpp          (1.0.7)
+##  * RcppArmadillo (0.10.2.1.0 &lt; 0.10.6.0.0)
+##  * RcppParallel  (5.0.2 &lt; 5.1.4)
+##  * RcppZiggurat  (0.1.5 &lt; 0.1.6)
+##  * rlang         (0.4.11)
+##  * sandwich      (3.0.0 &lt; 3.0.1)
+##  * scales        (1.1.1)
+##  * tibble        (3.1.3)
+##  * withr         (2.4.2)
+##  * zoo           (1.8.9)</code></pre>
+<p>The packages are saved in <code>options("fastverse.extend")</code>. Detaching the <em>fastverse</em> does not (by default) remove packages from the option, but this can be changed with <code>fastverse_detach(..., session = TRUE)</code>:</p>
+<pre class="r"><code># Extensions are here
+options(&quot;fastverse.extend&quot;)
+## $fastverse.extend
+## [1] &quot;fixest&quot;     &quot;robustbase&quot; &quot;xts&quot;        &quot;roll&quot;       &quot;ggplot2&quot;   
+## [6] &quot;Rfast&quot;
+
+# This detaches Rfast and roll, also removing them from options(&quot;fastverse.extend&quot;)
+fastverse_detach(Rfast, roll, session = TRUE)
+# This confirms that they were removed
+fastverse_packages()
+##  [1] &quot;data.table&quot;  &quot;magrittr&quot;    &quot;kit&quot;         &quot;collapse&quot;    &quot;matrixStats&quot;
+##  [6] &quot;fst&quot;         &quot;fixest&quot;      &quot;robustbase&quot;  &quot;xts&quot;         &quot;ggplot2&quot;    
+## [11] &quot;fastverse&quot;
+# Now detaching all packages
+fastverse_detach()
+# Attaching again includes extensions except for &quot;Rfast&quot; and &quot;roll&quot;
+library(fastverse)
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v data.table  1.14.0     v fst         0.9.4 
+## v magrittr    2.0.1      v fixest      0.8.4 
+## v kit         0.0.7      v robustbase  0.93.6
+## v collapse    1.6.5      v xts         0.12.1
+## v matrixStats 0.60.0     v ggplot2     3.3.5
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x matrixStats::colMedians() masks robustbase::colMedians()
+## x xts::first()              masks data.table::first()
+## x collapse::is.regular()    masks zoo::is.regular()
+## x xts::last()               masks data.table::last()
+## x robustbase::plot()        masks graphics::plot(), base::plot()
+## x matrixStats::rowMedians() masks robustbase::rowMedians()
+
+# This detaches all packages and clears all options
+fastverse_detach(session = TRUE)</code></pre>
+<p>Note that it is also possible to extend the <em>fastverse</em> for the session by simply populating <code>options("fastverse.extend")</code> before calling <code>library(fastverse)</code>, but using <code>fastverse_extend()</code> is more secure, especially with option <code>install = TRUE</code>.</p>
+</div>
+</div>
+<div id="permanent-extensions" class="section level2">
+<h2>Permanent Extensions</h2>
+<p><code>fasvtverse_extend()</code> and <code>fastverse_detach()</code> both have an argument <code>permanent = TRUE</code>, which can be used to make these changes persist across R sessions. This is implemented using a global configuration file saved to the package directory<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+<p>For example, suppose most of my work involves time series analysis, and I would like to add <em>xts</em>, <em>zoo</em>, <em>roll</em>, and <em>dygraphs</em> to my <em>fastverse</em>. Let’s say I also don’t really use the <em>fst</em> file format, and I don’t really need <em>matrixStats</em> either as I can do most of the time series statistics I need with base R and <em>collapse</em>. Let’s finally say that I don’t want <code>xts::first</code> and <code>xts::last</code> to mask <code>data.table::first</code> and <code>data.table::last</code>.</p>
+<p>Then I could permanently modify my <em>fastverse</em> as follows<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>:</p>
+<pre class="r"><code>options(fastverse.styling = FALSE)
+library(fastverse)
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v data.table  1.14.0     v collapse    1.6.5 
+## v magrittr    2.0.1      v matrixStats 0.60.0
+## v kit         0.0.7      v fst         0.9.4
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x collapse::is.regular() masks zoo::is.regular()
+
+# Adding extensions
+fastverse_extend(xts, zoo, roll, dygraphs, permanent = TRUE)
+## -- Attaching extension packages ----------------------------- fastverse 0.1.8 --
+## v xts      0.12.1      v dygraphs 1.1.1.6
+## v roll     1.1.6
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x zoo::as.Date()         masks base::as.Date()
+## x zoo::as.Date.numeric() masks base::as.Date.numeric()
+## x xts::first()           masks data.table::first()
+## x collapse::is.regular() masks zoo::is.regular()
+## x xts::last()            masks data.table::last()
+
+# Removing some core packages
+fastverse_detach(data.table, fst, matrixStats, permanent = TRUE)
+# Adding data.table again, so it is attached last
+fastverse_extend(data.table, permanent = TRUE)
+## -- Attaching extension packages ----------------------------- fastverse 0.1.8 --
+## v data.table 1.14.0
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x data.table::first() masks xts::first()
+## x data.table::last()  masks xts::last()</code></pre>
+<p>Note that <code>options("fastverse.extend")</code> is still empty, because we have written those changes to a config file<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. Now lets see if our permanent modification worked:</p>
+<pre class="r"><code># detach all packages and clear all options
+fastverse_detach(session = TRUE)
+options(fastverse.styling = FALSE)
+library(fastverse) 
+## -- Attaching packages --------------------------------------- fastverse 0.1.8 --
+## v magrittr   2.0.1       v zoo        1.8.9  
+## v kit        0.0.7       v roll       1.1.6  
+## v collapse   1.6.5       v dygraphs   1.1.1.6
+## v xts        0.12.1      v data.table 1.14.0
+## -- Conflicts ------------------------------------------ fastverse_conflicts() --
+## x zoo::as.Date()         masks base::as.Date()
+## x zoo::as.Date.numeric() masks base::as.Date.numeric()
+## x data.table::first()    masks xts::first()
+## x zoo::is.regular()      masks collapse::is.regular()
+## x data.table::last()     masks xts::last()</code></pre>
+<p>After this permanent modification, the <em>fastverse</em> can still be extend for the session using <code>fastverse_extend()</code>. As long as the current installation of the <em>fastverse</em> is kept, these modifications will persist across R sessions, unless the config file is removed with <code>fastverse_reset()</code>. The <em>fastverse</em> also offers a more persistent mechanism to configure it inside projects:</p>
+</div>
+<div id="custom-fastverse-configurations-for-projects" class="section level2">
+<h2>Custom <em>fastverse</em> Configurations for Projects</h2>
+<p>The <em>fastverse</em> gives you the ability to put together a custom collection of packages for a project and load and manage them with <code>library(fastverse)</code>.</p>
+<p>To do this you need to include a configuration file named <code>.fastverse</code> (no file extension) inside a project directory, and place inside that file the names of packages to be loaded as core <em>fastvere</em><a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
+<p>Using a config file in a project will ignore any global configuration as discussed in the previous section. You can still extend the <em>fastverse</em> inside a project session using <code>fastverse_extend()</code> (or <code>options("fastvers.extend")</code> before <code>library(fastverse)</code>).</p>
+</div>
+<div id="suggested-extensions" class="section level2">
+<h2>Suggested Extensions</h2>
+<p>The <em>fastverse</em> can be freely extended with any R package, but I have put together a list of suggested high-performance and low-dependency packages in the <a href="https://sebkrantz.github.io/fastverse/#suggested-extensions">README</a> file. You are free to contribute to this list, so that it becomes a comprehensive showcase of R’s high-performance world as far as statistical computing and data manipulation is concerned.</p>
+</div>
+<div id="installation-versions-of-the-fastverse" class="section level2">
+<h2>Installation: Versions of the <em>fastverse</em></h2>
+<p>Currently, there are 2 different versions of the <em>fastverse</em> on CRAN and GitHub. The GitHub version is recommended if you want to have <em>matrixStats</em> consistently preserve attributes of your matrices: it modifies functions in the <em>matrixStats</em> namespace making them preserve attributes consistently (and by default) whenever the <em>fastverse</em> is attached<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>. The CRAN version takes <em>matrixStats</em> as it is, which means most functions do not (by default) preserve attributes such as dimension names in computations.</p>
+<pre class="r"><code># Install the CRAN version
+install.packages(&quot;fastverse&quot;)
+
+# Install the GitHub version (Requires Rtools)
+remotes::install_github(&quot;SebKrantz/fastverse&quot;)</code></pre>
+<p><em>matrixStats</em> is slowly evolving towards greater consistency, but it might take more than half a year until dimension names are handled consistently by default - due to the large number of reverse dependencies. Until then CRAN and GitHub versions of the <em>fastverse</em> are released together.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>The <em>fastverse</em> was developed principally for 2 reasons: to promote quality high-performance software development for R, and to provide a flexible approach to package loading and management in R, particularly for users wishing to combine various high-performance packages in statistical workflows.</p>
+<p>This post already introduced most of what there is to know about the <em>fastverse</em>. Additional details are found on the <a href="https://sebkrantz.github.io/fastverse/">website</a>.</p>
+<pre class="r"><code># Resetting the fastverse to defaults (clearing all permanent extensions and options)
+fastverse_reset()
+# Detaching 
+fastverse_detach()</code></pre>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Thus it will be removed when the <em>fastverse</em> is reinstalled.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>I note that namespace conflicts can also be detected and handled with the <a href="https://cran.r-project.org/package=conflicted">conflicted</a> package on CRAN.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>When fetching the names of <em>fastverse</em> packages, <code>fastverse_packages</code> first checks any config file and then checks <code>options("fastverse.extend")</code>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>You can place package names in that file any manner you deem suitable: separated using spaces or commas, on one or multiple lines. Note that the file will be read from left to right and from top to bottom. Packages are attached in the order found in the file. Note that <strong>all</strong> packages to be loaded as core <em>fastverse</em> for your project need to be included in that file, in the order they should be attached.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>The functions which are replaced are contained in a global variable <code>.matrixStats_replaced</code>, available in the GitHub version. Replacement happens whenever the <em>fastverse</em> is attached, regardless of whether <em>matrixStats</em> was attached before or is attached with the <em>fastverse</em>. Only if <em>matrixStats</em> is removed from the <em>fastverse</em> with <code>fastverse_detach(matrixStats, permanent = TRUE)</code> the functions will not be modified in the GitHub version.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
+      <title>Fast and Easy Aggregation of Multi-Type and Survey Data in R</title>
+      <link>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</link>
+      <pubDate>Sat, 09 Jan 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</guid>
+      <description><![CDATA[ 
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p><a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> is a C/C++ based package to facilitate and speed up advanced statistical computations in R. One of the key objectives for creating it was to introduce in R a fast, consistent, and easy to use toolset for aggregating complex datasets. This post showcases this functionality by aggregating 3 quite different survey datasets I happened to have used recently for a project:</p>
+<ul>
+<li><p>A births dataset from the 2016 Demographic and Health Survey for Uganda (used for child mortality estimates, available <a href="https://dhsprogram.com/data/dataset/Uganda_Standard-DHS_2016.cfm?flag=0"><em>here</em></a>).</p></li>
+<li><p>A dataset of poverty estimates from the Uganda National Household Survey 2016/17 (used to compute district level poverty indicators, not available for direct download, documented <a href="https://ubos.org/wp-content/uploads/publications/03_20182016_UNHS_FINAL_REPORT.pdf"><em>here</em></a>).</p></li>
+<li><p>The Uganda National Population and Housing Census 2014 (for district level population estimates and other data, available <a href="https://mepd.shinyapps.io/Macro-Data-Portal/"><em>here</em></a> under UBOS).</p></li>
+</ul>
+<p>First, the STATA files are imported using the <em>haven</em> library. Columns with only missing values are removed from the DHS dataset, encoded columns are converted to factor variables.</p>
+<pre class="r"><code>library(haven)
+library(magrittr)
+library(collapse)
+
+# Uganda Demographic and Health Survey 2016: Birth Recode
+DHSBR &lt;- paste0(DHS_path, &quot;/Data/UGBR7BDT - Births Recode/UGBR7BFL.dta&quot;) %&gt;%  
+         read_dta %&gt;% get_vars(fNobs(.) &gt; 0L) %&gt;% as_factor
+
+# Uganda National Household Survey 2016/17: Poverty Estimates
+UNHSPOV &lt;- paste0(UNHS_path, &quot;/Household/pov16_rev1.dta&quot;) %&gt;% 
+           read_dta %&gt;% as_factor
+
+# Uganda National Population and Housing Census 2014
+CENS &lt;- paste0(CENS_path, &quot;/UBOS 2014 Census.dta&quot;) %&gt;% read_dta </code></pre>
+<p>We start with aggregating the DHS dataset. This data has 786 variables, most of which are categorical:</p>
+<pre class="r"><code>fdim(DHSBR)
+## [1] 57906   786
+
+table(vclasses(DHSBR))
+## 
+## character    factor   numeric 
+##         2       696        88</code></pre>
+<p>We can obtain a detailed statistical summary of the data using <code>descr</code>. The output prints nicely to the console, but can also be converted to a data.frame.</p>
+<pre class="r"><code>descr(DHSBR, table = FALSE) %&gt;% as.data.frame %&gt;% head(10)
+##    Variable     Class                                         Label     N Ndist         Mean
+## 1    caseid character                           case identification 57906 13745           NA
+## 2      bidx   numeric                           birth column number 57906    18 3.486720e+00
+## 3      v000 character                        country code and phase 57906     1           NA
+## 4      v001   numeric                                cluster number 57906   696 3.557185e+02
+## 5      v002   numeric                              household number 57906   221 2.558897e+01
+## 6      v003   numeric                      respondent&#39;s line number 57906    20 1.960799e+00
+## 7      v004   numeric                            ultimate area unit 57906   696 3.557185e+02
+## 8      v005   numeric women&#39;s individual sample weight (6 decimals) 57906   686 9.848528e+05
+## 9      v006   numeric                            month of interview 57906     7 8.630176e+00
+## 10     v007   numeric                             year of interview 57906     1 2.016000e+03
+##              SD   Min     Max        Skew      Kurt     1%     5%    25%    50%     75%     95%
+## 1            NA    NA      NA          NA        NA     NA     NA     NA     NA      NA      NA
+## 2  2.367381e+00     1      18  1.05848241  3.806124      1      1      2      3       5       8
+## 3            NA    NA      NA          NA        NA     NA     NA     NA     NA      NA      NA
+## 4  1.915351e+02     1     697  0.01173270  1.881827     13     53    195    356     519     664
+## 5  2.926832e+01     1     545  3.89808066 31.759599      1      2     10     19      28      86
+## 6  1.201193e+00     1      21  5.53129314 49.135251      1      1      1      2       2       3
+## 7  1.915351e+02     1     697  0.01173270  1.881827     13     53    195    356     519     664
+## 8  5.543562e+05 45069 5145429  1.78199379  9.540138 102618 227215 702216 896184 1186668 1973187
+## 9  1.496144e+00     6      12 -0.01157971  2.034968      6      6      7      9      10      11
+## 10 0.000000e+00  2016    2016         NaN       NaN   2016   2016   2016   2016    2016    2016
+##        99%
+## 1       NA
+## 2       10
+## 3       NA
+## 4      691
+## 5      140
+## 6        8
+## 7      691
+## 8  3142092
+## 9       11
+## 10    2016</code></pre>
+<!-- The sample is based on a stratified two-stage cluster design. 696 Enumeration Areas (Clusters) were drawn from the sampling frame of the 2014 Census and a sample of households is drawn from an updated list of households within the cluster (on average a cluster had 130 households). -->
+<p>The DHS sample comprises 20,880 selected households and 18,506 women being interviewed. Of these women 13,745 had given birth and are recorded in this dataset. As the descriptive statistics above show, the first column gives the women-id (caseid), and the second column an integer id (bidx) for each of the born children.</p>
+<p>The aggregation task for this dataset shall simply be to aggregate over the children for each women. A first step to decide how this aggregation is to be done is to examine which variables vary by women i.e. contain child characteristics.</p>
+<pre class="r"><code># Tabulate child-variant variables
+table(varying(DHSBR, ~ caseid))
+## 
+## FALSE  TRUE 
+##   521   264
+
+# Examine the numeric child-variant variables
+DHSBR %&gt;% fgroup_by(caseid) %&gt;% num_vars %&gt;% 
+  get_vars(varying(.)) %&gt;% namlab
+##    Variable                                                                 Label
+## 1      bidx                                                   birth column number
+## 2      bord                                                    birth order number
+## 3        b1                                                        month of birth
+## 4        b2                                                         year of birth
+## 5        b3                                                   date of birth (cmc)
+## 6        b7                                        age at death (months, imputed)
+## 7        b8                                                  current age of child
+## 8       b11                                     preceding birth interval (months)
+## 9       b12                                    succeeding birth interval (months)
+## 10      b17                                                          day of birth
+## 11      b18                                       century day code of birth (cdc)
+## 12      b19 current age of child in months (months since birth for dead children)
+## 13      b20                                                 duration of pregnancy
+## 14     midx                                                index to birth history
+## 15     hidx                                                index to birth history
+## 16    hidxa                                                index to birth history
+## 17    hwidx                                                index to birth history
+## 18      hw1                                                 child&#39;s age in months
+## 19    idxml                                                index to birth history
+## 20    idx94                                                index to birth history</code></pre>
+<p>These are all variables that we would prefer to aggregate using the average, not the sum or extreme values. It is also noteworthy that the weights don’t vary by child, but only by women, so weighted aggregation is actually not necessary in this case.</p>
+<pre class="r"><code># Renaming weights variable
+setrename(DHSBR, v005 = weights)
+# Confirm that it does not vary by child
+varying(DHSBR, weights ~ caseid)
+## weights 
+##   FALSE</code></pre>
+<p>Thus aggregation in this case is very simple using the <code>collap()</code> function, which by default aggregates numeric columns using the mean, and categorical columns using the statistical mode (i.e. the most frequent value):</p>
+<pre class="r"><code># Aggregating, same as collap(DHSBR, ~ caseid, fmean, fmode), or collapv(DHSBR, 1)
+DHSBR_agg &lt;- collap(DHSBR, ~ caseid) %&gt;% fdroplevels
+
+head(DHSBR_agg)
+## # A tibble: 6 x 786
+##   caseid    bidx v000   v001  v002  v003  v004   v005  v006  v007  v008 v008a  v009  v010  v011  v012
+##   &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 &quot;    00~   1.5 UG7       1     3     2     1 1.10e6     8  2016  1400 42613     7  1991  1099    25
+## 2 &quot;    00~   1.5 UG7       1     4     1     1 1.10e6     8  2016  1400 42609    12  1975   912    40
+## 3 &quot;    00~   1   UG7       1     4     2     1 1.10e6     8  2016  1400 42609     7  1995  1147    21
+## 4 &quot;    00~   1.5 UG7       1     4     6     1 1.10e6     8  2016  1400 42611     1  1993  1117    23
+## 5 &quot;    00~   1.5 UG7       1     4     7     1 1.10e6     8  2016  1400 42609     2  1986  1034    30
+## 6 &quot;    00~   1   UG7       1     4     8     1 1.10e6     8  2016  1400 42609     5  1989  1073    27
+## # ... with 770 more variables: v013 &lt;fct&gt;, v014 &lt;fct&gt;, v015 &lt;fct&gt;, v016 &lt;dbl&gt;, v017 &lt;dbl&gt;,
+## #   v018 &lt;fct&gt;, v019 &lt;fct&gt;, v019a &lt;fct&gt;, v020 &lt;fct&gt;, v021 &lt;dbl&gt;, v022 &lt;fct&gt;, v023 &lt;fct&gt;, v024 &lt;fct&gt;,
+## #   v025 &lt;fct&gt;, v027 &lt;dbl&gt;, v028 &lt;dbl&gt;, v030 &lt;dbl&gt;, v034 &lt;fct&gt;, v040 &lt;dbl&gt;, v042 &lt;fct&gt;, v044 &lt;fct&gt;,
+## #   v045a &lt;fct&gt;, v045b &lt;fct&gt;, v045c &lt;fct&gt;, v046 &lt;fct&gt;, v101 &lt;fct&gt;, v102 &lt;fct&gt;, v104 &lt;fct&gt;,
+## #   v105 &lt;fct&gt;, v106 &lt;fct&gt;, v107 &lt;fct&gt;, v113 &lt;fct&gt;, v115 &lt;fct&gt;, v116 &lt;fct&gt;, v119 &lt;fct&gt;, v120 &lt;fct&gt;,
+## #   v121 &lt;fct&gt;, v122 &lt;fct&gt;, v123 &lt;fct&gt;, v124 &lt;fct&gt;, v125 &lt;fct&gt;, v127 &lt;fct&gt;, v128 &lt;fct&gt;, v129 &lt;fct&gt;,
+## #   v130 &lt;fct&gt;, v131 &lt;fct&gt;, v133 &lt;fct&gt;, v135 &lt;fct&gt;, v136 &lt;dbl&gt;, v137 &lt;dbl&gt;, v138 &lt;dbl&gt;, v139 &lt;fct&gt;,
+## #   v140 &lt;fct&gt;, v149 &lt;fct&gt;, v150 &lt;fct&gt;, v151 &lt;fct&gt;, v152 &lt;fct&gt;, v153 &lt;fct&gt;, awfactt &lt;dbl&gt;,
+## #   awfactu &lt;dbl&gt;, awfactr &lt;dbl&gt;, awfacte &lt;dbl&gt;, awfactw &lt;dbl&gt;, v155 &lt;fct&gt;, v157 &lt;fct&gt;, v158 &lt;fct&gt;,
+## #   v159 &lt;fct&gt;, v160 &lt;fct&gt;, v161 &lt;fct&gt;, v167 &lt;fct&gt;, v168 &lt;fct&gt;, v169a &lt;fct&gt;, v169b &lt;fct&gt;,
+## #   v170 &lt;fct&gt;, v171a &lt;fct&gt;, v171b &lt;fct&gt;, v190 &lt;fct&gt;, v191 &lt;dbl&gt;, v190a &lt;fct&gt;, v191a &lt;dbl&gt;,
+## #   ml101 &lt;fct&gt;, v201 &lt;dbl&gt;, v202 &lt;dbl&gt;, v203 &lt;dbl&gt;, v204 &lt;dbl&gt;, v205 &lt;dbl&gt;, v206 &lt;dbl&gt;, v207 &lt;dbl&gt;,
+## #   v208 &lt;fct&gt;, v209 &lt;fct&gt;, v210 &lt;dbl&gt;, v211 &lt;dbl&gt;, v212 &lt;dbl&gt;, v213 &lt;fct&gt;, v214 &lt;dbl&gt;, v215 &lt;fct&gt;,
+## #   v216 &lt;fct&gt;, v217 &lt;fct&gt;, v218 &lt;dbl&gt;, v219 &lt;dbl&gt;, ...
+
+# Aggregating preserves column order and data types / classes + attributes
+identical(namlab(DHSBR_agg, class = TRUE), 
+          namlab(DHSBR, class = TRUE))
+## [1] TRUE</code></pre>
+<p>Apart from the simplicity and speed of this solution, <code>collap()</code> by default preserves the original column order (argument <code>keep.col.order = TRUE</code>) and all attributes of columns and the data frame itself. So we can truly speak of an aggregated / collapsed version of this dataset. Calling <code>fdroplevels</code> on the result is a likewise highly optimized and non-destructive solution to dropping any redundant factor levels from any of the 696 aggregated factor variables.</p>
+<p>Let us now consider the poverty estimates dataset:</p>
+<pre class="r"><code>fdim(UNHSPOV)
+## [1] 15636    44
+
+table(vclasses(UNHSPOV))
+## 
+##  factor numeric 
+##      17      27
+
+descr(UNHSPOV, table = FALSE) %&gt;% as.data.frame %&gt;% head(10)
+##    Variable   Class                          Label     N Ndist         Mean           SD       Min
+## 1      hhid numeric  Unique identifier  in 2016/17 15636 15636 89610.296943 50753.531112 201.00000
+## 2  finalwgt numeric                           &lt;NA&gt; 15636  1731   540.811778   519.368731  10.65561
+## 3  district  factor                  District Code 15636   112           NA           NA        NA
+## 4        ea numeric               Enumeration area 15636    67     9.157265    10.810512   1.00000
+## 5     urban  factor         Urban/Rural Identifier 15636     2           NA           NA        NA
+## 6    subreg  factor         15      sub     region 15636    15           NA           NA        NA
+## 7    region  factor Region of Residence in 2016/17 15636     4           NA           NA        NA
+## 8    regurb  factor             RegionxRural/Urban 15636     8           NA           NA        NA
+## 9     equiv numeric                    (sum) equiv 15636  9448     3.438747     1.897926   0.71000
+## 10    hsize numeric                    (sum) hsize 15636    20     4.515285     2.548680   1.00000
+##             Max        Skew      Kurt         1%           5%          25%          50%          75%
+## 1  178010.00000 0.002337925  1.833309 2102.35000 9907.7500000 46178.250000 89401.500000 1.327083e+05
+## 2    5156.81494 3.097397657 18.780390   34.65487   76.0465393   207.895950   399.305145 6.978978e+02
+## 3            NA          NA        NA         NA           NA           NA           NA           NA
+## 4      90.00000 3.683418249 21.263899    1.00000    1.0000000     3.000000     6.000000 1.100000e+01
+## 5            NA          NA        NA         NA           NA           NA           NA           NA
+## 6            NA          NA        NA         NA           NA           NA           NA           NA
+## 7            NA          NA        NA         NA           NA           NA           NA           NA
+## 8            NA          NA        NA         NA           NA           NA           NA           NA
+## 9      17.28507 0.904448197  4.183096    0.77380    0.8743333     2.009667     3.146083 4.559833e+00
+## 10     23.00000 0.734721072  3.761180    1.00000    1.0000000     3.000000     4.000000 6.000000e+00
+##             95%          99%
+## 1  1.695023e+05 176403.65000
+## 2  1.444975e+03   2700.59717
+## 3            NA           NA
+## 4  2.800000e+01     60.00000
+## 5            NA           NA
+## 6            NA           NA
+## 7            NA           NA
+## 8            NA           NA
+## 9  6.972708e+00      8.84461
+## 10 9.000000e+00     12.00000</code></pre>
+<p>Using the <code>qsu()</code> function, we can also summarize the variation in two of the key variables between district averages and within districts, separated for rural and urban areas. This can give us an idea of the variation in poverty levels we are erasing by aggregating this data to the district level.</p>
+<pre class="r"><code>qsu(UNHSPOV, fexp30 + welfare ~ urban, ~ district, ~ finalwgt, 
+    vlabels = TRUE)[,&quot;SD&quot;,,] # Showing only the standard deviation (SD)
+## , , fexp30: Monthly food expenses
+## 
+##           Overall     Between      Within
+## Rural  168101.761  47831.6226  161254.386
+## Urban   243424.17  56966.9794  240210.089
+## 
+## , , welfare: Welfare based on usual members present
+## 
+##           Overall     Between      Within
+## Rural  99872.8917  35288.1075  95355.6836
+## Urban  202069.239   64221.637  195061.104</code></pre>
+<p>The variance breakdown shows that apart from rural welfare, most of the variation in food expenditure and welfare levels is between district averages rather than within districts. We can again examine the numeric variables:</p>
+<pre class="r"><code>UNHSPOV %&gt;% num_vars %&gt;% namlab
+##    Variable                                                                            Label
+## 1      hhid                                                    Unique identifier  in 2016/17
+## 2  finalwgt                                                                             &lt;NA&gt;
+## 3        ea                                                                 Enumeration area
+## 4     equiv                                                                      (sum) equiv
+## 5     hsize                                                                      (sum) hsize
+## 6    fexp30                                                            Monthly food expenses
+## 7    rexp30                     Monthly household expenditures after adjusting for inflation
+## 8   rrfxp30                                                                             &lt;NA&gt;
+## 9   rrexp30 Monthly household expenditures in real prices after adjusting for regional price
+## 10 nrrexp30 Monthly nominal household expenditures in market prices &amp; after regional price a
+## 11  cpexp30 Monthly household expenditures in constant prices after adjusting for regional p
+## 12 fcpexp30 Monthly household food expenditures in constant prices after adjusting for regio
+## 13     mult                                                                             &lt;NA&gt;
+## 14    rmult                                                                             &lt;NA&gt;
+## 15  welfare                                           Welfare based on usual members present
+## 16 fwelfare                                                                             &lt;NA&gt;
+## 17    hmult                                                                             &lt;NA&gt;
+## 18   plinen                                                    Poverty line in nominal terms
+## 19  ctpline                                                  Poverty line in constant prices
+## 20   hpline                                     Food poverty line in 2009/10 constant prices
+## 21   spline                                          Poverty line in 2009/10 constant prices
+## 22 fpoor_16                                      food Poor in 2016 based on welfare variable
+## 23   decile                                                                   Quantile group
+## 24      pid                                                           Individual indentifier
+## 25    hhage                                                           Age in completed years
+## 26  hhedyrs                                                 Number of school years completed
+## 27  hhelder                                                                             &lt;NA&gt;</code></pre>
+<p>These are also all variables that we would aggregate using a measure of central tendency. The categorical variables are mostly identifiers and also some categorical versions of welfare variables (welfare quintiles), which can all sensibly be aggregated using the statistical mode:</p>
+<pre class="r"><code>UNHSPOV %&gt;% cat_vars %&gt;% namlab
+##        Variable                                                           Label
+## 1      district                                                   District Code
+## 2         urban                                          Urban/Rural Identifier
+## 3        subreg                                          15      sub     region
+## 4        region                                  Region of Residence in 2016/17
+## 5        regurb                                              RegionxRural/Urban
+## 6       poor_16                                                  Poverty status
+## 7        quints                      Quintiles based on the national population
+## 8        qurban                       Quintiles based on rural/urban population
+## 9       qregion                          Quintiles based on regional population
+## 10        hhrel  Relationship of household member  to the head of the household
+## 11        mstat                            Marital  status of  household member
+## 12        hhsex                     RECODE of R02 (Sex of the household member)
+## 13      hhedlev                                                            &lt;NA&gt;
+## 14 hhstatus_emp                          Activity status(employed, subsistence)
+## 15     hhstatus Activity status(employed, subsistence, unemployed, not working)
+## 16       hhindu                                                   RECODE of B4b
+## 17     hhmrtsex                                             Marital by headship</code></pre>
+<p>Below we aggregate this dataset, applying the weighted median to numeric data and the weighted mode (default) to categorical data, this time using <code>collapg</code> which is a wrapper around <code>collap</code> operating on grouped data frames / tibbles.</p>
+<pre class="r"><code># Weighted aggregation by district, after removing household id and enumeration area
+UNHSPOV %&gt;% 
+  fselect(-hhid, -ea) %&gt;% 
+  fgroup_by(district) %&gt;% 
+  collapg(fmedian, w = finalwgt) %&gt;%
+  fdroplevels %&gt;% 
+  head
+## # A tibble: 6 x 42
+##   district finalwgt urban subreg region regurb equiv hsize fexp30 rexp30 rrfxp30 rrexp30 nrrexp30
+##   &lt;fct&gt;       &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;  &lt;fct&gt;  &lt;fct&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
+## 1 &quot;KALANG~   12994. Rural Centr~ Centr~ Centr~  1.87     2 2.46e5 1.83e5 240877. 180432.  324962.
+## 2 &quot;KAMPAL~  460128. Urban Kampa~ Centr~ Centr~  2.30     3 2.89e5 4.17e5 267612. 402942.  662020.
+## 3 &quot;KIBOGA&quot;   20524. Rural Centr~ Centr~ Centr~  3.16     4 1.81e5 2.45e5 171290. 233323.  418979.
+## 4 &quot;     L~  118868. Rural Centr~ Centr~ Centr~  2.77     4 2.11e5 2.26e5 199803. 220439.  386698.
+## 5 &quot;MASAKA&quot;   92389. Urban Centr~ Centr~ Centr~  2.64     3 2.42e5 2.74e5 224339. 269409.  473376.
+## 6 &quot;MPIGI&quot;    65521. Rural Centr~ Centr~ Centr~  2.81     4 2.29e5 2.49e5 222739. 240048.  428228.
+## # ... with 29 more variables: cpexp30 &lt;dbl&gt;, fcpexp30 &lt;dbl&gt;, mult &lt;dbl&gt;, rmult &lt;dbl&gt;, welfare &lt;dbl&gt;,
+## #   fwelfare &lt;dbl&gt;, hmult &lt;dbl&gt;, plinen &lt;dbl&gt;, ctpline &lt;dbl&gt;, hpline &lt;dbl&gt;, spline &lt;dbl&gt;,
+## #   poor_16 &lt;fct&gt;, fpoor_16 &lt;dbl&gt;, quints &lt;fct&gt;, decile &lt;dbl&gt;, qurban &lt;fct&gt;, qregion &lt;fct&gt;,
+## #   pid &lt;dbl&gt;, hhrel &lt;fct&gt;, hhage &lt;dbl&gt;, mstat &lt;fct&gt;, hhsex &lt;fct&gt;, hhedyrs &lt;dbl&gt;, hhedlev &lt;fct&gt;,
+## #   hhstatus_emp &lt;fct&gt;, hhstatus &lt;fct&gt;, hhindu &lt;fct&gt;, hhelder &lt;dbl&gt;, hhmrtsex &lt;fct&gt;</code></pre>
+<p>Note in the result above that the weighting variable is also aggregated. The default is <code>wFUN = fsum</code> so the weights in each group are summed.</p>
+<p>At last let’s consider the census dataset. On first sight it is a bit simpler than the other two, consisting of 5 character identifiers from the macro-region to the parish level, followed by 270 numeric variables.</p>
+<pre class="r"><code>fdim(CENS)
+## [1] 7653  275
+
+table(vclasses(CENS))
+## 
+## character   numeric 
+##         5       270</code></pre>
+<p>The specialty of this data is however that some variables are recorded in population totals, and some in percentage terms.</p>
+<pre class="r"><code>descr(CENS, table = FALSE) %&gt;% as.data.frame %&gt;% head(15)
+##         Variable     Class                                                     Label    N Ndist
+## 1         Region character                                                      &lt;NA&gt; 7653     4
+## 2       District character                                                      &lt;NA&gt; 7653   122
+## 3         County character                                                      &lt;NA&gt; 7653   199
+## 4      Subcounty character                                                      &lt;NA&gt; 7653  1382
+## 5         Parish character                                                      &lt;NA&gt; 7653  6438
+## 6          POP_M   numeric                                     Population Size: Male 7557  3548
+## 7          POP_F   numeric                                   Population Size: Female 7557  3664
+## 8         POP_SR   numeric                                Population Size: Sex Ratio 7557   609
+## 9            POP   numeric                                    Population Size: Total 7557  4923
+## 10       HHEAD_M   numeric        Headship of Households by Sex: Male Headed: Number 7557  1736
+## 11     HHEAD_M_P   numeric       Headship of Households by Sex: Male Headed: Percent 7557   359
+## 12       HHEAD_F   numeric      Headship of Households by Sex: Female Headed: Number 7557   846
+## 13     HHEAD_F_P   numeric     Headship of Households by Sex: Female Headed: Percent 7557   359
+## 14   HHEAD_10_17   numeric  Household Headship by specific age groups: 10-17: Number 7557    70
+## 15 HHEAD_10_17_P   numeric Household Headship by specific age groups: 10-17: Percent 7556    40
+##            Mean           SD  Min     Max       Skew       Kurt      1%      5%    25%    50%    75%
+## 1            NA           NA   NA      NA         NA         NA      NA      NA     NA     NA     NA
+## 2            NA           NA   NA      NA         NA         NA      NA      NA     NA     NA     NA
+## 3            NA           NA   NA      NA         NA         NA      NA      NA     NA     NA     NA
+## 4            NA           NA   NA      NA         NA         NA      NA      NA     NA     NA     NA
+## 5            NA           NA   NA      NA         NA         NA      NA      NA     NA     NA     NA
+## 6  2236.0525341 2060.3798193 39.0 45834.0  5.8878678  68.350438 335.000  549.00 1155.0 1782.0 2686.0
+## 7  2347.0690750 2285.1063696 26.0 52061.0  6.3804915  77.223950 324.000  550.60 1193.0 1852.0 2831.0
+## 8    97.1208813   10.7985572 35.0   365.2  5.2374120  86.423031  78.300   85.20   91.9   95.8  100.5
+## 9  4583.1216091 4338.2687374 65.0 97895.0  6.1578818  73.263475 668.680 1101.60 2350.0 3634.0 5520.0
+## 10  733.6140003  795.4130787  3.0 19855.0  7.5065928 101.724761 106.000  175.00  362.0  565.0  861.0
+## 11   77.0265979    6.0370928 21.3    95.5 -0.5516445   5.158277  61.956   67.28   73.1   77.3   81.2
+## 12  232.9163689  300.3926888  1.0  7018.0  7.3292989  91.895443  20.000   38.00  100.0  167.0  267.0
+## 13   22.9735477    6.0371554  4.5    78.7  0.5516337   5.158115  10.600   13.70   18.8   22.7   26.9
+## 14    4.7338891    7.3239515  0.0   148.0  5.0812704  49.771747   0.000    0.00    1.0    3.0    6.0
+## 15    0.4547512    0.4600549  0.0     9.2  4.0165231  49.845440   0.000    0.00    0.2    0.4    0.6
+##         95%       99%
+## 1        NA        NA
+## 2        NA        NA
+## 3        NA        NA
+## 4        NA        NA
+## 5        NA        NA
+## 6   5102.40 10264.160
+## 7   5331.80 11562.360
+## 8    112.40   133.732
+## 9  10449.40 22273.800
+## 10  1677.00  3929.520
+## 11    86.30    89.400
+## 12   568.00  1590.760
+## 13    32.72    38.044
+## 14    16.00    37.000
+## 15     1.20     1.900</code></pre>
+<p>The population counts are easily aggregated by simply computing a sum, but variables providing percentages of the population need to be aggregated using a weighted mean, where the total population serves as the weighting variable. This shows the percentage change variables:</p>
+<pre class="r"><code># gvr is a shorthand for get_vars(..., regex = TRUE)
+gvr(CENS, &quot;_P$&quot;) %&gt;% namlab %&gt;% head(10)
+##         Variable                                                                    Label
+## 1      HHEAD_M_P                      Headship of Households by Sex: Male Headed: Percent
+## 2      HHEAD_F_P                    Headship of Households by Sex: Female Headed: Percent
+## 3  HHEAD_10_17_P                Household Headship by specific age groups: 10-17: Percent
+## 4  HHEAD_18_30_P                Household Headship by specific age groups: 18-30: Percent
+## 5  HHEAD_M_A60_P                  Household Headship by specific age groups: 60+: Percent
+## 6    HPOP_0_17_P                        Household Population by Broad Ages: 0-17: Percent
+## 7   HPOP_18_30_P                       Household Population by Broad Ages: 18-30: Percent
+## 8   HPOP_31_59_P                       Household Population by Broad Ages: 31-59: Percent
+## 9     HPOP_A60_P                         Household Population by Broad Ages: 60+: Percent
+## 10      POP_L1_P Population Distribution by Special Age groups: Less than 1 year: Percent
+
+# Making sure all of these variables are indeed on a percentage scale
+range(fmax(gvr(CENS, &quot;_P$&quot;)))
+## [1]   8.9 100.0</code></pre>
+<p>To aggregate this data with <code>collap</code>, we need to supply the names or indices of both percentage and non-percentage variables together with the corresponding aggregator functions in a list passed to the <code>custom</code> argument. Weights are passed to the <code>w</code> argument. A specialty here is that we are using <code>fsum_uw</code> instead of <code>fsum</code>. The postfix <code>_uw</code> prevents the weights from being passed to <code>fsum</code>, which would otherwise calculate a survey total (i.e. a weighted sum) instead of a simple summation.</p>
+<pre class="r"><code>perc_vars &lt;- gvr(CENS, &quot;_P$&quot;, return = &quot;indices&quot;)
+pop_vars &lt;- setdiff(num_vars(CENS, &quot;indices&quot;), perc_vars)
+
+collap(CENS, ~ Region + District, w = ~ POP,
+       custom = list(fmean = perc_vars, fsum_uw = pop_vars), 
+       keep.w = FALSE) %&gt;% head
+## # A tibble: 6 x 272
+##   Region District  POP_M  POP_F POP_SR    POP HHEAD_M HHEAD_M_P HHEAD_F HHEAD_F_P HHEAD_10_17
+##   &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
+## 1 Centr~ Buikwe   207324 215447  6807. 422771   71148      72.8   26685      27.2         691
+## 2 Centr~ Bukoman~  75109  76304  2442. 151413   23426      68.3   10902      31.7         177
+## 3 Centr~ Butamba~  50082  50758  2495. 100840   15128      69.8    6550      30.2         139
+## 4 Centr~ Buvuma    48414  41476  4703.  89890   20289      81.3    4830      18.7         211
+## 5 Centr~ Gomba     82167  77755  3923. 159922   25794      73.3    9446      26.7         207
+## 6 Centr~ Kalanga~  31349  22944  2353   54293   15493      77.1    4548      22.9         123
+## # ... with 261 more variables: HHEAD_10_17_P &lt;dbl&gt;, HHEAD_18_30 &lt;dbl&gt;, HHEAD_18_30_P &lt;dbl&gt;,
+## #   HHEAD_M_A60 &lt;dbl&gt;, HHEAD_M_A60_P &lt;dbl&gt;, HHEAD &lt;dbl&gt;, HPOP_0_17 &lt;dbl&gt;, HPOP_0_17_P &lt;dbl&gt;,
+## #   HPOP_18_30 &lt;dbl&gt;, HPOP_18_30_P &lt;dbl&gt;, HPOP_31_59 &lt;dbl&gt;, HPOP_31_59_P &lt;dbl&gt;, HPOP_A60 &lt;dbl&gt;,
+## #   HPOP_A60_P &lt;dbl&gt;, HPOP &lt;dbl&gt;, POP_L1 &lt;dbl&gt;, POP_L1_P &lt;dbl&gt;, POP_0_4 &lt;dbl&gt;, POP_0_4_P &lt;dbl&gt;,
+## #   POP_0_8 &lt;dbl&gt;, POP_0_8_P &lt;dbl&gt;, POP_2_8 &lt;dbl&gt;, POP_2_8_P &lt;dbl&gt;, POP_2_17 &lt;dbl&gt;,
+## #   POP_2_17_P &lt;dbl&gt;, POP_6_12 &lt;dbl&gt;, POP_6_12_P &lt;dbl&gt;, POP_6_15 &lt;dbl&gt;, POP_6_15_P &lt;dbl&gt;,
+## #   POP_10_15 &lt;dbl&gt;, POP_10_15_P &lt;dbl&gt;, POP_10_17 &lt;dbl&gt;, POP_10_17_P &lt;dbl&gt;, POP_15_24 &lt;dbl&gt;,
+## #   POP_15_24_P &lt;dbl&gt;, POP_16_24 &lt;dbl&gt;, POP_16_24_P &lt;dbl&gt;, POP_15_29 &lt;dbl&gt;, POP_15_29_P &lt;dbl&gt;,
+## #   POP_A2 &lt;dbl&gt;, POP_A2_P &lt;dbl&gt;, POP_A10 &lt;dbl&gt;, POP_A10_P &lt;dbl&gt;, POP_A15 &lt;dbl&gt;, POP_A15_P &lt;dbl&gt;,
+## #   POP_A18 &lt;dbl&gt;, POP_A18_P &lt;dbl&gt;, POP_A20 &lt;dbl&gt;, POP_A20_P &lt;dbl&gt;, POP_A65 &lt;dbl&gt;, POP_A65_P &lt;dbl&gt;,
+## #   EDU_6_12_NAS_M &lt;dbl&gt;, EDU_6_12_NAS_M_P &lt;dbl&gt;, EDU_6_12_NAS_F &lt;dbl&gt;, EDU_6_12_NAS_F_P &lt;dbl&gt;,
+## #   EDU_6_12_NAS &lt;dbl&gt;, EDU_6_12_NAS_P &lt;dbl&gt;, EDU_6_12_PRI_M &lt;dbl&gt;, EDU_6_12_PRI_M_P &lt;dbl&gt;,
+## #   EDU_6_12_PRI_F &lt;dbl&gt;, EDU_6_12_PRI_F_P &lt;dbl&gt;, EDU_6_12_PRI &lt;dbl&gt;, EDU_6_12_PRI_P &lt;dbl&gt;,
+## #   EDU_13_18_SEC_M &lt;dbl&gt;, EDU_13_18_SEC_M_P &lt;dbl&gt;, EDU_13_18_SEC_F &lt;dbl&gt;, EDU_13_18_SEC_F_P &lt;dbl&gt;,
+## #   EDU_13_18_SEC &lt;dbl&gt;, EDU_13_18_SEC_P &lt;dbl&gt;, EDU_A15_BS4_M &lt;dbl&gt;, EDU_A15_BS4_M_P &lt;dbl&gt;,
+## #   EDU_A15_BS4_F &lt;dbl&gt;, EDU_A15_BS4_F_P &lt;dbl&gt;, EDU_A15_BS4 &lt;dbl&gt;, EDU_A15_BS4_P &lt;dbl&gt;,
+## #   EDU_A18_HO_M &lt;dbl&gt;, EDU_A18_HO_M_P &lt;dbl&gt;, EDU_A18_HO_F &lt;dbl&gt;, EDU_A18_HO_F_P &lt;dbl&gt;,
+## #   EDU_A18_HO &lt;dbl&gt;, EDU_A18_HO_P &lt;dbl&gt;, EDU_A20_HA_M &lt;dbl&gt;, EDU_A20_HA_M_P &lt;dbl&gt;,
+## #   EDU_A20_HA_F &lt;dbl&gt;, EDU_A20_HA_F_P &lt;dbl&gt;, EDU_A20_HA &lt;dbl&gt;, EDU_A20_HA_P &lt;dbl&gt;, IL_A18_M &lt;dbl&gt;,
+## #   IL_A18_M_P &lt;dbl&gt;, IL_A18_F &lt;dbl&gt;, IL_A18_F_P &lt;dbl&gt;, IL_A18 &lt;dbl&gt;, IL_A18_P &lt;dbl&gt;,
+## #   IL_10_17 &lt;dbl&gt;, IL_10_17_P &lt;dbl&gt;, IL_18_30 &lt;dbl&gt;, IL_18_30_P &lt;dbl&gt;, IL_A60 &lt;dbl&gt;,
+## #   IL_A60_P &lt;dbl&gt;, BR_L1 &lt;dbl&gt;, ...</code></pre>
+<p>Also with the custom argument, the columns are by default (<code>keep.col.order = TRUE</code>) rearranged into the order in which they occur. Here we additionally use <code>keep.w = FALSE</code>, because the variable <code>POP</code> is both used as the weighting variable but also contained in <code>pop_vars</code>, and we don’t want to have it twice in the output.</p>
+<p>Since we are only aggregating numeric data, we may compare the computation speed with a matching <em>data.table</em> expression<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>:</p>
+<pre class="r"><code>library(microbenchmark)
+library(data.table)
+setDT(CENS)
+
+microbenchmark(
+  data.table = cbind(CENS[, lapply(.SD, weighted.mean, POP), by = .(Region, District), .SDcols = perc_vars], 
+                     CENS[, lapply(.SD, sum), by = .(Region, District), .SDcols = pop_vars][, -(1:2)]), 
+  collapse = collap(CENS, ~ Region + District, w = ~ POP,
+                     custom = list(fmean = perc_vars, fsum_uw = pop_vars), 
+                     keep.w = FALSE)
+)
+## Unit: milliseconds
+##        expr        min         lq       mean     median        uq       max neval cld
+##  data.table 153.317076 169.257733 181.740319 175.767603 191.12234 346.31187   100   b
+##    collapse   8.997704   9.260768   9.990888   9.837097  10.24251  14.12287   100  a</code></pre>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Which does however not maintain the original column order.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
+      <title>Forecasting Tax Revenue with Error Correction Models</title>
+      <link>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</link>
+      <pubDate>Wed, 02 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</guid>
+      <description><![CDATA[ 
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p>There are several ways to forecast tax revenue. The IMF <a href="https://courses.edx.org/asset-v1:IMFx+FPP.1x+1T2017+type@asset+block@FPP1x_Manual.pdf"><em>Financial Programming Manual</em></a> reviews 3 of them: (i) the effective tax rate approach; (ii) the elasticity approach; and (iii) the regression approach. Approach (iii) typically results in the most accurate short-term forecasts. The simple regression approach regresses tax revenue on its own lags and GDP with some lags.</p>
+<p>In the absence of large abrupt shifts in the tax base, domestic revenue can be assumed to have a linear relationship with GDP. Since however both revenue and GDP are typically non-stationary series, this relationship often takes the form of cointegration. The correct way to deal with cointegrated variables is to specify and Error Correction Model (ECM). This blog post will briefly demonstrate the specification of an ECM to forecast the tax revenue of a developing economy<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. First we examine the data, which is in local currency and was transformed using the natural logarithm.</p>
+<pre class="r"><code>library(haven)      # Import from STATA
+library(collapse)   # Data transformation and time series operators
+library(magrittr)   # Pipe operators %&gt;% 
+library(tseries)    # Time series tests
+library(lmtest)     # Linear model tests
+library(sandwich)   # Robust standard errors
+library(jtools)     # Enhanced regression summary
+library(xts)        # Extensible time-series + pretty plots
+
+# Loading the data from STATA
+data &lt;- read_dta(&quot;data.dta&quot;) %&gt;% as_factor
+
+# Generating a date variable
+settfm(data, Date = as.Date(paste(Year, unattrib(Quarter) * 3L, &quot;1&quot;, sep = &quot;/&quot;)))
+
+# Creating time series matrix X
+X &lt;- data %$% xts(cbind(lrev, lgdp), order.by = Date, frequency = 4L)
+
+# (Optional) seasonal adjustment using X-13 ARIMA SEATS
+  # library(seasonal)
+  # X &lt;- dapply(X, function(x) predict(seas(ts(x, start = c(1997L, 3L), frequency = 4L))))
+  # # X &lt;- X[&quot;2015/&quot;, ] # Optionally restricting the sample to after 2014
+
+# Plotting the raw data
+plot(na_omit(X)[-1L, ] %&gt;% setColnames(.c(Revenue, GDP)), 
+     multi.panel = TRUE, yaxis.same = FALSE, 
+     main = &quot;Domestic Revenue and GDP (in Logs)&quot;, 
+     major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-1.png" width="100%" /></p>
+<pre class="r"><code># Plotting the log-differenced data
+plot(na_omit(D(X)), legend.loc = &quot;topleft&quot;, 
+     main = &quot;Revenue and GDP in Quarterly Log-Differences&quot;,
+     major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-2.png" width="100%" />
+The data was not seasonally adjusted as revenue and GDP exhibit similar seasonal patterns. Summarizing the log-differenced using a function designed for panel data allows us to assess the extent of seasonality relative to overall variation.</p>
+<pre class="r"><code># Summarize between and within quarters
+tfmv(data, 3:4, D) %&gt;% qsu(pid = lrev + lgdp ~ Quarter)
+## , , lrev
+## 
+##            N/T    Mean      SD      Min     Max
+## Overall     91  0.0316  0.1545  -0.5456  0.6351
+## Between      4  0.0302  0.1275  -0.0997  0.1428
+## Within   22.75  0.0316  0.1077  -0.4144  0.5239
+## 
+## , , lgdp
+## 
+##            N/T    Mean      SD      Min     Max
+## Overall     45  0.0271   0.183  -0.3702  0.5888
+## Between      4  0.0291  0.0767  -0.0593  0.1208
+## Within   11.25  0.0271    0.17  -0.3771  0.4951</code></pre>
+<p>For log revenue, the standard deviation between quarters is actually slightly higher than the within-quarter standard deviation, indicating a strong seasonal component. The summary also shows that we have 23 years of quarterly revenue data but only 11 years of quarterly GDP data.</p>
+<p>An ECM is only well specified if both series are integrated of the same order and cointegrated. This requires a battery of tests to examine the properties of the data before specifying a model<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. For simplicity I will follow the 2-Step approach of Engele &amp; Granger here, although I note that the more sophisticated Johannsen procedure is available in the <em>urca</em> package.</p>
+<pre class="r"><code># Testing log-transformed series for stationarity: Revenue is clearly non-stationary
+adf.test(X[, &quot;lrev&quot;])
+## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  X[, &quot;lrev&quot;]
+## Dickey-Fuller = -0.90116, Lag order = 4, p-value = 0.949
+## alternative hypothesis: stationary
+
+kpss.test(X[, &quot;lrev&quot;], null = &quot;Trend&quot;)
+## 
+##  KPSS Test for Trend Stationarity
+## 
+## data:  X[, &quot;lrev&quot;]
+## KPSS Trend = 0.24371, Truncation lag parameter = 3, p-value = 0.01
+
+# ADF test fails to reject the null of non-stationarity at 5% level
+adf.test(na_omit(X[, &quot;lgdp&quot;]))
+## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  na_omit(X[, &quot;lgdp&quot;])
+## Dickey-Fuller = -3.4532, Lag order = 3, p-value = 0.06018
+## alternative hypothesis: stationary
+
+kpss.test(na_omit(X[, &quot;lgdp&quot;]), null = &quot;Trend&quot;)
+## 
+##  KPSS Test for Trend Stationarity
+## 
+## data:  na_omit(X[, &quot;lgdp&quot;])
+## KPSS Trend = 0.065567, Truncation lag parameter = 3, p-value = 0.1
+
+# Cointegrated: We reject the null of no cointegration
+po.test(X[, .c(lrev, lgdp)])
+## 
+##  Phillips-Ouliaris Cointegration Test
+## 
+## data:  X[, .c(lrev, lgdp)]
+## Phillips-Ouliaris demeaned = -33.219, Truncation lag parameter = 0, p-value = 0.01</code></pre>
+<p>The differenced revenue and GDP series are stationary (tests not shown), so both series are I(1), and GDP is possibly trend-stationary. The Phillips-Ouliaris test rejected the null that both series are not cointegrated.</p>
+<p>Below the cointegration relationship is estimated. A dummy is included for extreme GDP fluctuations between Q3 2013 and Q3 2014, which may also be related to a GDP rebasing. Since the nature of these events is an increase in volatility rather than the level of GDP, the dummy is not a very effective way of dealing with this irregularity in the data, but for simplicity we will go with it.</p>
+<pre class="r"><code># Adding extreme GDP events dummy
+X &lt;- cbind(X, GDPdum = 0)
+X[&quot;2013-09/2014-09&quot;, &quot;GDPdum&quot;] &lt;- 1
+
+# This estimates the cointegration equation
+cieq &lt;- lm(lrev ~ lgdp + GDPdum, X)
+
+# Summarizing the model with heteroskedasticity and autocorrelation consistent (HAC) errors
+summ(cieq, digits = 4L, vcov = vcovHAC(cieq))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+46 (46 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+lrev
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(2,43)
+</td>
+<td style="text-align:right;">
+64.4122
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.7497
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.7381
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+-4.7667
+</td>
+<td style="text-align:right;">
+1.2958
+</td>
+<td style="text-align:right;">
+-3.6787
+</td>
+<td style="text-align:right;">
+0.0006
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+lgdp
+</td>
+<td style="text-align:right;">
+1.1408
+</td>
+<td style="text-align:right;">
+0.1293
+</td>
+<td style="text-align:right;">
+8.8208
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+GDPdum
+</td>
+<td style="text-align:right;">
+0.0033
+</td>
+<td style="text-align:right;">
+0.2080
+</td>
+<td style="text-align:right;">
+0.0160
+</td>
+<td style="text-align:right;">
+0.9873
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: User-specified
+</td>
+</tr>
+</tfoot>
+</table>
+<pre class="r"><code># Residuals of cointegration equation
+res &lt;- resid(cieq) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
+plot(res[-1L, ], main = &quot;Residuals from Cointegration Equation&quot;, 
+     major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
+<pre class="r"><code># Testing residuals: Stationary
+adf.test(res)
+## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  res
+## Dickey-Fuller = -4.3828, Lag order = 3, p-value = 0.01
+## alternative hypothesis: stationary
+
+kpss.test(res, null = &quot;Trend&quot;)
+## 
+##  KPSS Test for Trend Stationarity
+## 
+## data:  res
+## KPSS Trend = 0.045691, Truncation lag parameter = 3, p-value = 0.1</code></pre>
+<p>Apart from a cointegration relationship which governs the medium-term relationship of revenue and GDP, revenue may also be affected by past revenue collection and short-term fluctuations in GDP. A sensible and simple specification to forecast revenue in the short to medium term (assuming away shifts in the tax base) is thus provided by the general form of a bivariate ECM:</p>
+<p><span class="math display">\[\begin{equation}
+A(L)\Delta r_t = \gamma + B(L)\Delta y_t + \alpha (r_{t-t} - \beta_0 - \beta_i y_{t-1}) + v_t,
+\end{equation}\]</span>
+where
+<span class="math display">\[\begin{align*}
+A(L) &amp;= 1- \sum_{i=1}^p L^i = 1 - L - L^2 -  \dots - L^p, \\
+B(L) &amp;= \sum_{i=0}^q L^i= 1 + L + L^2 + \dots + L^q
+\end{align*}\]</span>
+are polynomials in the lag operator <span class="math inline">\(L\)</span> of order <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span>, respectively. Some empirical investigation of the fit of the model for different lag-orders <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> established that <span class="math inline">\(p = 2\)</span> and <span class="math inline">\(q = 1\)</span> gives a good fit, so that the model estimated is</p>
+<p><span class="math display">\[\begin{equation} 
+\Delta r_t = \gamma  + \Delta r_{t-1} + \Delta r_{t-2}  + \Delta y_t + \Delta y_{t-1} + \alpha (r_{t-t} - \beta_0 - \beta_i y_{t-1}) + v_t.
+\end{equation}\]</span></p>
+<pre class="r"><code># Estimating Error Correction Model (ECM)
+ecm &lt;- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp), 0:1) + L(res) + GDPdum, merge(X, res))
+
+summ(ecm, digits = 4L, vcov = vcovHAC(ecm))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+44 (48 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+D(lrev)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(6,37)
+</td>
+<td style="text-align:right;">
+12.9328
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.6771
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.6248
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.0817
+</td>
+<td style="text-align:right;">
+0.0197
+</td>
+<td style="text-align:right;">
+4.1440
+</td>
+<td style="text-align:right;">
+0.0002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)L1
+</td>
+<td style="text-align:right;">
+-0.9195
+</td>
+<td style="text-align:right;">
+0.1198
+</td>
+<td style="text-align:right;">
+-7.6747
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)L2
+</td>
+<td style="text-align:right;">
+-0.3978
+</td>
+<td style="text-align:right;">
+0.1356
+</td>
+<td style="text-align:right;">
+-2.9342
+</td>
+<td style="text-align:right;">
+0.0057
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lgdp), 0:1)–
+</td>
+<td style="text-align:right;">
+0.1716
+</td>
+<td style="text-align:right;">
+0.0942
+</td>
+<td style="text-align:right;">
+1.8211
+</td>
+<td style="text-align:right;">
+0.0767
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lgdp), 0:1)L1
+</td>
+<td style="text-align:right;">
+-0.2654
+</td>
+<td style="text-align:right;">
+0.1128
+</td>
+<td style="text-align:right;">
+-2.3532
+</td>
+<td style="text-align:right;">
+0.0240
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(res)
+</td>
+<td style="text-align:right;">
+-0.2412
+</td>
+<td style="text-align:right;">
+0.1096
+</td>
+<td style="text-align:right;">
+-2.2008
+</td>
+<td style="text-align:right;">
+0.0341
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+GDPdum
+</td>
+<td style="text-align:right;">
+0.0212
+</td>
+<td style="text-align:right;">
+0.0207
+</td>
+<td style="text-align:right;">
+1.0213
+</td>
+<td style="text-align:right;">
+0.3138
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: User-specified
+</td>
+</tr>
+</tfoot>
+</table>
+<pre class="r"><code># Regression diagnostic plots
+# plot(ecm)
+
+# No heteroskedasticity (null of homoskedasticity not rejected)
+bptest(ecm)
+## 
+##  studentized Breusch-Pagan test
+## 
+## data:  ecm
+## BP = 9.0161, df = 6, p-value = 0.1727
+
+# Some autocorrelation remainig in the residuals, but negative 
+cor.test(resid(ecm), L(resid(ecm)))
+## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  resid(ecm) and L(resid(ecm))
+## t = -1.8774, df = 41, p-value = 0.06759
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.5363751  0.0207394
+## sample estimates:
+##       cor 
+## -0.281357
+
+dwtest(ecm)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm
+## DW = 2.552, p-value = 0.9573
+## alternative hypothesis: true autocorrelation is greater than 0
+
+dwtest(ecm, alternative = &quot;two.sided&quot;)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm
+## DW = 2.552, p-value = 0.08548
+## alternative hypothesis: true autocorrelation is not 0</code></pre>
+<p>The regression table shows that the log-difference in revenue strongly responds to its own lags, the lagged log-difference of GDP and the deviation from the previous period equilibrium, with an adjustment speed of <span class="math inline">\(\alpha = -0.24\)</span>.</p>
+<p>The statistical properties of the equation are also acceptable. Errors are homoskedastic and serially uncorrelated at the 5% level. The model is nevertheless reported with heteroskedasticity and autocorrelation consistent (HAC) standard errors.</p>
+<p>Curiously, changes in revenue in the current quarter do not seem to be very strongly related to changes in GDP in the current quarter, which could also be accounted for by data being published with a lag. For forecasting this is advantageous since if a specification without the difference of GDP can be estimated that fits the data well, then it may not be necessary to first forecast quarterly GDP and include it in the model in order to get a decent forecasts of the revenue number for the next quarter. Below a specification without the difference in GDP is estimated.</p>
+<pre class="r"><code># Same using only lagged differences in GDP
+ecm2 &lt;- lm(D(lrev) ~ L(D(lrev), 1:2) + L(D(lgdp)) + L(res) + GDPdum, merge(X, res))
+
+summ(ecm2, digits = 4L, vcov = vcovHAC(ecm2))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+45 (47 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+D(lrev)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(5,39)
+</td>
+<td style="text-align:right;">
+15.1630
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.6603
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.6168
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.0839
+</td>
+<td style="text-align:right;">
+0.0206
+</td>
+<td style="text-align:right;">
+4.0653
+</td>
+<td style="text-align:right;">
+0.0002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)L1
+</td>
+<td style="text-align:right;">
+-0.9111
+</td>
+<td style="text-align:right;">
+0.1162
+</td>
+<td style="text-align:right;">
+-7.8424
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lrev), 1:2)L2
+</td>
+<td style="text-align:right;">
+-0.3910
+</td>
+<td style="text-align:right;">
+0.1305
+</td>
+<td style="text-align:right;">
+-2.9950
+</td>
+<td style="text-align:right;">
+0.0047
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(D(lgdp))
+</td>
+<td style="text-align:right;">
+-0.2345
+</td>
+<td style="text-align:right;">
+0.0995
+</td>
+<td style="text-align:right;">
+-2.3574
+</td>
+<td style="text-align:right;">
+0.0235
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+L(res)
+</td>
+<td style="text-align:right;">
+-0.1740
+</td>
+<td style="text-align:right;">
+0.0939
+</td>
+<td style="text-align:right;">
+-1.8524
+</td>
+<td style="text-align:right;">
+0.0716
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+GDPdum
+</td>
+<td style="text-align:right;">
+0.0244
+</td>
+<td style="text-align:right;">
+0.0328
+</td>
+<td style="text-align:right;">
+0.7428
+</td>
+<td style="text-align:right;">
+0.4621
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: User-specified
+</td>
+</tr>
+</tfoot>
+</table>
+<pre class="r"><code># plot(ecm2)
+
+bptest(ecm2)
+## 
+##  studentized Breusch-Pagan test
+## 
+## data:  ecm2
+## BP = 7.0511, df = 5, p-value = 0.2169
+
+cor.test(resid(ecm2), L(resid(ecm2)))
+## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  resid(ecm2) and L(resid(ecm2))
+## t = -1.701, df = 42, p-value = 0.09634
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.51214976  0.04651674
+## sample estimates:
+##        cor 
+## -0.2538695
+
+dwtest(ecm2)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm2
+## DW = 2.4973, p-value = 0.942
+## alternative hypothesis: true autocorrelation is greater than 0
+
+dwtest(ecm2, alternative = &quot;two.sided&quot;)
+## 
+##  Durbin-Watson test
+## 
+## data:  ecm2
+## DW = 2.4973, p-value = 0.1161
+## alternative hypothesis: true autocorrelation is not 0</code></pre>
+<p>We can also compare the fitted values of the two models:</p>
+<pre class="r"><code># Get ECM fitted values
+ECM1_fit &lt;- fitted(ecm) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
+ECM2_fit &lt;- fitted(ecm2) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
+
+# Plot together with revenue
+plot(D(X[, &quot;lrev&quot;]) %&gt;% merge(ECM1_fit, ECM2_fit) %&gt;% na_omit, 
+     main = &quot;Dlog Revenue and ECM Fit&quot;, 
+     legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p>Both the fit statistics and fitted values suggest that ECM2 is a feasible forecasting specification that avoids the need to first forecast quarterly GDP.</p>
+<p>The true forecasting performance of the model can only be estimated through out of sample forecasts. Below I compute 1 quarter ahead forecasts for quarters 2018Q1 through 2019Q4 using an expanding window where both the cointegration equation and the ECM are re-estimated for each new period.</p>
+<pre class="r"><code># Function to forecast with expanding window from start year (using ECM2 specification)
+forecast_oos &lt;- function(x, start = 2018) {
+  n &lt;- nrow(x[paste0(&quot;/&quot;, start - 1), ])
+  fc &lt;- numeric(0L)
+  xdf &lt;- qDF(x)
+  # Forecasting with expanding window
+  for(i in n:(nrow(x)-1L)) {
+    samp &lt;- ss(xdf, 1:i)
+    ci &lt;- lm(lrev ~ lgdp + GDPdum, samp)
+    samp &lt;- tfm(samp, res = resid(ci))
+    mod &lt;- lm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+    fc &lt;- c(fc, flast(predict(mod, newdata = rbind(samp, 0)))) # predict does not re-estimate
+  }
+  xfc &lt;- cbind(D(x[, &quot;lrev&quot;]), ECM2_fc = NA)
+  xfc[(n+1L):nrow(x), &quot;ECM2_fc&quot;] &lt;- unattrib(fc)
+  return(xfc)
+}
+
+# Forecasting
+ECM_oos_fc &lt;- forecast_oos(na_omit(X))
+
+# Plotting
+plot(ECM_oos_fc[&quot;2009/&quot;, ], 
+     main = &quot;Out of Sample Expanding Window Forecast from ECM&quot;, 
+     legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<!-- Old forecasting: Problematic !!
+# library(dynlm)
+# forecast_oos <- function(x, start = 2018) {
+#   n <- nrow(x[paste0("/", start - 1), ]) 
+#   xzoo <- as.zoo(x)
+#   fc <- numeric(0L)
+#   # Forecasting with expanding window
+#   for(i in n:(nrow(x)-1L)) {
+#     samp <- xzoo[1:i, ]
+#     ci <- dynlm(lrev ~ lgdp + GDPdum, samp)
+#     samp <- cbind(samp, res = resid(ci))
+#     mod <- dynlm(D(lrev) ~ L(D(lrev)) + L(D(lrev), 2L) + L(D(lgdp)) + L(res) + GDPdum, samp)
+#     fc <- c(fc, flast(predict(mod, newdata = samp))) # predict does not re-estimate
+#   }
+#   xfc <- cbind(D(x[, "lrev"]), ECM2_fc = NA)
+#   xfc[(n+1L):nrow(x), "ECM2_fc"] <- unattrib(fc)
+#   return(xfc)
+# }
+-->
+<p>The graph suggests that the forecasting performance is quite acceptable. When seasonally adjusting GDP and revenue beforehand, the forecast becomes less accurate, so a part of this fit is accounted for by seasonal patterns in the two series. Finally, we could formally evaluate the forecast computing a sophisticated set of forecast evaluation metrics and also comparing the forecast to a naive forecast provided by the value of revenue in the previous quarter.</p>
+<pre class="r"><code>eval_forecasts &lt;- function(y, fc, add.naive = TRUE, n.ahead = 1) {
+  mfc &lt;- eval(substitute(qDF(fc))) # eval substitute to get the name of the forecast if only a vector is passed
+  lagy &lt;- flag(y, n.ahead)
+  if (add.naive) mfc &lt;- c(list(Naive = lagy), mfc)
+  if (!all(length(y) == lengths(mfc))) stop(&quot;All supplied quantities must be of equal length&quot;)
+  res &lt;- vapply(mfc, function(fcy) {
+    # Preparation
+    cc &lt;- complete.cases(y, fcy)
+    y &lt;- y[cc]
+    fcy &lt;- fcy[cc]
+    lagycc &lt;- lagy[cc]
+    n &lt;- sum(cc)
+    nobessel &lt;- sqrt((n - 1) / n) # Undo bessel correction (n-1) instead of n in denominator
+    sdy &lt;- sd(y) * nobessel
+    sdfcy &lt;- sd(fcy) * nobessel
+    diff &lt;- fcy - y
+    # Calculate Measures
+    bias &lt;- sum(diff) / n         # Bias
+    MSE &lt;- sum(diff^2) / n        # Mean Squared Error
+    BP &lt;- bias^2 / MSE            # Bias Proportion
+    VP &lt;- (sdy - sdfcy)^2 / MSE   # Variance Proportion
+    CP &lt;- 2 * (1 - cor(y, fcy)) * sdy * sdfcy / MSE # Covariance Proportion
+    RMSE &lt;- sqrt(MSE)             # Root MSE
+    R2 &lt;- 1 - MSE / sdy^2         # R-Squared
+    SE &lt;- sd(diff) * nobessel     # Standard Forecast Error
+    MAE &lt;- sum(abs(diff)) / n     # Mean Absolute Error
+    MPE &lt;- sum(diff / y) / n * 100 # Mean Percentage Error
+    MAPE &lt;- sum(abs(diff / y)) / n * 100 # Mean Absolute Percentage Error
+    U1 &lt;- RMSE / (sqrt(sum(y^2) / n) + sqrt(sum(fcy^2) / n))   # Theils U1
+    U2 &lt;- sqrt(mean.default((diff / lagycc)^2, na.rm = TRUE) / # Theils U2 (= MSE(fc)/MSE(Naive))
+               mean.default((y / lagycc - 1)^2, na.rm = TRUE))
+    # Output
+    return(c(Bias = bias, MSE = MSE, RMSE = RMSE, `R-Squared` = R2, SE = SE,
+      MAE = MAE, MPE = MPE, MAPE = MAPE, U1 = U1, U2 = U2,
+      `Bias Prop.` = BP, `Var. Prop.` = VP, `Cov. Prop.` = CP))
+  }, numeric(13))
+  attr(res, &quot;naive.added&quot;) &lt;- add.naive
+  attr(res, &quot;n.ahead&quot;) &lt;- n.ahead
+  attr(res, &quot;call&quot;) &lt;- match.call()
+  class(res) &lt;- &quot;eval_forecasts&quot;
+  return(res)
+}
+
+# Print method
+print.eval_forecasts &lt;- function(x, digits = 3, ...) print.table(round(x, digits))
+
+ECM_oos_fc_cc &lt;- na_omit(ECM_oos_fc)
+eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_fc&quot;])
+##               Naive  ECM2_fc
+## Bias         -0.041   -0.001
+## MSE           0.072    0.007
+## RMSE          0.268    0.082
+## R-Squared    -2.414    0.653
+## SE            0.265    0.082
+## MAE           0.260    0.066
+## MPE        -194.319  -48.213
+## MAPE        194.319   48.213
+## U1            0.974    0.364
+## U2            1.000    0.423
+## Bias Prop.    0.024    0.000
+## Var. Prop.    0.006    0.564
+## Cov. Prop.    0.970    0.436</code></pre>
+<p>The metrics show that the ECM forecast is clearly better than a naive forecast using the previous quarters value. The bias proportion of the forecast error is 0, but the variance proportion 0.56, suggesting, together with the plot, that the variance of the forecasts is too small compared to the variance of the data.</p>
+<div id="further-references-on-vecms" class="section level3">
+<h3>Further References on (V)ECM’s</h3>
+<p>Engle, Robert, and Clive Granger. 1987. <em>Co-integration and Error Correction: Representation, Estimation and Testing.</em> Econometrica 55 (2): 251–76.</p>
+<p>Johansen, Søren (1991). <em>Estimation and Hypothesis Testing of Cointegration Vectors in Gaussian Vector Autoregressive Models</em>. Econometrica. 59 (6): 1551–1580. JSTOR 2938278.</p>
+<p>Enders, Walter (2010). <em>Applied Econometric Time Series (Third ed.).</em> New York: John Wiley &amp; Sons. pp. 272–355. ISBN 978-0-470-50539-7.</p>
+<p>Lütkepohl, Helmut (2006). <em>New Introduction to Multiple Time Series Analysis.</em> Berlin: Springer. pp. 237–352. ISBN 978-3-540-26239-8.</p>
+<p>Alogoskoufis, G., &amp; Smith, R. (1991). <em>On error correction models: specification, interpretation, estimation.</em> Journal of Economic Surveys, 5(1), 97-128.</p>
+<p><a href="https://en.wikipedia.org/wiki/Error_correction_model" class="uri">https://en.wikipedia.org/wiki/Error_correction_model</a></p>
+<p><a href="https://www.econometrics-with-r.org/16-3-cointegration.html" class="uri">https://www.econometrics-with-r.org/16-3-cointegration.html</a></p>
+<p><a href="https://bookdown.org/ccolonescu/RPoE4/time-series-nonstationarity.html#the-error-correction-model" class="uri">https://bookdown.org/ccolonescu/RPoE4/time-series-nonstationarity.html#the-error-correction-model</a></p>
+<p><a href="https://www.youtube.com/watch?v=wYQ_v_0tk_c" class="uri">https://www.youtube.com/watch?v=wYQ_v_0tk_c</a></p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The data is unpublished so I will not make public which country it is<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>The Augmented Dickey Fuller test tests the null of non-stationarity against the alternative of trend stationarity. The Kwiatkowski–Phillips–Schmidt–Shin (KPSS) test tests the null of trend stationarity. The Phillips-Ouliaris test tests the null hypothesis that the variables are not cointegrated.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
+      <title>Fast Class-Agnostic Data Manipulation in R</title>
+      <link>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</link>
+      <pubDate>Sat, 14 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</guid>
+      <description><![CDATA[ 
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p>In <a href="https://sebkrantz.github.io/Rblog/"><em>previous posts</em></a> I introduced <a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a>, a powerful (C/C++ based) new framework for data transformation and statistical computing in R - providing advanced grouped, weighted, time series, panel data and recursive computations in R at superior execution speeds, greater flexibility and programmability.</p>
+<!--  up to 20x faster than the popular *data.table* package -->
+<p><em>collapse</em> 1.4 released this week additionally introduces an enhanced attribute handling system which enables non-destructive manipulation of vector, matrix or data frame based objects in R. With this post I aim to briefly introduce this attribute handling system and demonstrate that:</p>
+<ol style="list-style-type: decimal">
+<li><p><em>collapse</em> non-destructively handles <strong>all</strong> major matrix (time series) and data frame based classes in R.</p></li>
+<li><p>Using <em>collapse</em> functions on these objects yields uniform handling at higher computation speeds.</p></li>
+</ol>
+<div id="data-frame-based-objects" class="section level1">
+<h1>Data Frame Based Objects</h1>
+<p>The three major data frame based classes in R are the base R <em>data.frame</em>, the <em>data.table</em> and the <em>tibble</em>, for which there also exists grouped (<em>dplyr</em>) and time based (<em>tsibble</em>, <em>tibbletime</em>) versions. Additional notable classes are the panel data frame (<em>plm</em>) and the spatial features data frame (<em>sf</em>).</p>
+<p>For the former three <em>collapse</em> offer extremely fast and versatile converters <code>qDF</code>, <code>qDT</code> and <code>qTBL</code> that can be used to turn many R objects into <em>data.frame</em>’s, <em>data.table</em>’s or <em>tibble</em>’s, respectively:</p>
+<pre class="r"><code>library(collapse); library(data.table); library(tibble)
+options(datatable.print.nrows = 10, 
+        datatable.print.topn = 2)
+
+identical(qDF(mtcars), mtcars)
+## [1] TRUE
+
+mtcarsDT &lt;- qDT(mtcars, row.names.col = &quot;car&quot;)
+mtcarsDT
+##               car  mpg cyl disp  hp drat    wt  qsec vs am gear carb
+##  1:     Mazda RX4 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+##  2: Mazda RX4 Wag 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+## ---                                                                 
+## 31: Maserati Bora 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
+## 32:    Volvo 142E 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2
+
+mtcarsTBL &lt;- qTBL(mtcars, row.names.col = &quot;car&quot;)
+print(mtcarsTBL, n = 3)
+## # A tibble: 32 x 12
+##   car             mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 Mazda RX4      21       6   160   110  3.9   2.62  16.5     0     1     4     4
+## 2 Mazda RX4 Wag  21       6   160   110  3.9   2.88  17.0     0     1     4     4
+## 3 Datsun 710     22.8     4   108    93  3.85  2.32  18.6     1     1     4     1
+## # ... with 29 more rows</code></pre>
+<p>These objects can then be manipulated using an advanced and attribute preserving set of (S3 generic) statistical and data manipulation functions. The following infographic summarizes the core <em>collapse</em> namespace:</p>
+<p><img src='collapse_header.png' width="100%" align="center"></p>
+<p>More details are provided in the freshly released <a href="https://raw.githubusercontent.com/SebKrantz/cheatsheets/master/collapse.pdf"><em>cheat sheet</em></a>, and further in the <a href="https://sebkrantz.github.io/collapse/reference/index.html"><em>documentation</em></a> and <a href="https://sebkrantz.github.io/collapse/articles/index.html"><em>vignettes</em></a>.</p>
+<!--
+
+The following graphic summarized the core fun `fselect(<-)`, `fsubset`, `(f/set)transform(<-)`, `fgroup_by`, `(f/set)rename`, `roworder`, `colorder`, `funique` `get_vars`, `(type)_vars`, `add_vars`, `na_omit`, etc.., as well as full sets of fast generic statistical and data transformation functions (supporting vectors, matrices and data frames) and further specialized functions.
+-->
+<!-- ```{r} -->
+<!-- # Macro storing names of collapse fast functions for statistical computation and data transformation -->
+<!-- .FAST_FUN  -->
+<!-- # Some additional convenience operators for data transformations -->
+<!-- .OPERATOR_FUN -->
+<!-- # Also relevant: Aggregating, sweeping, row-and column apply -->
+<!-- .c(collap, BY, TRA, dapply) -->
+<!-- # Recode and replace values -->
+<!-- .c(recode_num, recode_char, replace_NA, replace_Inf, replace_outliers) -->
+<!-- ``` -->
+<p>The statistical functions internally handle grouped and / or weighted computations on vectors, matrices and data frames, and seek to keep the attributes of the object.</p>
+<pre class="r"><code># Simple data frame: Grouped mean by cyl -&gt; groups = row.names  
+fmean(fselect(mtcars, mpg, disp, drat), g = mtcars$cyl)
+##        mpg     disp     drat
+## 4 26.66364 105.1364 4.070909
+## 6 19.74286 183.3143 3.585714
+## 8 15.10000 353.1000 3.229286</code></pre>
+<p>With <code>fgroup_by</code>, collapse also introduces a fast grouping mechanism that works together with <em>grouped_df</em> versions of all statistical and transformation functions:</p>
+<pre class="r"><code># Using Pipe operators and grouped data frames
+library(magrittr)
+mtcars %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(mpg, disp, drat, wt) %&gt;% fmean  
+##   cyl      mpg     disp     drat       wt
+## 1   4 26.66364 105.1364 4.070909 2.285727
+## 2   6 19.74286 183.3143 3.585714 3.117143
+## 3   8 15.10000 353.1000 3.229286 3.999214
+
+# This is still a data.table 
+mtcarsDT %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(mpg, disp, drat, wt) %&gt;% fmean
+##    cyl      mpg     disp     drat       wt
+## 1:   4 26.66364 105.1364 4.070909 2.285727
+## 2:   6 19.74286 183.3143 3.585714 3.117143
+## 3:   8 15.10000 353.1000 3.229286 3.999214
+
+# Same with tibble: here computing weighted group means -&gt; also saves sum of weights in each group
+mtcarsTBL %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(mpg, disp, drat, wt) %&gt;% fmean(wt)
+## # A tibble: 3 x 5
+##     cyl sum.wt   mpg  disp  drat
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     4   25.1  25.9  110.  4.03
+## 2     6   21.8  19.6  185.  3.57
+## 3     8   56.0  14.8  362.  3.21</code></pre>
+<p>A specialty of the grouping mechanism is that it fully preserves the structure / attributes of the object, and thus permits the creation of a grouped version of any data frame like object.</p>
+<pre class="r"><code># This created a grouped data.table
+gmtcarsDT &lt;- mtcarsDT %&gt;% fgroup_by(cyl)
+gmtcarsDT
+##               car  mpg cyl disp  hp drat    wt  qsec vs am gear carb
+##  1:     Mazda RX4 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+##  2: Mazda RX4 Wag 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+## ---                                                                 
+## 31: Maserati Bora 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
+## 32:    Volvo 142E 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]
+# The print shows: [N. groups | Avg. group size (SD around avg. group size)]
+
+# Subsetting drops groups 
+gmtcarsDT[1:2]
+##              car mpg cyl disp  hp drat    wt  qsec vs am gear carb
+## 1:     Mazda RX4  21   6  160 110  3.9 2.620 16.46  0  1    4    4
+## 2: Mazda RX4 Wag  21   6  160 110  3.9 2.875 17.02  0  1    4    4
+
+# Any class-specific methods are independent of the attached groups
+gmtcarsDT[, new := mean(mpg)]
+gmtcarsDT[, lapply(.SD, mean), by = vs, .SDcols = -1L] # Again groups are dropped
+##    vs      mpg      cyl     disp        hp     drat       wt     qsec        am     gear     carb
+## 1:  0 16.61667 7.444444 307.1500 189.72222 3.392222 3.688556 16.69389 0.3333333 3.555556 3.611111
+## 2:  1 24.55714 4.571429 132.4571  91.35714 3.859286 2.611286 19.33357 0.5000000 3.857143 1.785714
+##         new
+## 1: 20.09062
+## 2: 20.09062
+
+# Groups are always preserved in column-subsetting operations
+gmtcarsDT[, 9:13] 
+##     vs am gear carb      new
+##  1:  0  1    4    4 20.09062
+##  2:  0  1    4    4 20.09062
+## ---                         
+## 31:  0  1    5    8 20.09062
+## 32:  1  1    4    2 20.09062
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]</code></pre>
+<p>The grouping is also dropped in aggregations, but preserved in transformations keeping data dimensions:</p>
+<pre class="r"><code># Grouped medians 
+fmedian(gmtcarsDT[, 9:13])
+##    cyl vs am gear carb      new
+## 1:   4  1  1    4  2.0 20.09062
+## 2:   6  1  0    4  4.0 20.09062
+## 3:   8  0  0    3  3.5 20.09062
+# Note: unique grouping columns are stored in the attached grouping object 
+# and added if keep.group_vars = TRUE (the default)
+
+# Replacing data by grouped median (grouping columns are not selected and thus not present)
+fmedian(gmtcarsDT[, 4:5], TRA = &quot;replace&quot;)
+##      disp    hp
+##  1: 167.6 110.0
+##  2: 167.6 110.0
+## ---            
+## 31: 350.5 192.5
+## 32: 108.0  91.0
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]
+
+# Weighted scaling and centering data (here also selecting grouping column)
+mtcarsDT %&gt;% fgroup_by(cyl) %&gt;% 
+  fselect(cyl, mpg, disp, drat, wt) %&gt;% fscale(wt)
+##     cyl    wt         mpg       disp      drat
+##  1:   6 2.620  0.96916875 -0.6376553 0.7123846
+##  2:   6 2.875  0.96916875 -0.6376553 0.7123846
+## ---                                           
+## 31:   8 3.570  0.07335466 -0.8685527 0.9844833
+## 32:   4 2.780 -1.06076989  0.3997723 0.2400387
+## 
+## Grouped by:  cyl  [3 | 11 (3.5)]</code></pre>
+<p>As mentioned, this works for any data frame like object, even a suitable list:</p>
+<pre class="r"><code># Here computing a weighted grouped standard deviation
+as.list(mtcars) %&gt;% fgroup_by(cyl, vs, am) %&gt;% 
+  fsd(wt) %&gt;% str
+## List of 11
+##  $ cyl   : num [1:7] 4 4 4 6 6 8 8
+##  $ vs    : num [1:7] 0 1 1 0 1 0 0
+##  $ am    : num [1:7] 1 0 1 1 0 0 1
+##  $ sum.wt: num [1:7] 2.14 8.8 14.2 8.27 13.55 ...
+##  $ mpg   : num [1:7] 0 1.236 4.833 0.655 1.448 ...
+##  $ disp  : num [1:7] 0 11.6 19.25 7.55 39.93 ...
+##  $ hp    : num [1:7] 0 17.3 22.7 32.7 8.3 ...
+##  $ drat  : num [1:7] 0 0.115 0.33 0.141 0.535 ...
+##  $ qsec  : num [1:7] 0 1.474 0.825 0.676 0.74 ...
+##  $ gear  : num [1:7] 0 0.477 0.32 0.503 0.519 ...
+##  $ carb  : num [1:7] 0 0.477 0.511 1.007 1.558 ...
+##  - attr(*, &quot;row.names&quot;)= int [1:7] 1 2 3 4 5 6 7</code></pre>
+<p>The function <code>fungroup</code> can be used to undo any grouping operation.</p>
+<pre class="r"><code>identical(mtcarsDT,
+          mtcarsDT %&gt;% fgroup_by(cyl, vs, am) %&gt;% fungroup)
+## [1] TRUE</code></pre>
+<p>Apart from the grouping mechanism with <code>fgroup_by</code>, which is very fast and versatile, <em>collapse</em> also supports regular grouped tibbles created with <em>dplyr</em>:</p>
+<pre class="r"><code>library(dplyr)
+# Same as summarize_all(sum) and considerably faster
+mtcars %&gt;% group_by(cyl) %&gt;% fsum
+## # A tibble: 3 x 11
+##     cyl   mpg  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     4  293. 1157.   909  44.8  25.1  211.    10     8    45    17
+## 2     6  138. 1283.   856  25.1  21.8  126.     4     3    27    24
+## 3     8  211. 4943.  2929  45.2  56.0  235.     0     2    46    49
+
+# Same as muatate_all(sum)
+mtcars %&gt;% group_by(cyl) %&gt;% fsum(TRA = &quot;replace_fill&quot;) %&gt;% head(3)
+## # A tibble: 3 x 11
+## # Groups:   cyl [2]
+##     cyl   mpg  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     6  138. 1283.   856  25.1  21.8  126.     4     3    27    24
+## 2     6  138. 1283.   856  25.1  21.8  126.     4     3    27    24
+## 3     4  293. 1157.   909  44.8  25.1  211.    10     8    45    17</code></pre>
+<p>One major goal of the package is to make R suitable for (large) panel data, thus <em>collapse</em> also supports panel-data.frames created with the <em>plm</em> package:</p>
+<pre class="r"><code>library(plm)
+pwlddev &lt;- pdata.frame(wlddev, index = c(&quot;iso3c&quot;, &quot;year&quot;))
+
+# Centering (within-transforming) columns 9-12 using the within operator W()
+head(W(pwlddev, cols = 9:12), 3)
+##          iso3c year W.PCGDP  W.LIFEEX W.GINI W.ODA
+## ABW-1960   ABW 1960      NA -6.547351     NA    NA
+## ABW-1961   ABW 1961      NA -6.135351     NA    NA
+## ABW-1962   ABW 1962      NA -5.765351     NA    NA
+
+# Computing growth rates of columns 9-12 using the growth operator G()
+head(G(pwlddev, cols = 9:12), 3)
+##          iso3c year G1.PCGDP G1.LIFEEX G1.GINI G1.ODA
+## ABW-1960   ABW 1960       NA        NA      NA     NA
+## ABW-1961   ABW 1961       NA 0.6274558      NA     NA
+## ABW-1962   ABW 1962       NA 0.5599782      NA     NA</code></pre>
+<p>Perhaps a note about operators is necessary here before proceeding: <em>collapse</em> offers a set of transformation operators for its vector-valued fast functions:</p>
+<pre class="r"><code># Operators
+.OPERATOR_FUN
+##  [1] &quot;STD&quot;  &quot;B&quot;    &quot;W&quot;    &quot;HDB&quot;  &quot;HDW&quot;  &quot;L&quot;    &quot;F&quot;    &quot;D&quot;    &quot;Dlog&quot; &quot;G&quot;
+
+# Corresponding (programmers) functions
+setdiff(.FAST_FUN, .FAST_STAT_FUN)
+## [1] &quot;fscale&quot;     &quot;fbetween&quot;   &quot;fwithin&quot;    &quot;fHDbetween&quot; &quot;fHDwithin&quot;  &quot;flag&quot;       &quot;fdiff&quot;     
+## [8] &quot;fgrowth&quot;</code></pre>
+<p>These operators are principally just function shortcuts that exist for parsimony and in-formula use (e.g. to specify dynamic or fixed effects models using <code>lm()</code>, see the <a href="https://sebkrantz.github.io/collapse/reference/index.html">documentation</a>). They however also have some useful extra features in the data.frame method, such as internal column-subsetting using the <code>cols</code> argument or stub-renaming transformed columns (adding a ‘W.’ or ‘Gn.’ prefix as shown above). They also permit grouping variables to be passed using formulas, including options to keep (default) or drop those variables in the output. We will see this feature when using time series below.</p>
+<p>To round things off for data frames, I demonstrate the use of <em>collapse</em> with classes it was not directly built to support but can also handle very well. Through it’s built in capabilities for handling panel data, <em>tsibble</em>’s can seamlessly be utilized:</p>
+<pre class="r"><code>library(tsibble)
+tsib &lt;- as_tsibble(EuStockMarkets)
+
+# Computing daily and annual growth rates on tsibble
+head(G(tsib, c(1, 260), by = ~ key, t = ~ index), 3)
+## # A tsibble: 3 x 4 [1s] &lt;UTC&gt;
+## # Key:       key [1]
+##   key   index               G1.value L260G1.value
+##   &lt;chr&gt; &lt;dttm&gt;                 &lt;dbl&gt;        &lt;dbl&gt;
+## 1 DAX   1991-07-01 02:18:33   NA               NA
+## 2 DAX   1991-07-02 12:00:00   -0.928           NA
+## 3 DAX   1991-07-03 21:41:27   -0.441           NA
+
+# Computing a compounded annual growth rate
+head(G(tsib, 260, by = ~ key, t = ~ index, power = 1/260), 3)
+## # A tsibble: 3 x 3 [1s] &lt;UTC&gt;
+## # Key:       key [1]
+##   key   index               L260G1.value
+##   &lt;chr&gt; &lt;dttm&gt;                     &lt;dbl&gt;
+## 1 DAX   1991-07-01 02:18:33           NA
+## 2 DAX   1991-07-02 12:00:00           NA
+## 3 DAX   1991-07-03 21:41:27           NA</code></pre>
+<p>Similarly for <em>tibbletime</em>:</p>
+<pre class="r"><code>library(tibbletime); library(tsbox)
+# Using the tsbox converter
+tibtm &lt;- ts_tibbletime(EuStockMarkets)
+
+# Computing daily and annual growth rates on tibbletime
+head(G(tibtm, c(1, 260), t = ~ time), 3)
+## # A time tibble: 3 x 9
+## # Index: time
+##   time                G1.DAX L260G1.DAX G1.SMI L260G1.SMI G1.CAC L260G1.CAC G1.FTSE L260G1.FTSE
+##   &lt;dttm&gt;               &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;
+## 1 1991-07-01 02:18:27 NA             NA NA             NA  NA            NA  NA              NA
+## 2 1991-07-02 12:01:32 -0.928         NA  0.620         NA  -1.26         NA   0.679          NA
+## 3 1991-07-03 21:44:38 -0.441         NA -0.586         NA  -1.86         NA  -0.488          NA
+# ...</code></pre>
+<p>Finally lets consider the simple features data frame:</p>
+<pre class="r"><code>library(sf)
+nc &lt;- st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
+## Reading layer `nc&#39; from data source `C:\Users\Sebastian Krantz\Documents\R\win-library\4.0\sf\shape\nc.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 100 features and 14 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965
+## geographic CRS: NAD27
+
+# Fast selecting columns (need to add &#39;geometry&#39; column to not break the class)
+plot(fselect(nc, AREA, geometry))</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-13-1.png" width="100%" /></p>
+<pre class="r"><code>
+# Subsetting 
+fsubset(nc, AREA &gt; 0.23, NAME, AREA, geometry)
+## Simple feature collection with 3 features and 2 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965
+## geographic CRS: NAD27
+##       NAME  AREA                       geometry
+## 1  Sampson 0.241 MULTIPOLYGON (((-78.11377 3...
+## 2  Robeson 0.240 MULTIPOLYGON (((-78.86451 3...
+## 3 Columbus 0.240 MULTIPOLYGON (((-78.65572 3...
+
+# Standardizing numeric columns (by reference)
+settransformv(nc, is.numeric, STD, apply = FALSE)
+# Note: Here using using operator STD() instead of fscale() to stub-rename standardized columns.
+# apply = FALSE uses STD.data.frame on all numeric columns instead of lapply(data, STD)
+head(nc, 2)
+## Simple feature collection with 2 features and 26 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -81.74107 ymin: 36.23436 xmax: -80.90344 ymax: 36.58965
+## geographic CRS: NAD27
+##    AREA PERIMETER CNTY_ CNTY_ID      NAME  FIPS FIPSNO CRESS_ID BIR74 SID74 NWBIR74 BIR79 SID79
+## 1 0.114     1.442  1825    1825      Ashe 37009  37009        5  1091     1      10  1364     0
+## 2 0.061     1.231  1827    1827 Alleghany 37005  37005        3   487     0      10   542     3
+##   NWBIR79                       geometry  STD.AREA STD.PERIMETER STD.CNTY_ STD.CNTY_ID STD.FIPSNO
+## 1      19 MULTIPOLYGON (((-81.47276 3... -0.249186    -0.4788595 -1.511125   -1.511125  -1.568344
+## 2      12 MULTIPOLYGON (((-81.23989 3... -1.326418    -0.9163351 -1.492349   -1.492349  -1.637282
+##   STD.CRESS_ID  STD.BIR74  STD.SID74 STD.NWBIR74  STD.BIR79  STD.SID79 STD.NWBIR79
+## 1    -1.568344 -0.5739411 -0.7286824  -0.7263602 -0.5521659 -0.8863574  -0.6750055
+## 2    -1.637282 -0.7308990 -0.8571979  -0.7263602 -0.7108697 -0.5682866  -0.6785480</code></pre>
+<!-- A salient feature of this class is the added 'geometry' column, so to select columns one has to also select this column to not break the class: -->
+<!-- ```{r} -->
+<!-- fselect(nc, NAME, AREA, geometry) %>% head(3) -->
+<!-- ``` -->
+</div>
+<div id="matrix-based-objects" class="section level1">
+<h1>Matrix Based Objects</h1>
+<p><em>collapse</em> also offers a converter <code>qM</code> to efficiently convert various objects to matrix:</p>
+<pre class="r"><code>m &lt;- qM(mtcars)</code></pre>
+<p>Grouped and / or weighted computations and transformations work as with with data frames:</p>
+<pre class="r"><code># Grouped means
+fmean(m, g = mtcars$cyl)
+##        mpg cyl     disp        hp     drat       wt     qsec        vs        am     gear     carb
+## 4 26.66364   4 105.1364  82.63636 4.070909 2.285727 19.13727 0.9090909 0.7272727 4.090909 1.545455
+## 6 19.74286   6 183.3143 122.28571 3.585714 3.117143 17.97714 0.5714286 0.4285714 3.857143 3.428571
+## 8 15.10000   8 353.1000 209.21429 3.229286 3.999214 16.77214 0.0000000 0.1428571 3.285714 3.500000
+
+# Grouped and weighted standardizing
+head(fscale(m, g = mtcars$cyl, w = mtcars$wt), 3)
+##                      mpg cyl        disp         hp       drat         wt       qsec         vs
+## Mazda RX4      0.9691687 NaN -0.63765527 -0.5263758  0.7123846 -1.6085211 -1.0438559 -1.2509539
+## Mazda RX4 Wag  0.9691687 NaN -0.63765527 -0.5263758  0.7123846 -0.8376064 -0.6921302 -1.2509539
+## Datsun 710    -0.7333024 NaN -0.08822497  0.4896429 -0.5526066 -0.1688057 -0.4488514  0.2988833
+##                     am        gear      carb
+## Mazda RX4     1.250954  0.27612029  0.386125
+## Mazda RX4 Wag 1.250954  0.27612029  0.386125
+## Datsun 710    0.719370 -0.09429567 -1.133397</code></pre>
+<p>Various matrix-based time series classes such as <em>xts</em> / <em>zoo</em> and <em>timeSeries</em> are also easily handled:</p>
+<pre class="r"><code># ts / mts
+# Note: G() by default renames the columns, fgrowth() does not
+plot(G(EuStockMarkets))</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-1.png" width="100%" /></p>
+<pre class="r"><code># xts
+library(xts) 
+ESM_xts &lt;- ts_xts(EuStockMarkets) # using tsbox::ts_xts
+head(G(ESM_xts), 3)
+##                         G1.DAX     G1.SMI    G1.CAC    G1.FTSE
+## 1991-07-01 02:18:27         NA         NA        NA         NA
+## 1991-07-02 12:01:32 -0.9283193  0.6197485 -1.257897  0.6793256
+## 1991-07-03 21:44:38 -0.4412412 -0.5863192 -1.856612 -0.4877652
+
+plot(G(ESM_xts), legend.loc = &quot;bottomleft&quot;)</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-2.png" width="100%" /></p>
+<pre class="r"><code># timeSeries
+library(timeSeries) # using tsbox::ts_timeSeries
+ESM_timeSeries &lt;- ts_timeSeries(EuStockMarkets)
+# Note: G() here also renames the columns but the names of the series are also stored in an attribute
+head(G(ESM_timeSeries), 3)
+## GMT
+##                            DAX        SMI       CAC       FTSE
+## 1991-06-30 23:18:27         NA         NA        NA         NA
+## 1991-07-02 09:01:32 -0.9283193  0.6197485 -1.257897  0.6793256
+## 1991-07-03 18:44:38 -0.4412412 -0.5863192 -1.856612 -0.4877652
+
+plot(G(ESM_timeSeries), plot.type = &quot;single&quot;, at = &quot;pretty&quot;)
+legend(&quot;bottomleft&quot;, colnames(G(qM(ESM_timeSeries))), lty = 1, col = 1:4)</code></pre>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-3.png" width="100%" /></p>
+<p>Aggregating these objects yields a plain matrix with groups in the row-names:</p>
+<pre class="r"><code># Aggregating by year: creates plain matrix with row-names (g is second argument)
+EuStockMarkets %&gt;% fmedian(round(time(.)))
+##           DAX     SMI    CAC    FTSE
+## 1991 1628.750 1678.10 1772.8 2443.60
+## 1992 1649.550 1733.30 1863.5 2558.50
+## 1993 1606.640 2061.70 1837.5 2773.40
+## 1994 2089.770 2727.10 2148.0 3111.40
+## 1995 2072.680 2591.60 1918.5 3091.70
+## 1996 2291.820 3251.60 1946.2 3661.65
+## 1997 2861.240 3906.55 2297.1 4075.35
+## 1998 4278.725 6077.40 3002.7 5222.20
+## 1999 5905.150 8102.70 4205.4 5884.50
+
+# Same thing with the other objects
+all_obj_equal(ESM_xts %&gt;% fmedian(substr(time(.), 1L, 4L)),
+              ESM_timeSeries %&gt;% fmedian(substr(time(.), 1L, 4L)))
+## [1] TRUE</code></pre>
+</div>
+<div id="benchmarks" class="section level1">
+<h1>Benchmarks</h1>
+<!-- , particularly for `:=` transformations and weighted aggregations -->
+<p>Extensive benchmarks and examples against native <em>dplyr</em> / <em>tibble</em> and <em>plm</em> are provided <a href="https://sebkrantz.github.io/collapse/articles/collapse_and_dplyr.html#3-benchmarks"><em>here</em></a> and <a href="https://sebkrantz.github.io/collapse/articles/collapse_and_plm.html#benchmarks-1"><em>here</em></a>, making it evident that <em>collapse</em> provides both greater versatility and massive performance improvements over the methods defined for these objects. Benchmarks against <em>data.table</em> were provided in a <a href="https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/"><em>previous post</em></a>, where <em>collapse</em> compared favorably on a 2-core machine (particularly for weighted and <code>:=</code> type operations). In general <em>collapse</em> functions are extremely well optimized, with basic execution speeds below 30 microseconds, and efficiently scale to larger operations. Most importantly, they preserve the data structure and attributes (including column attributes) of the objects passed to them. They also efficiently skip missing values and avoid some of the undesirable behavior endemic of base R<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+<p>Here I will add to the above resources just a small benchmark to prove that computations with <em>collapse</em> are also faster than any native methods and suggested programming principles for the various time series classes:</p>
+<pre class="r"><code>library(dplyr) # needed for tibbletime / tsibble comparison    
+library(microbenchmark)
+
+# Computing the first difference
+microbenchmark(ts = diff(EuStockMarkets),
+               collapse_ts = fdiff(EuStockMarkets),
+               xts = diff(ESM_xts),
+               collapse_xts = fdiff(ESM_xts),
+               timeSeries = diff(ESM_timeSeries),
+               collapse_timeSeries = fdiff(ESM_timeSeries),
+               # taking difference function from tsibble
+               dplyr_tibbletime = mutate_at(tibtm, 2:5, difference, order_by = tibtm$time),
+               collapse_tibbletime_D = D(tibtm, t = ~ time),
+               # collapse equivalent to the dplyr method (tfmv() abbreviates ftransformv())
+               collapse_tibbletime_tfmv = tfmv(tibtm, 2:5, fdiff, t = time, apply = FALSE),
+               # dplyr helpers provided by tsibble package
+               dplyr_tsibble = mutate(group_by_key(tsib), value = difference(value, order_by = index)),
+               collapse_tsibble_D = D(tsib, 1, 1, ~ key, ~ index),
+               # Again we can do the same using collapse (tfm() abbreviates ftransform())
+               collapse_tsibble_tfm = tfm(tsib, value = fdiff(value, 1, 1, key, index)))
+## Unit: microseconds
+##                      expr       min         lq       mean     median         uq        max neval cld
+##                        ts  1681.018  2061.2220  2719.8758  2313.1290  3055.6870   9473.855   100  a 
+##               collapse_ts    25.883    56.4505   163.3896    70.9540    88.1340   8732.636   100  a 
+##                       xts    93.713   176.7150   279.5615   200.3655   257.0395   3656.561   100  a 
+##              collapse_xts    42.840    78.0940   116.1231    99.7370   126.5120    597.973   100  a 
+##                timeSeries  1964.386  2287.4700  3185.6565  2742.4210  3310.7180  17093.102   100  a 
+##       collapse_timeSeries    52.658    93.9355  2483.3061   108.4390   132.7590 235259.074   100  a 
+##          dplyr_tibbletime  8097.625 10173.1265 14784.9888 11176.0700 12863.3355 239144.113   100   b
+##     collapse_tibbletime_D   568.967   630.5490   857.0829   751.2595   850.3270   8017.301   100  a 
+##  collapse_tibbletime_tfmv   501.137   585.4780   773.2819   664.2410   817.0815   2922.035   100  a 
+##             dplyr_tsibble 10386.434 12641.1040 14690.4243 13558.5910 15970.5640  32364.171   100   b
+##        collapse_tsibble_D   963.897  1056.4935  1338.5404  1210.8955  1477.7525   3665.485   100  a 
+##      collapse_tsibble_tfm   940.246   993.5720  1272.6027  1114.9525  1420.6320   6188.128   100  a
+
+# Sequence of lagged/leaded and iterated differences (not supported by either of these methods)
+head(fdiff(ESM_xts, -1:1, diff = 1:2)[, 1:6], 3) 
+##                     FD1.DAX FD2.DAX     DAX D1.DAX D2.DAX FD1.SMI
+## 1991-07-01 02:18:27   15.12    8.00 1628.75     NA     NA   -10.4
+## 1991-07-02 12:01:32    7.12   21.65 1613.63 -15.12     NA     9.9
+## 1991-07-03 21:44:38  -14.53  -17.41 1606.51  -7.12      8    -5.5
+head(D(tibtm, -1:1, diff = 1:2, t = ~ time), 3)
+## # A time tibble: 3 x 21
+## # Index: time
+##   time                FD1.DAX FD2.DAX   DAX D1.DAX D2.DAX FD1.SMI FD2.SMI   SMI D1.SMI D2.SMI FD1.CAC
+##   &lt;dttm&gt;                &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
+## 1 1991-07-01 02:18:27   15.1     8.00 1629.  NA     NA      -10.4   -20.3 1678.   NA     NA      22.3
+## 2 1991-07-02 12:01:32    7.12   21.7  1614. -15.1   NA        9.9    15.4 1688.   10.4   NA      32.5
+## 3 1991-07-03 21:44:38  -14.5   -17.4  1607.  -7.12   8.00    -5.5    -3   1679.   -9.9  -20.3     9.9
+## # ... with 9 more variables: FD2.CAC &lt;dbl&gt;, CAC &lt;dbl&gt;, D1.CAC &lt;dbl&gt;, D2.CAC &lt;dbl&gt;, FD1.FTSE &lt;dbl&gt;,
+## #   FD2.FTSE &lt;dbl&gt;, FTSE &lt;dbl&gt;, D1.FTSE &lt;dbl&gt;, D2.FTSE &lt;dbl&gt;
+head(D(tsib, -1:1, diff = 1:2, ~ key, ~ index), 3)
+## # A tsibble: 3 x 7 [1s] &lt;UTC&gt;
+## # Key:       key [1]
+##   key   index               FD1.value FD2.value value D1.value D2.value
+##   &lt;chr&gt; &lt;dttm&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 DAX   1991-07-01 02:18:33     15.1       8.00 1629.    NA       NA   
+## 2 DAX   1991-07-02 12:00:00      7.12     21.7  1614.   -15.1     NA   
+## 3 DAX   1991-07-03 21:41:27    -14.5     -17.4  1607.    -7.12     8.00
+
+microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
+               collapse_tibbletime = D(tibtm, -1:1, diff = 1:2, t = ~ time),
+               collapse_tsibble = D(tsib, -1:1, diff = 1:2, ~ key, ~ index))
+## Unit: microseconds
+##                 expr      min        lq      mean   median       uq       max neval cld
+##         collapse_xts  147.263  218.2155  358.0477  254.362  290.508  8398.843   100 a  
+##  collapse_tibbletime  750.144  988.4405 1348.9559 1026.149 1085.722 13947.942   100  b 
+##     collapse_tsibble 1258.421 1653.3505 1793.5130 1707.793 1757.327  8411.784   100   c</code></pre>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>This concludes this short demonstration. <em>collapse</em> is an advanced, fast and versatile data manipulation package. If you have followed until here I am convinced you will find it very useful, particularly if you are working in advanced statistics, econometrics, surveys, time series, panel data and the like, or if you care much about performance and non-destructive working in R. For more information about the package see the <a href="https://sebkrantz.github.io/collapse/index.html"><em>website</em></a>, study the <a href="https://raw.githubusercontent.com/SebKrantz/cheatsheets/master/collapse.pdf"><em>cheat sheet</em></a> or call <code>help("collapse-documentation")</code> after install to bring up the built-in documentation.</p>
+</div>
+<div id="appendix-so-how-does-this-all-actually-work" class="section level1">
+<h1>Appendix: So how does this all actually work?</h1>
+<p>Statistical functions like <code>fmean</code> are S3 generic with user visible ‘default’, ‘matrix’ and ‘data.frame’ methods, and hidden ‘list’ and ‘grouped_df’ methods. Transformation functions like <code>fwithin</code> additionally have ‘pseries’ and ‘pdata.frame’ methods to support <em>plm</em> objects.</p>
+<p>The ‘default’, ‘matrix’ and ‘data.frame’ methods handle object attributes intelligently. In the case of ‘data.frame’s’ only the ‘row.names’ attribute is modified accordingly, other attributes (including column attributes) are preserved. This also holds for data manipulation functions like <code>fselect</code>, <code>fsubset</code>, <code>ftransform</code> etc.. ‘default’ and ‘matrix’ methods preserve attributes as long as the data dimensions are kept.</p>
+<p>In addition, the ‘default’ method checks if its argument is actually a matrix, and calls the matrix method if <code>is.matrix(x) &amp;&amp; !inherits(x, "matrix")</code> is <code>TRUE</code>. This prevents classed matrix-based objects (such as <em>xts</em> time series) not inheriting from ‘matrix’ being handled by the default method.</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>For example. <code>mean(NA, na.rm = TRUE)</code> gives <code>NaN</code>, <code>sum(NA, na.rm = TRUE)</code> gives <code>0</code> and <code>max(NA, na.rm = TRUE)</code> gives <code>-Inf</code> whereas <code>all_identical(NA_real_, fmean(NA), fsum(NA), fmax(NA))</code>. <code>na.rm = TRUE</code> is the default setting for all <em>collapse</em> functions. Setting <code>na.rm = FALSE</code> also checks for missing values and returns <code>NA</code> if found instead of just running through the entire computation and then returning a <code>NA</code> or <code>NaN</code> value which is unreliable and inefficient.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
+      <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
+      <link>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</link>
+      <pubDate>Sun, 13 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</guid>
+      <description><![CDATA[ 
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p><a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> is a C/C++ based package for data transformation and statistical computing in R. Among other features it introduces an excellent and highly efficient architecture for grouped (and weighted) statistical programming in R. This post briefly explains this architecture and demonstrates:</p>
+<ol style="list-style-type: decimal">
+<li><p>How to program highly efficient grouped statistical computations and data manipulations in R using the grouped functions supplied by <em>collapse</em>.</p></li>
+<li><p>How to use the grouping mechanism of <em>collapse</em> with custom C/C++ code to create further efficient grouped functions/operations in R.</p></li>
+</ol>
+<div id="essentials-collapse-grouping-objects" class="section level1">
+<h1>Essentials: <em>collapse</em> Grouping Objects</h1>
+<p><em>collapse</em> uses grouping objects as essential inputs for grouped computations. These objects are created from vectors or lists of vectors (i.e. data frames) using the function <code>GRP()</code>:</p>
+<pre class="r"><code>library(collapse)
+# A dataset supplied with collapse providing sectoral value added (VA) and employment (EMP)
+head(GGDC10S, 3)
+##   Country Regioncode             Region Variable Year AGR MIN MAN PU CON WRT TRA FIRE GOV OTH SUM
+## 1     BWA        SSA Sub-saharan Africa       VA 1960  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+## 2     BWA        SSA Sub-saharan Africa       VA 1961  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+## 3     BWA        SSA Sub-saharan Africa       VA 1962  NA  NA  NA NA  NA  NA  NA   NA  NA  NA  NA
+fdim(GGDC10S)
+## [1] 5027   16
+
+# Creating a grouping object (by default return.order = FALSE as the ordering is typically not needed)
+g &lt;- GRP(GGDC10S, c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE)
+# Printing it
+print(g)
+## collapse grouping object of length 5027 with 85 ordered groups
+## 
+## Call: GRP.default(X = GGDC10S, by = c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE), X is unordered
+## 
+## Distribution of group sizes: 
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    4.00   53.00   62.00   59.14   63.00   65.00 
+## 
+## Groups with sizes: 
+## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
+##      62      62      61      62      62      62 
+##   ---
+## VEN.EMP  VEN.VA ZAF.EMP  ZAF.VA ZMB.EMP  ZMB.VA 
+##      62      63      52      52      52      52
+# Plotting it
+plot(g)</code></pre>
+<p><img src="/Rblog/post/2020-09-13-programming-with-collapse_files/figure-html/unnamed-chunk-1-1.png" width="100%" />
+Grouping is done very efficiently using radix-based ordering in C (thanks to <em>data.table</em> source code). The structure of this object is shown below:</p>
+<pre class="r"><code>str(g)
+## List of 8
+##  $ N.groups   : int 85
+##  $ group.id   : int [1:5027] 8 8 8 8 8 8 8 8 8 8 ...
+##  $ group.sizes: int [1:85] 62 62 61 62 62 62 52 52 63 62 ...
+##  $ groups     :&#39;data.frame&#39;: 85 obs. of  2 variables:
+##   ..$ Country : chr [1:85] &quot;ARG&quot; &quot;ARG&quot; &quot;BOL&quot; &quot;BOL&quot; ...
+##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Country&quot;
+##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
+##   ..$ Variable: chr [1:85] &quot;EMP&quot; &quot;VA&quot; &quot;EMP&quot; &quot;VA&quot; ...
+##   .. ..- attr(*, &quot;label&quot;)= chr &quot;Variable&quot;
+##   .. ..- attr(*, &quot;format.stata&quot;)= chr &quot;%9s&quot;
+##  $ group.vars : chr [1:2] &quot;Country&quot; &quot;Variable&quot;
+##  $ ordered    : Named logi [1:2] TRUE FALSE
+##   ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;GRP.sort&quot; &quot;initially.ordered&quot;
+##  $ order      : int [1:5027] 2583 2584 2585 2586 2587 2588 2589 2590 2591 2592 ...
+##   ..- attr(*, &quot;starts&quot;)= int [1:85] 1 63 125 186 248 310 372 424 476 539 ...
+##   ..- attr(*, &quot;maxgrpn&quot;)= int 65
+##   ..- attr(*, &quot;sorted&quot;)= logi FALSE
+##  $ call       : language GRP.default(X = GGDC10S, by = c(&quot;Country&quot;, &quot;Variable&quot;), return.order = TRUE)
+##  - attr(*, &quot;class&quot;)= chr &quot;GRP&quot;</code></pre>
+<p>The first three slots of this object provide the number of unique groups, a group-id matching each value/row to a group<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>, and a vector of group-sizes. The fourth slot provides the unique groups (default <code>return.groups = TRUE</code>), followed by the names of the grouping variables, a logical vector showing whether the grouping is ordered (default <code>sort = TRUE</code>), and the ordering vector which can be used to sort the data alphabetically according to the grouping variables (default <code>return.order = FALSE</code>).</p>
+</div>
+<div id="grouped-programming-in-r" class="section level1">
+<h1>Grouped Programming in R</h1>
+<p><em>collapse</em> provides a whole ensemble of C++ based generic statistical functions that can use these ‘GRP’ objects to internally perform (column-wise) grouped (and weighted) computations on vectors, matrices and data frames in R. Their names are contained in the global macro <code>.FAST_FUN</code>:</p>
+<pre class="r"><code>.FAST_FUN
+##  [1] &quot;fmean&quot;      &quot;fmedian&quot;    &quot;fmode&quot;      &quot;fsum&quot;       &quot;fprod&quot;      &quot;fsd&quot;        &quot;fvar&quot;      
+##  [8] &quot;fmin&quot;       &quot;fmax&quot;       &quot;fnth&quot;       &quot;ffirst&quot;     &quot;flast&quot;      &quot;fNobs&quot;      &quot;fNdistinct&quot;
+## [15] &quot;fscale&quot;     &quot;fbetween&quot;   &quot;fwithin&quot;    &quot;fHDbetween&quot; &quot;fHDwithin&quot;  &quot;flag&quot;       &quot;fdiff&quot;     
+## [22] &quot;fgrowth&quot;</code></pre>
+<p>Additional functions supporting grouping objects are <code>TRA</code> (grouped replacing and sweeping out statistics), <code>BY</code> (split-apply-combine computing) and <code>collap</code> (advanced data aggregation with multiple functions).</p>
+<p>To provide a brief example, we can compute a grouped mean of the above data using:</p>
+<pre class="r"><code>head(fmean(GGDC10S[6:16], g))
+##                AGR         MIN         MAN           PU        CON         WRT        TRA
+## ARG.EMP  1419.8013    52.08903   1931.7602   101.720936   742.4044   1982.1775   648.5119
+## ARG.VA  14951.2918  6454.94152  36346.5456  2722.762554  9426.0033  26633.1292 14404.6626
+## BOL.EMP   964.2103    56.03295    235.0332     5.346433   122.7827    281.5164   115.4728
+## BOL.VA   3299.7182  2846.83763   3458.2904   664.289574   729.0152   2757.9795  2727.4414
+## BRA.EMP 17191.3529   206.02389   6991.3710   364.573404  3524.7384   8509.4612  2054.3731
+## BRA.VA  76870.1456 30916.64606 223330.4487 43549.277879 70211.4219 178357.8685 89880.9743
+##                 FIRE        GOV        OTH         SUM
+## ARG.EMP    627.79291   2043.471   992.4475   10542.177
+## ARG.VA    8547.37278  25390.774  7656.3565  152533.839
+## BOL.EMP     44.56442         NA   395.5650    2220.524
+## BOL.VA    1752.06208         NA  4383.5425   22619.177
+## BRA.EMP   4413.54448   5307.280  5710.2665   54272.985
+## BRA.VA  183027.46189 249135.452 55282.9748 1200562.671</code></pre>
+<p>By default (<code>use.g.names = TRUE</code>), group names are added as names (vectors) or row-names (matrices and data frames) to the result. For data frames we can also add the grouping columns again using<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>:</p>
+<pre class="r"><code>head(add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
+##   Country Variable        AGR         MIN         MAN           PU        CON         WRT        TRA
+## 1     ARG      EMP  1419.8013    52.08903   1931.7602   101.720936   742.4044   1982.1775   648.5119
+## 2     ARG       VA 14951.2918  6454.94152  36346.5456  2722.762554  9426.0033  26633.1292 14404.6626
+## 3     BOL      EMP   964.2103    56.03295    235.0332     5.346433   122.7827    281.5164   115.4728
+## 4     BOL       VA  3299.7182  2846.83763   3458.2904   664.289574   729.0152   2757.9795  2727.4414
+## 5     BRA      EMP 17191.3529   206.02389   6991.3710   364.573404  3524.7384   8509.4612  2054.3731
+## 6     BRA       VA 76870.1456 30916.64606 223330.4487 43549.277879 70211.4219 178357.8685 89880.9743
+##           FIRE        GOV        OTH         SUM
+## 1    627.79291   2043.471   992.4475   10542.177
+## 2   8547.37278  25390.774  7656.3565  152533.839
+## 3     44.56442         NA   395.5650    2220.524
+## 4   1752.06208         NA  4383.5425   22619.177
+## 5   4413.54448   5307.280  5710.2665   54272.985
+## 6 183027.46189 249135.452 55282.9748 1200562.671</code></pre>
+<p>The execution cost of all of these functions is extremely small, so the performance is essentially limited by C++, not by R.</p>
+<pre class="r"><code>library(microbenchmark) 
+microbenchmark(call = add_vars(g[[&quot;groups&quot;]], fmean(get_vars(GGDC10S, 6:16), g, use.g.names = FALSE)))
+## Unit: microseconds
+##  expr     min       lq     mean  median      uq      max neval
+##  call 394.038 434.6465 582.3857 471.685 566.959 2403.495   100</code></pre>
+<p>We can use these functions to write very efficient grouped code in R. This shows a simple application in panel data econometrics comparing a pooled OLS to a group means, a between and a within estimator computed on the demeaned data<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>:</p>
+<pre class="r"><code>Panel_Ests &lt;- function(formula, data, pids, weights = NULL, ...) {
+  # Get variables as character string, first variable is dependent variable
+  vars &lt;- all.vars(formula)
+  # na_omit is a fast replacement for na.omit
+  data_cc &lt;- na_omit(get_vars(data, c(vars, pids, weights)))
+  # Create grouped object (pids should be a character vector)
+  g &lt;- GRP(data_cc, pids, return.groups = FALSE, call = FALSE)
+  # Getting weights from data (weights should be character string)
+  if(length(weights)) weights &lt;- .subset2(data_cc, weights)
+  # qM is a faster as.matrix
+  data_cc &lt;- qM(get_vars(data_cc, vars))
+  # Computing group means 
+  mean_data_cc &lt;- fmean(data_cc, g, weights, use.g.names = FALSE)
+  # This computes regression coefficients, dots options regard different fitting methods
+  reg &lt;- function(x, w = weights, ...) 
+    drop(flm(x[, 1L], x[, -1L, drop = FALSE], w, add.icpt = TRUE, ...))
+  
+  qM(list(Pooled = reg(data_cc),
+          Means = reg(mean_data_cc, w = if(length(weights)) fsum(weights, g) else NULL),
+          # This replaces data values with the group-mean -&gt; between-group estimator
+          Between = reg(TRA(data_cc, mean_data_cc, &quot;replace_fill&quot;, g)),
+          # This subtracts the group-means -&gt; within-group estimator
+          Within = reg(TRA(data_cc, mean_data_cc, &quot;-&quot;, g))))
+}
+
+library(magrittr)  # Pipe operators
+
+# Calculating Value Added Percentage Shares (data is in local currency)
+VA_shares &lt;- fsubset(GGDC10S, Variable == &quot;VA&quot;) %&gt;% ftransformv(6:16, `*`, 100/SUM)
+  
+# Value Added data (regressing Government on Agriculture, Manufactoring and Finance &amp; Real Estate)
+Panel_Ests(GOV ~ AGR + MAN + FIRE, VA_shares, &quot;Country&quot;) %&gt;% round(4)
+##              Pooled   Means Between  Within
+## (Intercept) 25.8818 26.6702 26.5828  0.0000
+## AGR         -0.3425 -0.3962 -0.3749 -0.2124
+## MAN         -0.2339 -0.1744 -0.2215 -0.2680
+## FIRE        -0.2083 -0.3337 -0.2572 -0.0742
+
+# Employment data
+fsubset(GGDC10S, Variable == &quot;EMP&quot;) %&gt;% ftransformv(6:16, `*`, 100/SUM) %&gt;%
+  Panel_Ests(formula = GOV ~ AGR + MAN + FIRE, &quot;Country&quot;) %&gt;% round(4)
+##              Pooled   Means Between  Within
+## (Intercept) 33.2047 34.6626 35.4332  0.0000
+## AGR         -0.3543 -0.3767 -0.3873 -0.2762
+## MAN         -0.4444 -0.4595 -0.4790 -0.4912
+## FIRE        -0.1721 -0.3097 -0.2892 -0.1087</code></pre>
+<p>A benchmark below shows that this series of estimators is executed very efficiently and scales nicely to large data (quite a bit faster than using <code>plm</code> to do it).</p>
+<pre class="r"><code>VA_shares$weights &lt;- abs(rnorm(fnrow(VA_shares))) # Random weights
+
+# Benchmark on VA data    
+microbenchmark(lm.fit = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;), 
+               chol = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, method = &quot;chol&quot;),
+               lm.fit.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;), 
+               chol.w = Panel_Ests(SUM ~ AGR + MIN + MAN, VA_shares, &quot;Country&quot;, &quot;weights&quot;, method = &quot;chol&quot;))
+## Unit: milliseconds
+##      expr      min       lq     mean   median       uq       max neval cld
+##    lm.fit 1.490470 1.663838 2.185618 1.942743 2.187956  9.982579   100   a
+##      chol 1.469943 1.668300 2.161204 1.903919 2.140430  8.107889   100   a
+##  lm.fit.w 1.686819 1.926232 2.469664 2.243068 2.611892 10.030328   100   a
+##    chol.w 1.719842 1.935603 2.500210 2.326963 2.647592  7.600058   100   a</code></pre>
+<p>There are lots and lots of other applications that can be devised in R using the <code>.FAST_FUN</code> and efficient programming with grouping objects.</p>
+<div id="creating-grouped-functions-in-cc" class="section level2">
+<h2>Creating Grouped Functions in C/C++</h2>
+<p>It is also possible to just use ‘GRP’ objects as input to new grouped functions written in C or C++. Below I use <em>Rcpp</em> to create a generic grouped <code>anyNA</code> function for vectors:</p>
+<pre class="cpp"><code>// [[Rcpp::plugins(cpp11)]]
+#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// Inputs: 
+// x - A vector of any type 
+// ng - The number of groups - supplied by GRP() in R
+// g - An integer grouping vector - supplied by GRP() in R
+
+// Output: A plain logical vector of size ng
+
+template &lt;int RTYPE&gt;
+LogicalVector ganyNACppImpl(Vector&lt;RTYPE&gt; x, int ng, IntegerVector g) {
+  int l = x.size();
+  if(l != g.size()) stop(&quot;length(x) must match length(g)&quot;);
+  LogicalVector out(ng); // Initializes as false
+
+  if(RTYPE == REALSXP) { // Numeric vector: all logical operations on NA/NaN evaluate to false, except != which is true.
+    for(int i = 0; i &lt; l; ++i) {
+      if(x[i] != x[i] &amp;&amp; !out[g[i]-1]) out[g[i]-1] = true;
+    }
+  } else { // other vectors
+    for(int i = 0; i &lt; l; ++i) {
+      if(x[i] == Vector&lt;RTYPE&gt;::get_na() &amp;&amp; !out[g[i]-1]) out[g[i]-1] = true;
+    }
+  }
+
+  return out;
+}
+
+// Disabling complex and non-atomic vector types
+template &lt;&gt;
+LogicalVector ganyNACppImpl(Vector&lt;CPLXSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+template &lt;&gt;
+LogicalVector ganyNACppImpl(Vector&lt;VECSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+template &lt;&gt;
+LogicalVector ganyNACppImpl(Vector&lt;RAWSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+template &lt;&gt; 
+LogicalVector ganyNACppImpl(Vector&lt;EXPRSXP&gt; x, int ng, IntegerVector) {
+  stop(&quot;Not supported SEXP type!&quot;);
+}
+
+// [[Rcpp::export]]
+LogicalVector ganyNACpp(const SEXP&amp; x, int ng = 0, const IntegerVector&amp; g = 0){
+  RCPP_RETURN_VECTOR(ganyNACppImpl, x, ng, g);
+}
+</code></pre>
+<p>On the R side things are then pretty simple:</p>
+<pre class="r"><code>library(Rcpp)    
+sourceCpp(&quot;ganyNA.cpp&quot;) 
+ 
+ganyNA &lt;- function(x, g, use.g.names = TRUE, ...) { 
+  # Option group.sizes = FALSE prevents tabulation of levels if a factor is passed
+  g &lt;- GRP(g, return.groups = use.g.names, group.sizes = FALSE, call = FALSE, ...)
+  res &lt;- ganyNACpp(x, g[[1L]], g[[2L]]) 
+  # GRPnames creates unique group names. For vectors they need not be character typed.
+  if(use.g.names) names(res) &lt;- GRPnames(g, force.char = FALSE)
+  res
+}</code></pre>
+<p>Regarding the grouping step, there are actually different options to set this up: <code>GRP()</code> is a S3 generic function with a default method applying to atomic vectors and lists / data frames, but also a ‘factor’ method converting factors to ‘GRP’ objects. Above I have used the generic <code>GRP</code> function with the option <code>group.sizes = FALSE</code>, so factors are efficiently converted without tabulating the levels. This provides more efficiency if a factor is passed to <code>g</code>. Since collapse 1.4.0, the factor method additionally supports efficient dropping of unused factor levels through setting an argument <code>drop = TRUE</code>, which internally calls a C++ function function <code>fdroplevels</code> on the factor. By default <code>drop = FALSE</code> and this default is kept here. The cost of dropping levels on a large factor can be seen in the benchmark below.</p>
+<p>While the generic version of <code>GRP()</code> offers a lot of flexibility and faster methods for grouping different objects (for example you can also apply <code>GRP()</code> on a grouped tibble to get at ‘GRP’ object from the attached ‘groups’ attribute), a viable alternative is to just use the default method <code>g &lt;- GRP.default(g, return.groups = use.g.names, call = FALSE)</code>. This will get rid of unused factor levels, but using factors for grouping is just as efficient as any other vector.</p>
+<pre class="r"><code>GGDC10S %$% ganyNA(SUM, list(Country, Variable)) %&gt;% head
+## ARG.EMP  ARG.VA BOL.EMP  BOL.VA BRA.EMP  BRA.VA 
+##   FALSE   FALSE   FALSE    TRUE   FALSE    TRUE
+  
+# 10 million obs and 1 million groups, 1% of data missing  
+x &lt;- na_insert(rnorm(1e7), prop = 0.01)
+g &lt;- sample.int(1e6, 1e7, TRUE)
+system.time(ganyNA(x, g)) 
+##    user  system elapsed 
+##    0.82    0.04    0.84
+system.time(ganyNA(x, g, use.g.names = FALSE))
+##    user  system elapsed 
+##    0.57    0.06    0.64
+
+# Using a factor grouping variable: more efficient 
+f &lt;- qF(g, na.exclude = FALSE) # Efficiently creating a factor (qF is faster as.factor)
+system.time(ganyNA(x, f))
+##    user  system elapsed 
+##    0.03    0.01    0.04
+system.time(ganyNA(x, f, drop = TRUE)) # This also checks for unused levels and drops them (if found)
+##    user  system elapsed 
+##    0.13    0.03    0.15
+# Note: use.g.names = FALSE does not give a performance improvement with factors because unique factor levels are already computed
+
+# We can also efficiently pass a &#39;GRP&#39; object: both GRP.GRP and GRP.default simply return it.
+g &lt;- GRP(g)
+system.time(ganyNA(x, g))
+##    user  system elapsed 
+##    0.03    0.00    0.03
+system.time(ganyNA(x, g, use.g.names = FALSE))
+##    user  system elapsed 
+##    0.04    0.00    0.05</code></pre>
+<p>We could additionally add a <code>TRA</code> argument and then internally call the <code>TRA()</code> function to allow for replacing and sweeping out statistics, but this does not make much sense here.</p>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>By default (<code>sort = TRUE</code>) the grouping is ordered, which is equivalent to <em>data.table</em> grouping with <code>keyby</code>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><code>add_vars</code> is a faster alternative to <code>cbind</code> and <code>get_vars</code> is a faster alternative to <code>[.data.frame</code> for subsetting columns.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>A random effects estimator could easily be added, see the example <a href="https://sebkrantz.github.io/collapse/reference/fbetween_fwithin.html">here</a>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
+      <title>Introducing collapse: Advanced and Fast Data Transformation in R</title>
+      <link>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</link>
+      <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</guid>
+      <description><![CDATA[ 
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p><img src='collapse_logo_small.png' width="150px" align="right" /></p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p><a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> is a C/C++ based package for data transformation and statistical computing in R. It was first released on CRAN end of March 2020. The current version 1.3.1 is a mature piece of statistical software tested with &gt; 7700 unit tests. <em>collapse</em> has 2 main aims:</p>
+<ol style="list-style-type: decimal">
+<li><p>To facilitate complex data transformation, exploration and computing tasks in R.</p>
+<p>
+</p>
+<p><em>(In particular grouped and weighted statistical computations, advanced aggregation of multi-type data, advanced transformations of time series and panel data, and the manipulation of lists)</em></p></li>
+<li><p>To help make R code fast, flexible, parsimonious and programmer friendly.</p>
+<p>
+</p>
+<p><em>(Provide order of magnitude performance improvements via C/C++ and highly optimized R code, broad object orientation and attribute preservation, and a flexible programming infrastructure in standard and non-standard evaluation)</em></p></li>
+</ol>
+<p>It is made compatible with <em>dplyr</em>, <em>data.table</em> and the <em>plm</em> approach to panel data. It can be installed in R using:</p>
+<pre class="r"><code>install.packages(&#39;collapse&#39;)
+
+# See Documentation
+help(&#39;collapse-documentation&#39;)</code></pre>
+<p>With this post I want to formally and briefly introduce <em>collapse</em>, provide a basic demonstration of important features, and end with a small benchmark comparing <em>collapse</em> to <em>dplyr</em> and <em>data.table</em>. I hope to convince that <em>collapse</em> provides a superior architecture for data manipulation and statistical computing in R, particularly in terms of flexibility, functionality, performance, and programmability.</p>
+<p><em>Note:</em> Please read this article <a href="https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/">here</a> for better code appearance.</p>
+<!-- My motivation, to but it briefly, for creating this package and expending that -->
+<!-- The key features and functions of the package are summarized in the figure below.  -->
+<!-- and share some of the motivation and history of it -->
+<!-- ![*collapse* Core Functions](collapse header.png) -->
+<!-- I start with the motivation (you can skip this if you like). -->
+</div>
+<div id="demonstration" class="section level1">
+<h1>Demonstration</h1>
+<p>I start by briefly demonstrating the <em>Fast Statistical Functions</em>, which are a central feature of <em>collapse</em>. Currently there are 14 of them (<code>fmean</code>, <code>fmedian</code>, <code>fmode</code>, <code>fsum</code>, <code>fprod</code>, <code>fsd</code>, <code>fvar</code>, <code>fmin</code>, <code>fmax</code>, <code>fnth</code>, <code>ffirst</code>, <code>flast</code>, <code>fNobs</code> and <code>fNdistinct</code>), they are all S3 generic and support fast grouped and weighted computations on vectors, matrices, data frames, lists and grouped tibbles (class <em>grouped_df</em>). Calling these functions on different objects yields column-wise statistical computations:</p>
+<pre class="r"><code>library(collapse)
+data(&quot;iris&quot;)            # iris dataset in base R
+v &lt;- iris$Sepal.Length  # Vector
+d &lt;- num_vars(iris)     # Saving numeric variables 
+g &lt;- iris$Species       # Grouping variable (could also be a list of variables)
+
+# Simple statistics
+fmean(v)              # Vector
+## [1] 5.843333
+fsd(qM(d))            # Matrix (qM is a faster as.matrix)
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
+##    0.8280661    0.4358663    1.7652982    0.7622377
+fmode(d)              # Data frame
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
+##          5.0          3.0          1.5          0.2
+
+# Preserving data structure
+fmean(qM(d), drop = FALSE)     # Still a matrix
+##      Sepal.Length Sepal.Width Petal.Length Petal.Width
+## [1,]     5.843333    3.057333        3.758    1.199333
+fmax(d, drop = FALSE)          # Still a data.frame
+##   Sepal.Length Sepal.Width Petal.Length Petal.Width
+## 1          7.9         4.4          6.9         2.5</code></pre>
+<p>The functions <code>fmean</code>, <code>fmedian</code>, <code>fmode</code>, <code>fnth</code>, <code>fsum</code>, <code>fprod</code>, <code>fvar</code> and <code>fsd</code> additionally support weights<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+<pre class="r"><code># Weighted statistics, similarly for vectors and matrices ...
+wt &lt;- abs(rnorm(fnrow(iris)))
+fmedian(d, w = wt)     
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
+##          5.7          3.0          4.1          1.3</code></pre>
+<p>The second argument of these functions is called <code>g</code> and supports vectors or lists of grouping variables for grouped computations. For functions supporting weights, <code>w</code> is the third argument<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.
+<!-- it does not matter anymore on which type of object we are working.   --></p>
+<pre class="r"><code># Grouped statistics
+fmean(d, g) 
+##            Sepal.Length Sepal.Width Petal.Length Petal.Width
+## setosa            5.006       3.428        1.462       0.246
+## versicolor        5.936       2.770        4.260       1.326
+## virginica         6.588       2.974        5.552       2.026
+
+# Groupwise-weighted statistics 
+fmean(d, g, wt)
+##            Sepal.Length Sepal.Width Petal.Length Petal.Width
+## setosa         4.964652    3.389885     1.436666   0.2493647
+## versicolor     5.924013    2.814171     4.255227   1.3273743
+## virginica      6.630702    2.990253     5.601473   2.0724544
+
+fmode(d, g, wt, ties = &quot;max&quot;)  # Grouped &amp; weighted maximum mode.. 
+##            Sepal.Length Sepal.Width Petal.Length Petal.Width
+## setosa              5.0           3          1.4         0.2
+## versicolor          5.8           3          4.5         1.3
+## virginica           6.3           3          5.1         2.3</code></pre>
+<p>Grouping becomes more efficient when factors or grouping objects are passed to <code>g</code>. Factors can efficiently be created using the function <code>qF</code>, and grouping objects are efficiently created with the function <code>GRP</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. As a final layer of complexity, all functions support transformations through the <code>TRA</code> argument.</p>
+<pre class="r"><code>library(magrittr)  # Pipe operators
+# Simple Transformations
+fnth(v, 0.9, TRA = &quot;replace&quot;) %&gt;% head   # Replacing values with the 90th percentile
+## [1] 6.9 6.9 6.9 6.9 6.9 6.9
+fsd(v, TRA = &quot;/&quot;) %&gt;% head               # Dividing by the overall standard-deviation (scaling)
+## [1] 6.158928 5.917402 5.675875 5.555112 6.038165 6.521218
+
+# Grouped transformations
+fsd(v, g, TRA = &quot;/&quot;) %&gt;% head         # Grouped scaling
+## [1] 14.46851 13.90112 13.33372 13.05003 14.18481 15.31960
+fmin(v, g, TRA = &quot;-&quot;) %&gt;% head        # Setting the minimum value in each species to 0
+## [1] 0.8 0.6 0.4 0.3 0.7 1.1
+fsum(v, g, TRA = &quot;%&quot;) %&gt;% head        # Computing percentages
+## [1] 2.037555 1.957651 1.877747 1.837795 1.997603 2.157411
+ffirst(v, g, TRA = &quot;%%&quot;) %&gt;% head     # Taking modulus of first group-value, etc ...
+## [1] 0.0 4.9 4.7 4.6 5.0 0.3
+
+# Grouped and weighted transformations
+fmedian(v, g, wt, &quot;-&quot;) %&gt;% head                      # Subtracting weighted group-medians
+## [1]  0.1 -0.1 -0.3 -0.4  0.0  0.4
+fmode(d, g, wt, &quot;replace&quot;, ties = &quot;min&quot;) %&gt;% head(3) # replace with weighted minimum mode
+##   Sepal.Length Sepal.Width Petal.Length Petal.Width
+## 1            5           3          1.4         0.2
+## 2            5           3          1.4         0.2
+## 3            5           3          1.4         0.2</code></pre>
+<p>Currently there are 10 different replacing or sweeping operations supported by <code>TRA</code>, see <code>?TRA</code>. <code>TRA</code> can also be called directly as a function which performs simple and grouped replacing and sweeping operations with computed statistics:</p>
+<pre class="r"><code># Same as fmedian(v, TRA = &quot;-&quot;)
+TRA(v, median(v), &quot;-&quot;) %&gt;% head               
+## [1] -0.7 -0.9 -1.1 -1.2 -0.8 -0.4
+
+# Replace values with 5% percentile by species
+TRA(d, BY(d, g, quantile, 0.05), &quot;replace&quot;, g) %&gt;% head(3) 
+##   Sepal.Length Sepal.Width Petal.Length Petal.Width
+## 1          4.4           3          1.2         0.1
+## 2          4.4           3          1.2         0.1
+## 3          4.4           3          1.2         0.1</code></pre>
+<p>The function <code>BY</code> is generic for Split-Apply-Combine computing with user-supplied functions. Another useful function is <code>dapply</code> (data-apply) for efficient column- and row-operations on matrices and data frames.</p>
+<!-- I note that simple row-wise operations on data.frames like row-sums are best performed through efficient matrix conversion i.e. `rowSums(qM(d))` is better than `dapply(d, sum, MARGIN = 1)`.    -->
+<p>Some common panel data transformations like between- and (quasi-)within-transformations (averaging and centering using the mean) are implemented slightly more memory efficient in the functions <code>fbetween</code> and <code>fwithin</code>. The function <code>fscale</code> also exists for fast (grouped, weighted) scaling and centering (standardizing) and mean-preserving scaling. These functions provide further options for data harmonization, such as centering on the overall data mean or scaling to the within-group standard deviation<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a> (as shown below), as well as scaling / centering to arbitrary supplied means and standard deviations.</p>
+<pre class="r"><code>oldpar &lt;- par(mfrow = c(1,3))
+gv(d, 1:2) %&gt;% {  # gv = shortcut for get_vars is &gt; 2x faster than [.data.frame
+plot(., col = g, main = &quot;Raw Data&quot;)                      
+plot(fwithin(., g, mean = &quot;overall.mean&quot;), col = g, 
+     main = &quot;Centered on Overall Mean&quot;)
+plot(fscale(., g, mean = &quot;overall.mean&quot;, sd = &quot;within.sd&quot;), col = g,    
+     main = &quot;Harmonized Mean and Variance&quot;)
+}</code></pre>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<pre class="r"><code>par(oldpar)</code></pre>
+<!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It's replacement version `get_vars<-` is 6x faster than `[<-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). -->
+<p>For the manipulation of time series and panel series, <em>collapse</em> offers the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code>.</p>
+<pre class="r"><code># A sequence of lags and leads
+flag(EuStockMarkets, -1:1) %&gt;% head(3)             
+##       F1.DAX     DAX  L1.DAX F1.SMI    SMI L1.SMI F1.CAC    CAC L1.CAC F1.FTSE   FTSE L1.FTSE
+## [1,] 1613.63 1628.75      NA 1688.5 1678.1     NA 1750.5 1772.8     NA  2460.2 2443.6      NA
+## [2,] 1606.51 1613.63 1628.75 1678.6 1688.5 1678.1 1718.0 1750.5 1772.8  2448.2 2460.2  2443.6
+## [3,] 1621.04 1606.51 1613.63 1684.1 1678.6 1688.5 1708.1 1718.0 1750.5  2470.4 2448.2  2460.2
+
+# First and second annual difference of SAX and SMI indices (.c is for non-standard concatenation)
+EuStockMarkets[, .c(DAX, SMI)] %&gt;% 
+  fdiff(0:1 * frequency(.), 1:2) %&gt;% 
+  plot(main = c(&quot;DAX and SMI&quot;)) </code></pre>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. -->
+<!-- At this point I will  -->
+<!-- ```{r, eval=FALSE} -->
+<!-- library(vars) -->
+<!-- library(ggplot2) -->
+<!-- library(data.table) # for melt function -->
+<!-- frequency(EuStockMarkets) -->
+<!-- VARselect(EuStockMarkets, type = "both", season = 260) -->
+<!-- varmod <- VAR(EuStockMarkets, p = 7, type = "both", season = 260) -->
+<!-- serial.test(varmod) -->
+<!-- irf <- irf(varmod) -->
+<!-- str(irf) -->
+<!-- irfdata <- unlist2d(list_elem(irf), idcols = c("bound", "series"), row.names = "time", -->
+<!--                     id.factor = TRUE, DT = TRUE) -->
+<!-- head(irfdata) -->
+<!-- melt(irfdata, 1:3) %>% ggplot(aes(x = time, y = value, colour = series, shape = bound)) + -->
+<!--   geom_line() + facet_wrap("variable") -->
+<!-- ``` -->
+<p>To facilitate programming and integration with <em>dplyr</em>, all functions introduced so far have a <em>grouped_df</em> method.</p>
+<pre class="r"><code>library(dplyr)
+iris %&gt;% add_vars(wt) %&gt;%             # Adding weight vector to dataset
+  filter(Sepal.Length &lt; fmean(Sepal.Length)) %&gt;% 
+  select(Species, Sepal.Width:wt) %&gt;% 
+  group_by(Species) %&gt;%               # Frequency-weighted group-variance, default (keep.w = TRUE)  
+  fvar(wt) %&gt;% arrange(sum.wt)        # also saves group weights in a column called &#39;sum.wt&#39;
+## # A tibble: 3 x 5
+##   Species    sum.wt Sepal.Width Petal.Length Petal.Width
+##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+## 1 virginica    3.68      0.0193      0.00993      0.0281
+## 2 versicolor  19.2       0.0802      0.181        0.0299
+## 3 setosa      43.8       0.142       0.0281       0.0134</code></pre>
+<p>Since <em>dplyr</em> operations are rather slow, <em>collapse</em> provides its own set of manipulation verbs yielding significant performance gains.</p>
+<pre class="r"><code># Same as above.. executes about 15x faster 
+iris %&gt;% add_vars(wt) %&gt;%                    
+  fsubset(Sepal.Length &lt; fmean(Sepal.Length), 
+          Species, Sepal.Width:wt) %&gt;% 
+  fgroup_by(Species) %&gt;%                     
+  fvar(wt) %&gt;% roworder(sum.wt)       
+## # A tibble: 3 x 5
+##   Species    sum.wt Sepal.Width Petal.Length Petal.Width
+##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+## 1 virginica    3.68      0.0193      0.00993      0.0281
+## 2 versicolor  19.2       0.0802      0.181        0.0299
+## 3 setosa      43.8       0.142       0.0281       0.0134
+
+# Weighted demeaning
+iris %&gt;% fgroup_by(Species) %&gt;% num_vars %&gt;% 
+  fwithin(wt) %&gt;% head(3)  
+## # A tibble: 3 x 4
+##   Sepal.Length Sepal.Width Petal.Length Petal.Width
+##          &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+## 1       0.135        0.110      -0.0367     -0.0494
+## 2      -0.0647      -0.390      -0.0367     -0.0494
+## 3      -0.265       -0.190      -0.137      -0.0494
+
+# Generate some additional logical data
+settransform(iris, 
+  AWMSL = Sepal.Length &gt; fmedian(Sepal.Length, w = wt), 
+  AGWMSL = Sepal.Length &gt; fmedian(Sepal.Length, Species, wt, &quot;replace&quot;))
+
+ # Grouped and weighted statistical mode
+iris %&gt;% fgroup_by(Species) %&gt;% fmode(wt)
+## # A tibble: 3 x 7
+##   Species    Sepal.Length Sepal.Width Petal.Length Petal.Width AWMSL AGWMSL
+##   &lt;fct&gt;             &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;lgl&gt; &lt;lgl&gt; 
+## 1 setosa              5             3          1.4         0.2 FALSE FALSE 
+## 2 versicolor          5.8           3          4.5         1.3 TRUE  FALSE 
+## 3 virginica           6.3           3          5.1         2.3 TRUE  FALSE</code></pre>
+<p>To take things a bit further, let’s consider some multilevel / panel data:</p>
+<pre class="r"><code># World Bank World Development Data - supplied with collapse
+head(wlddev, 3)
+##       country iso3c       date year decade     region     income  OECD PCGDP LIFEEX GINI       ODA
+## 1 Afghanistan   AFG 1961-01-01 1960   1960 South Asia Low income FALSE    NA 32.292   NA 114440000
+## 2 Afghanistan   AFG 1962-01-01 1961   1960 South Asia Low income FALSE    NA 32.742   NA 233350000
+## 3 Afghanistan   AFG 1963-01-01 1962   1960 South Asia Low income FALSE    NA 33.185   NA 114880000</code></pre>
+<p>All variables in this data have labels stored in a ‘label’ attribute (the default if you import from STATA / SPSS / SAS with <em>haven</em>). Variable labels can be accessed and set using <code>vlabels</code> and <code>vlabels&lt;-</code>, and viewed together with names and classes using <code>namlab</code>. In general variable labels and other attributes will be preserved in when working with <em>collapse</em>. <em>collapse</em> provides some of the fastest and most advanced summary statistics:</p>
+<pre class="r"><code># Fast distinct value count
+fNdistinct(wlddev)
+## country   iso3c    date    year  decade  region  income    OECD   PCGDP  LIFEEX    GINI     ODA 
+##     216     216      59      59       7       7       4       2    8995   10048     363    7564
+# Use descr(wlddev) for a detailed description of each variable
+
+# Checking for within-country variation
+varying(wlddev, ~ iso3c)
+## country    date    year  decade  region  income    OECD   PCGDP  LIFEEX    GINI     ODA 
+##   FALSE    TRUE    TRUE    TRUE   FALSE   FALSE   FALSE    TRUE    TRUE    TRUE    TRUE
+
+# Panel data statistics: Summarize GDP and GINI overall, between and within countries
+qsu(wlddev, pid = PCGDP + GINI ~ iso3c, 
+    vlabels = TRUE, higher = TRUE)
+## , , PCGDP: GDP per capita (constant 2010 US$)
+## 
+##              N/T        Mean          SD          Min         Max    Skew     Kurt
+## Overall     8995  11563.6529  18348.4052     131.6464   191586.64  3.1121  16.9585
+## Between      203  12488.8577  19628.3668     255.3999  141165.083   3.214  17.2533
+## Within   44.3103  11563.6529   6334.9523  -30529.0928   75348.067   0.696  17.0534
+## 
+## , , GINI: GINI index (World Bank estimate)
+## 
+##             N/T     Mean      SD      Min      Max    Skew    Kurt
+## Overall    1356  39.3976  9.6764     16.2     65.8  0.4613  2.2932
+## Between     161  39.5799  8.3679  23.3667  61.7143  0.5169  2.6715
+## Within   8.4224  39.3976  3.0406  23.9576  54.7976  0.1421  5.7781
+
+# Panel data ACF: Efficient grouped standardizing and computing covariance with panel-lags
+psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)</code></pre>
+<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
+<!--
+For fast grouped statistics we can keep programming in standard evaluation as before, or we can use piped expressions. 
+
+
+```r
+head3 <- function(x) head(x, 3L)
+head3(fmean(get_vars(wlddev, 9:12), 
+            get_vars(wlddev, c("region", "income"))))
+##                                             PCGDP   LIFEEX     GINI       ODA
+## East Asia & Pacific.High income         26042.280 73.22799 32.80000 177672692
+## East Asia & Pacific.Lower middle income  1621.178 58.83796 36.21081 503484782
+## East Asia & Pacific.Upper middle income  3432.559 66.41750 42.29524 242080501
+
+`%>%` <- magrittr::`%>%` 
+wlddev %>% fgroup_by(region, income) %>% 
+  fselect(PCGDP:ODA) %>% fmean %>% head3
+## # A tibble: 3 x 6
+##   region              income               PCGDP LIFEEX  GINI        ODA
+##   <fct>               <fct>                <dbl>  <dbl> <dbl>      <dbl>
+## 1 East Asia & Pacific High income         26042.   73.2  32.8 177672692.
+## 2 East Asia & Pacific Lower middle income  1621.   58.8  36.2 503484782.
+## 3 East Asia & Pacific Upper middle income  3433.   66.4  42.3 242080501.
+```
+
+I note that the default is `na.rm = TRUE` for all *collapse* functions^[Missing values are efficiently skipped at C++ level with hardly any computational cost. This also pertains to missing values occurring in the weight vector. If `na.rm = FALSE`, execution will stop when a missing value is encountered, and `NA` is returned. This also speeds up computations compared to base R, particularly if some columns or some groups have missing values and others not. The fast functions also avoid `NaN`'s being created from computations involving `NA` values, and functions like `fsum` are well behaved (i.e. `fsum(NA)` gives `NA`, not `0` like `sum(NA, na.rm = TRUE)`, similarly for `fmin` and `fmax`).]  I also note that you can also use `dplyr::group_by` and `dplyr::select`, but `fgroup_by` and `fselect` are significantly faster (see benchmark). We can do a weighted aggregation using the variable `ODA` as weights using:
+
+
+```r
+# Weighted group mean: Weighted by ODA
+wlddev %>% fgroup_by(region, income) %>% 
+  fselect(PCGDP:ODA) %>% fmean(ODA) %>% head3
+## # A tibble: 3 x 6
+##   region              income                   sum.ODA PCGDP LIFEEX  GINI
+##   <fct>               <fct>                      <dbl> <dbl>  <dbl> <dbl>
+## 1 East Asia & Pacific High income          64672860000 2332.   64.6  NA  
+## 2 East Asia & Pacific Lower middle income 346397530000 1411.   62.5  36.2
+## 3 East Asia & Pacific Upper middle income 106273340000 1707.   68.8  44.6
+```
+
+Note that in this case by default (`keep.w = TRUE`) the sum of the weights is also computed and saved. 
+--></p>
+<p><em>collapse</em> also has its own very flexible data aggregation command called <code>collap</code>, providing fast and easy multi-data-type, multi-function, weighted, parallelized and fully customized data aggregation.</p>
+<pre class="r"><code># Applying the mean to numeric and the mode to categorical data (first 2 arguments are &#39;by&#39; and &#39;FUN&#39;)
+collap(wlddev, ~ iso3c + decade, fmean, 
+       catFUN = fmode) %&gt;% head(3)
+##   country iso3c       date   year decade                     region      income  OECD PCGDP   LIFEEX
+## 1   Aruba   ABW 1961-01-01 1962.5   1960 Latin America &amp; Caribbean  High income FALSE    NA 66.58583
+## 2   Aruba   ABW 1967-01-01 1970.0   1970 Latin America &amp; Caribbean  High income FALSE    NA 69.14178
+## 3   Aruba   ABW 1976-01-01 1980.0   1980 Latin America &amp; Caribbean  High income FALSE    NA 72.17600
+##   GINI      ODA
+## 1   NA       NA
+## 2   NA       NA
+## 3   NA 33630000
+
+# Same as a piped call.. 
+wlddev %&gt;% fgroup_by(iso3c, decade) %&gt;% 
+  collapg(fmean, fmode) %&gt;% head(3)
+## # A tibble: 3 x 12
+##   iso3c decade country date        year region             income    OECD  PCGDP LIFEEX  GINI     ODA
+##   &lt;fct&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;date&gt;     &lt;dbl&gt; &lt;fct&gt;              &lt;fct&gt;     &lt;lgl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1 ABW     1960 Aruba   1961-01-01 1962. &quot;Latin America &amp; ~ High inc~ FALSE    NA   66.6    NA NA     
+## 2 ABW     1970 Aruba   1967-01-01 1970  &quot;Latin America &amp; ~ High inc~ FALSE    NA   69.1    NA NA     
+## 3 ABW     1980 Aruba   1976-01-01 1980  &quot;Latin America &amp; ~ High inc~ FALSE    NA   72.2    NA  3.36e7
+
+# Same thing done manually... without column reordering 
+wlddev %&gt;% fgroup_by(iso3c, decade) %&gt;% {
+  add_vars(fmode(cat_vars(.)),  # cat_vars selects non-numeric (categorical) columns
+           fmean(num_vars(.), keep.group_vars = FALSE)) 
+} %&gt;% head(3)
+## # A tibble: 3 x 12
+##   iso3c decade country date       region             income    OECD   year PCGDP LIFEEX  GINI     ODA
+##   &lt;fct&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;date&gt;     &lt;fct&gt;              &lt;fct&gt;     &lt;lgl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1 ABW     1960 Aruba   1961-01-01 &quot;Latin America &amp; ~ High inc~ FALSE 1962.    NA   66.6    NA NA     
+## 2 ABW     1970 Aruba   1967-01-01 &quot;Latin America &amp; ~ High inc~ FALSE 1970     NA   69.1    NA NA     
+## 3 ABW     1980 Aruba   1976-01-01 &quot;Latin America &amp; ~ High inc~ FALSE 1980     NA   72.2    NA  3.36e7
+
+# Adding weights: weighted mean and weighted mode (catFUN is 3rd argument) 
+wlddev$weights &lt;- abs(rnorm(fnrow(wlddev)))
+collap(wlddev, ~ iso3c + decade, fmean, fmode, # weights are also aggregated using sum
+       w = ~ weights, wFUN = fsum) %&gt;% head(3)
+##   country iso3c       date     year decade                     region      income  OECD PCGDP
+## 1   Aruba   ABW 1965-01-01 1963.375   1960 Latin America &amp; Caribbean  High income FALSE    NA
+## 2   Aruba   ABW 1967-01-01 1969.179   1970 Latin America &amp; Caribbean  High income FALSE    NA
+## 3   Aruba   ABW 1980-01-01 1980.443   1980 Latin America &amp; Caribbean  High income FALSE    NA
+##     LIFEEX GINI      ODA  weights
+## 1 66.87902   NA       NA 4.527996
+## 2 68.85522   NA       NA 7.314234
+## 3 72.29649   NA 33630000 6.525710
+
+# Can also apply multiple functions to columns, return in wide or long format or as list of data frames 
+collap(wlddev, PCGDP + LIFEEX ~ region + income, 
+       list(fmean, fsd, fmin, fmax), return = &quot;long&quot;) %&gt;% head(3)
+##   Function              region              income     PCGDP   LIFEEX
+## 1    fmean East Asia &amp; Pacific         High income 26042.280 73.22799
+## 2    fmean East Asia &amp; Pacific Lower middle income  1621.178 58.83796
+## 3    fmean East Asia &amp; Pacific Upper middle income  3432.559 66.41750</code></pre>
+<p>The default (<code>keep.col.order = TRUE</code>) ensures that the data remains in the same order, and, when working with <em>Fast Statistical Functions</em>, all column attributes are preserved. When aggregating with multiple functions, you can parallelize over them (internally done with <code>parallel::mclapply</code>).</p>
+<!-- It is also possible to provide fully customized calls: -->
+<!-- ```{r} -->
+<!-- # Fully custom aggregation (also possible with weights) -->
+<!-- collapv(wlddev, c("iso3c", "decade"), # collapv allows names or indices of grouping variables -->
+<!--         custom = list(fmean = 9:12,  -->
+<!--                       fmax = 9:10,  -->
+<!--                       flast = cat_vars(wlddev, "indices"), -->
+<!--                       fmode = "GINI"), keep.col.order = FALSE) %>% head(3) -->
+<!-- ``` -->
+<p>Time computations on panel data are also simple and computationally very fast.</p>
+<pre class="r"><code># Panel Lag and lead of PCGDP and LIFEEX
+L(wlddev, -1:1, PCGDP + LIFEEX ~ iso3c, ~year) %&gt;% head3
+##   iso3c year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
+## 1   AFG 1960       NA    NA       NA    32.742 32.292        NA
+## 2   AFG 1961       NA    NA       NA    33.185 32.742    32.292
+## 3   AFG 1962       NA    NA       NA    33.624 33.185    32.742
+
+# Equivalent piped call
+wlddev %&gt;% fgroup_by(iso3c) %&gt;% 
+  fselect(iso3c, year, PCGDP, LIFEEX) %&gt;% 
+  flag(-1:1, year) %&gt;% head(3)
+## # A tibble: 3 x 8
+##   iso3c  year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
+##   &lt;fct&gt; &lt;int&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+## 1 AFG    1960       NA    NA       NA      32.7   32.3      NA  
+## 2 AFG    1961       NA    NA       NA      33.2   32.7      32.3
+## 3 AFG    1962       NA    NA       NA      33.6   33.2      32.7
+
+# Or using plm classes for panel data
+pwlddev &lt;- plm::pdata.frame(wlddev, index = .c(iso3c, year))
+L(pwlddev, -1:1, cols = .c(PCGDP, LIFEEX)) %&gt;% head(3)
+##          iso3c year F1.PCGDP PCGDP L1.PCGDP F1.LIFEEX LIFEEX L1.LIFEEX
+## ABW-1960   ABW 1960       NA    NA       NA    66.074 65.662        NA
+## ABW-1961   ABW 1961       NA    NA       NA    66.444 66.074    65.662
+## ABW-1962   ABW 1962       NA    NA       NA    66.787 66.444    66.074
+
+# Growth rates in percentage terms: 1 and 10-year
+G(pwlddev, c(1, 10), cols = 9:12) %&gt;% head(3) # or use Dlog, or G(..., logdiff = TRUE) for percentages
+##          iso3c year G1.PCGDP L10G1.PCGDP G1.LIFEEX L10G1.LIFEEX G1.GINI L10G1.GINI G1.ODA L10G1.ODA
+## ABW-1960   ABW 1960       NA          NA        NA           NA      NA         NA     NA        NA
+## ABW-1961   ABW 1961       NA          NA 0.6274558           NA      NA         NA     NA        NA
+## ABW-1962   ABW 1962       NA          NA 0.5599782           NA      NA         NA     NA        NA</code></pre>
+<p>Equivalently we can can compute lagged / leaded and suitably iterated (log-) differences, as well as quasi-(log-)differences of the form <span class="math inline">\(x_t - \rho x_{t-1}\)</span>. The operators <code>L</code>, <code>D</code>, <code>Dlog</code> and <code>G</code> are shorthand’s for the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code> allowing formula input. Similar operators exist for <code>fwithin</code>, <code>fscale</code>, etc. which also support <em>plm</em> classes.</p>
+<p>This short demonstration illustrated some basic features of <em>collapse</em>. A more complete overview of the package is provided in the <a href="https://sebkrantz.github.io/collapse/reference/index.html">documentation</a> and the <a href="https://sebkrantz.github.io/collapse/articles/index.html">vignettes</a>.</p>
+</div>
+<div id="benchmark" class="section level1">
+<h1>Benchmark</h1>
+<p>For benchmarking I use some product-level trade data from the UN Comtrade database, processed by <a href="https://tradestatistics.io/">tadestatistics.io</a>.</p>
+<pre class="r"><code>library(tradestatistics)
+# US HS4-level trade from 2000 to 2018
+us_trade &lt;- ots_create_tidy_data(years = 2000:2018,
+                                 reporters = &quot;usa&quot;,
+                                 table = &quot;yrpc&quot;)</code></pre>
+<p>Downloading US product-level trade (HS4) from 2000 to 2018 gives about 2.6 million observations:</p>
+<pre class="r"><code>fdim(us_trade)
+## [1] 2569787      16
+head(us_trade, 1)
+##    year reporter_iso                                                   reporter_fullname_english
+## 1: 2017          usa USA, Puerto Rico and US Virgin Islands (excludes Virgin Islands until 1981)
+##    partner_iso partner_fullname_english section_code section_color section_shortname_english
+## 1:         afg              Afghanistan           01       #74c0e2           Animal Products
+##         section_fullname_english group_code group_fullname_english product_code
+## 1: Live Animals; Animal Products         01          Animals; live         0101
+##    product_shortname_english               product_fullname_english export_value_usd
+## 1:                    Horses Horses, asses, mules and hinnies; live             3005
+##    import_value_usd
+## 1:               NA
+
+# 19 years, 221 trading partners, 1222 products, unbalanced panel with product-time gaps...
+fNdistinct(us_trade)
+##                      year              reporter_iso reporter_fullname_english 
+##                        19                         1                         1 
+##               partner_iso  partner_fullname_english              section_code 
+##                       221                       221                        22 
+##             section_color section_shortname_english  section_fullname_english 
+##                        22                        22                        22 
+##                group_code    group_fullname_english              product_code 
+##                        97                        97                      1222 
+## product_shortname_english  product_fullname_english          export_value_usd 
+##                      1217                      1222                   1081492 
+##          import_value_usd 
+##                    684781
+
+# Summarizing data between and within partner-product pairs
+qsu(us_trade, pid = export_value_usd + import_value_usd ~ partner_iso + product_code)
+## , , export_value_usd
+## 
+##               N/T         Mean           SD              Min             Max
+## Overall  2,450301  11,054800.6   157,295999                1  2.83030606e+10
+## Between    205513  7,268011.31   118,709845                1  1.66436161e+10
+## Within    11.9229  11,054800.6  68,344396.5  -1.01599067e+10  1.67185229e+10
+## 
+## , , import_value_usd
+## 
+##               N/T         Mean          SD              Min             Max
+## Overall  1,248201  31,421502.4  505,644905                1  8.51970855e+10
+## Between    130114  16,250758.2  328,538895                1  4.36545695e+10
+## Within     9.5931  31,421502.4  212,076350  -3.32316111e+10  4.15739375e+10</code></pre>
+<p>It would also be interesting to summarize the trade flows for each partner, but that would be too large to print to the console. We can however get the <code>qsu</code> output as a list of matrices:</p>
+<pre class="r"><code># Doing all of that by partner - variance of flows between and within traded products for each partner
+l &lt;- qsu(us_trade, 
+         by = export_value_usd + import_value_usd ~ partner_iso,
+         pid = ~ partner_iso + product_code, array = FALSE)
+str(l, give.attr = FALSE)
+## List of 2
+##  $ export_value_usd:List of 3
+##   ..$ Overall: &#39;qsu&#39; num [1:221, 1:5] 7250 12427 6692 5941 4017 ...
+##   ..$ Between: &#39;qsu&#39; num [1:221, 1:5] 901 1151 872 903 695 ...
+##   ..$ Within : &#39;qsu&#39; num [1:221, 1:5] 8.05 10.8 7.67 6.58 5.78 ...
+##  $ import_value_usd:List of 3
+##   ..$ Overall: &#39;qsu&#39; num [1:221, 1:5] 1157 1547 361 1512 685 ...
+##   ..$ Between: &#39;qsu&#39; num [1:221, 1:5] 312 532 167 347 235 ...
+##   ..$ Within : &#39;qsu&#39; num [1:221, 1:5] 3.71 2.91 2.16 4.36 2.91 ...</code></pre>
+<p>Now with the function <code>unlist2d</code>, we can efficiently turn this into a tidy data frame:</p>
+<pre class="r"><code>unlist2d(l, idcols = c(&quot;Variable&quot;, &quot;Trans&quot;),
+         row.names = &quot;Partner&quot;, DT = TRUE) %&gt;% head(3)
+##            Variable   Trans Partner     N      Mean         SD  Min        Max
+## 1: export_value_usd Overall     afg  7250 2170074.0 21176449.3   56 1115125722
+## 2: export_value_usd Overall     ago 12427 2188174.6 17158413.8    1  687323408
+## 3: export_value_usd Overall     aia  6692  125729.3   586862.2 2503   17698445</code></pre>
+<p>If <code>l</code> were some statistical object we could first pull out relevant elements using <code>get_elem</code>, possibly process those elements using <code>rapply2d</code> and then apply <code>unlist2d</code> to get the data frame (or data.table with <code>DT = TRUE</code>). These are the main <em>collapse</em> list-processing functions.</p>
+<p>Now on to the benchmark. It is run on a Windows 8.1 laptop with a 2x 2.2 GHZ Intel i5 processor, 8GB DDR3 RAM and a Samsung 850 EVO SSD hard drive.</p>
+<pre class="r"><code>library(microbenchmark)
+library(dplyr)
+library(data.table) # Default for this machine is 2 threads
+
+# Grouping (data.table:::forderv does not compute the unique groups yet)
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year),
+               data.table = data.table:::forderv(us_trade, c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;), retGrp = TRUE),
+               dplyr = group_by(us_trade, partner_iso, group_code, year), times = 10)
+## Unit: milliseconds
+##        expr       min        lq      mean    median        uq        max neval cld
+##    collapse  97.23371  98.32389  123.7255  107.0449  135.9751   239.6009    10   a
+##  data.table 102.88811 107.66742 1267.0891  111.4340  118.1944 11658.7908    10   a
+##       dplyr 924.67524 979.54759 1042.8808 1008.5981 1078.1861  1354.4466    10   a
+
+# Sum
+microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fsum),
+               data.table = us_trade[, list(export_value_usd = sum(export_value_usd, na.rm = TRUE),
+                                            import_value_usd = sum(import_value_usd, na.rm = TRUE)),
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(sum, na.rm = TRUE), times = 10)
+## Unit: milliseconds
+##        expr       min        lq      mean    median        uq       max neval cld
+##    collapse  107.1917  116.5861  128.3973  118.9365  150.3367  161.3135    10  a 
+##  data.table  169.3562  182.7400  198.2929  189.3267  221.8608  226.7869    10  a 
+##       dplyr 2332.0459 2426.7485 2652.3324 2568.5637 2791.4008 3263.4077    10   b
+
+# Mean
+microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fmean),
+               data.table = us_trade[, list(export_value_usd = mean(export_value_usd, na.rm = TRUE),
+                                            import_value_usd = mean(import_value_usd, na.rm = TRUE)),
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(mean, na.rm = TRUE), times = 10)
+## Unit: milliseconds
+##        expr       min        lq      mean    median        uq       max neval cld
+##    collapse  121.3204  125.5664  142.8944  132.4904  137.1090  214.3933    10  a 
+##  data.table  177.7091  187.3493  210.5166  201.0806  224.2513  269.5401    10  a 
+##       dplyr 6303.0662 7037.0073 7270.0693 7242.0813 7872.5290 8066.6510    10   b
+
+# Variance
+microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fvar),
+               data.table = us_trade[, list(export_value_usd = var(export_value_usd, na.rm = TRUE),
+                                            import_value_usd = var(import_value_usd, na.rm = TRUE)),
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% summarise_all(var, na.rm = TRUE), times = 10)
+## Unit: milliseconds
+##        expr        min         lq       mean     median         uq        max neval cld
+##    collapse   123.8475   126.6842   135.6485   134.5366   142.3431   153.3176    10  a 
+##  data.table   269.8578   284.1863   300.0291   287.6637   300.2628   365.7684    10  a 
+##       dplyr 10408.3787 10815.5928 11298.6246 11225.9573 11726.4892 12275.4899    10   b
+
+# Mode (forget trying to do this with dplyr or data.table using some mode function created in base R, it runs forever...)
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&gt;% 
+                 fselect(export_value_usd, import_value_usd) %&gt;% fmode, times = 10)
+## Unit: milliseconds
+##      expr      min       lq     mean  median       uq     max neval
+##  collapse 413.1148 430.7063 451.1648 443.147 459.1362 525.748    10
+
+# Weighted Mean (not easily done with dplyr)
+settransform(us_trade, weights = abs(rnorm(length(year))))
+microbenchmark(collapse = collap(us_trade, export_value_usd + import_value_usd ~ partner_iso + group_code + year, fmean, w = ~ weights, keep.w = FALSE),
+               data.table = us_trade[, list(export_value_usd = weighted.mean(export_value_usd, weights, na.rm = TRUE),
+                                            import_value_usd = weighted.mean(import_value_usd, weights, na.rm = TRUE)),
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)], times = 10)
+## Unit: milliseconds
+##        expr       min        lq      mean    median        uq       max neval cld
+##    collapse  114.2594  115.2599  118.7735  118.5715  122.2374  124.0246    10  a 
+##  data.table 5808.7005 5867.3619 5957.9288 5904.3373 5963.8040 6507.7393    10   b
+
+
+# Replace values with group-sum
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 fselect(export_value_usd, import_value_usd) %&gt;% fsum(TRA = &quot;replace_fill&quot;),
+               data.table = us_trade[, `:=`(export_value_usd2 = sum(export_value_usd, na.rm = TRUE),
+                                            import_value_usd2 = sum(import_value_usd, na.rm = TRUE)),
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(sum, na.rm = TRUE), times = 10)
+## Unit: milliseconds
+##        expr       min        lq      mean    median        uq       max neval cld
+##    collapse  128.8186  139.7133  154.8318  153.3190  167.7827  189.6136    10 a  
+##  data.table  823.7694  849.4982  861.1539  853.3544  869.0394  917.6767    10  b 
+##       dplyr 2464.5943 2653.9227 2812.6778 2772.3155 2884.5482 3335.0273    10   c
+
+# Centering, partner-product
+microbenchmark(collapse = fgroup_by(us_trade, partner_iso, product_code) %&gt;%
+                 fselect(export_value_usd, import_value_usd) %&gt;% fwithin,
+               data.table = us_trade[, `:=`(export_value_usd2 = export_value_usd - mean(export_value_usd, na.rm = TRUE),
+                                            import_value_usd2 = import_value_usd - mean(import_value_usd, na.rm = TRUE)),
+                                     by = c(&quot;partner_iso&quot;, &quot;group_code&quot;, &quot;year&quot;)],
+               dplyr = group_by(us_trade, partner_iso, group_code, year) %&gt;%
+                 dplyr::select(export_value_usd, import_value_usd) %&gt;% mutate_all(function(x) x - mean(x, na.rm = TRUE)), times = 10)
+## Unit: milliseconds
+##        expr       min         lq       mean     median        uq       max neval cld
+##    collapse   80.1893   88.50289   96.74396   96.62168  105.6455  109.0914    10 a  
+##  data.table 4537.3741 4578.44447 4788.89139 4816.80366 4876.4886 5071.2853    10  b 
+##       dplyr 6822.4752 7190.71493 7388.08024 7372.80011 7706.3514 7902.9720    10   c
+
+# Lag
+# Much better to sort data for dplyr
+setorder(us_trade, partner_iso, product_code, year)
+# We have an additional problem here: There are time-gaps within some partner-product pairs
+tryCatch(L(us_trade, 1, export_value_usd + import_value_usd ~ partner_iso + product_code, ~ year),
+         error = function(e) e)
+## &lt;Rcpp::exception in L.data.frame(us_trade, 1, export_value_usd + import_value_usd ~     partner_iso + product_code, ~year): Gaps in timevar within one or more groups&gt;
+# The solution is that we create a unique id for each continuous partner-product sequence
+settransform(us_trade, id = seqid(year + unattrib(finteraction(partner_iso, product_code)) * 20L))
+# Notes: Normally id = seqid(year) would be enough on sorted data, but here we also have very different start and end dates, with the potential of overlaps...
+fNdistinct(us_trade$id)
+## [1] 423884
+# Another comparison..
+microbenchmark(fNdistinct(us_trade$id), n_distinct(us_trade$id))
+## Unit: milliseconds
+##                     expr      min       lq     mean   median       uq       max neval cld
+##  fNdistinct(us_trade$id) 26.46380 26.84445 27.91192 27.25768 28.42417  37.60704   100  a 
+##  n_distinct(us_trade$id) 56.70598 64.67573 69.11154 65.50040 68.60963 145.39718   100   b
+
+# Here we go now:
+microbenchmark(collapse = L(us_trade, 1, export_value_usd + import_value_usd ~ id),
+               collapse_ordered = L(us_trade, 1, export_value_usd + import_value_usd ~ id, ~ year),
+               data.table = us_trade[, shift(.SD), keyby = id,
+                                     .SDcols = c(&quot;export_value_usd&quot;,&quot;import_value_usd&quot;)],
+               data.table_ordered = us_trade[order(year), shift(.SD), keyby = id,
+                                             .SDcols = c(&quot;export_value_usd&quot;,&quot;import_value_usd&quot;)],
+               dplyr = group_by(us_trade, id) %&gt;% dplyr::select(export_value_usd, import_value_usd) %&gt;%
+                 mutate_all(lag), times = 10)
+## Unit: milliseconds
+##                expr         min          lq        mean      median          uq         max neval
+##            collapse    18.57103    29.47686    34.75352    34.34208    39.30635    55.87373    10
+##    collapse_ordered    51.26266    57.90416    67.40628    66.86212    73.63482    94.11623    10
+##          data.table  7594.63120  7820.26944  7968.29873  7879.71628  8266.03880  8353.21097    10
+##  data.table_ordered  7622.66044  7635.12055  8090.12031  7726.25161  8492.04252  9428.44336    10
+##               dplyr 32428.73832 32583.82844 33584.48046 32903.50014 34725.72392 36189.46410    10
+##  cld
+##  a  
+##  a  
+##   b 
+##   b 
+##    c
+
+# Note: you can do ordered lags using mutate_all(lag, order_by = &quot;year&quot;) for dplyr, but at computation times in excess of 90 seconds..
+</code></pre>
+<p>The benchmarks show that <em>collapse</em> is consistently very fast. More extensive benchmarks against <em>dplyr</em> and <em>plm</em> are provided in the corresponding <a href="https://sebkrantz.github.io/collapse/articles/index.html">vignettes</a>.</p>
+<!-- But of course *collapse* cannot do a lot of things you can do with *dplyr* or *data.table* and vice-versa. It is and remains an advanced package, but I think it lives up to the high standards set forth by these packages. I am also highly indebted to *data.table* for inspiration and some vital bits of C-code. Feel free to get in touch for any suggestions or comments about *collapse*. I hope you will find it useful. -->
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p><code>fvar</code> and <code>fsd</code> compute frequency weights, the most common form of weighted sample variance. <a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>I note that all further examples generalize to different objects (vectors, matrices, data frames).<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Grouping objects are better for programming and for multiple grouping variables. This is demonstrated in the blog post on programming with <em>collapse</em>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>The within-group standard deviation is the standard deviation computed on the group-centered data.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+  </channel>
+</rss>
