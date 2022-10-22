@@ -1,9 +1,9 @@
 languageCode = "en-us"
 title = "R, Econometrics, High Performance"
 
-baseurl = "https://sebkrantz.github.io/Rblog/" # Rblog/
+baseurl = "https://sebkrantz.github.io/Rblog" # Rblog/
 publishDir = "docs"
-relativeURLs = true
+# relativeURLs = true
 
 theme = "hugo-lithium"
 googleAnalytics = ""

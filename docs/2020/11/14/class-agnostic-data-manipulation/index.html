@@ -27,8 +27,8 @@
 
 
 
-<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
-<link rel="stylesheet" href="../../../../css/main.css" media="all">
+<link rel="stylesheet" href="/Rblog/css/fonts.css" media="all">
+<link rel="stylesheet" href="/Rblog/css/main.css" media="all">
 
 
 
@@ -37,8 +37,8 @@
     <div class="wrapper">
       <header class="header">
         <nav class="nav">
-  <a href="../../../../" class="nav-logo">
-    <img src="../../../../images/logo.png"
+  <a href="/Rblog/" class="nav-logo">
+    <img src="/Rblog/images/logo.png"
          width="50"
          height="50"
          alt="Logo">
@@ -46,7 +46,7 @@
 
   <ul class="nav-links">
     
-    <li><a href="../../../../about/">About</a></li>
+    <li><a href="/Rblog/about/">About</a></li>
     
     <li><a href="https://github.com/SebKrantz">GitHub</a></li>
     
@@ -73,8 +73,8 @@
 
     <div class="article-content">
       
-<link href="../../../../Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
-<script src="../../../../Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
 <p>In <a href="https://sebkrantz.github.io/Rblog/"><em>previous posts</em></a> I introduced <a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a>, a powerful (C/C++ based) new framework for data transformation and statistical computing in R - providing advanced grouped, weighted, time series, panel data and recursive computations in R at superior execution speeds, greater flexibility and programmability.</p>
@@ -354,7 +354,7 @@ nc &lt;- st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
 
 # Fast selecting columns (need to add &#39;geometry&#39; column to not break the class)
 plot(fselect(nc, AREA, geometry))</code></pre>
-<p><img src="../../../../Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-13-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-13-1.png" width="100%" /></p>
 <pre class="r"><code>
 # Subsetting 
 fsubset(nc, AREA &gt; 0.23, NAME, AREA, geometry)
@@ -418,7 +418,7 @@ head(fscale(m, g = mtcars$cyl, w = mtcars$wt), 3)
 <pre class="r"><code># ts / mts
 # Note: G() by default renames the columns, fgrowth() does not
 plot(G(EuStockMarkets))</code></pre>
-<p><img src="../../../../Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-1.png" width="100%" /></p>
 <pre class="r"><code># xts
 library(xts) 
 ESM_xts &lt;- ts_xts(EuStockMarkets) # using tsbox::ts_xts
@@ -429,7 +429,7 @@ head(G(ESM_xts), 3)
 ## 1991-07-03 21:44:38 -0.4412412 -0.5863192 -1.856612 -0.4877652
 
 plot(G(ESM_xts), legend.loc = &quot;bottomleft&quot;)</code></pre>
-<p><img src="../../../../Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-2.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-2.png" width="100%" /></p>
 <pre class="r"><code># timeSeries
 library(timeSeries) # using tsbox::ts_timeSeries
 ESM_timeSeries &lt;- ts_timeSeries(EuStockMarkets)
@@ -443,7 +443,7 @@ head(G(ESM_timeSeries), 3)
 
 plot(G(ESM_timeSeries), plot.type = &quot;single&quot;, at = &quot;pretty&quot;)
 legend(&quot;bottomleft&quot;, colnames(G(qM(ESM_timeSeries))), lty = 1, col = 1:4)</code></pre>
-<p><img src="../../../../Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-3.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-11-14-class-agnostic-data-manipulation_files/figure-html/unnamed-chunk-16-3.png" width="100%" /></p>
 <p>Aggregating these objects yields a plain matrix with groups in the row-names:</p>
 <pre class="r"><code># Aggregating by year: creates plain matrix with row-names (g is second argument)
 EuStockMarkets %&gt;% fmedian(round(time(.)))
@@ -587,10 +587,10 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
       <footer class="footer">
         <ul class="footer-links">
           <li>
-            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+            <a href="/Rblog/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
           </li>
           <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/Rblog/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
           </li>
         </ul>
       </footer>
@@ -611,7 +611,7 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
 
 
     
-<script src="../../../../js/math-code.js"></script>
+<script src="/js/math-code.js"></script>
 <script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
 

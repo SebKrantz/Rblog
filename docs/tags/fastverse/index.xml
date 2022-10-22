@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>fastverse on R, Econometrics, High Performance</title>
-    <link>/tags/fastverse/</link>
+    <link>https://sebkrantz.github.io/Rblog/tags/fastverse/</link>
     <description>Recent content in fastverse on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="/tags/fastverse/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/fastverse/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Introducing dfms: Efficient Estimation of Dynamic Factor Models in R</title>
-      <link>/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</link>
+      <link>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</link>
       <pubDate>Sat, 22 Oct 2022 00:00:00 +0000</pubDate>
       
-      <guid>/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</guid>
       <description><![CDATA[ 
 
 
@@ -42,10 +42,10 @@
     
     <item>
       <title>Introducing the fastverse: An Extensible Suite of High-Performance and Low-Dependency Packages for Statistical Computing and Data Manipulation</title>
-      <link>/2021/08/13/fastverse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</link>
       <pubDate>Fri, 13 Aug 2021 00:00:00 +0000</pubDate>
       
-      <guid>/2021/08/13/fastverse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2021/08/13/fastverse/</guid>
       <description><![CDATA[ 
 <script src="/Rblog/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
@@ -329,10 +329,10 @@ fastverse_detach()</code></pre>
     
     <item>
       <title>Fast and Easy Aggregation of Multi-Type and Survey Data in R</title>
-      <link>/2021/01/09/advanced-data-aggregation/</link>
+      <link>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</link>
       <pubDate>Sat, 09 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>/2021/01/09/advanced-data-aggregation/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2021/01/09/advanced-data-aggregation/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -748,10 +748,10 @@ microbenchmark(
     
     <item>
       <title>Forecasting Tax Revenue with Error Correction Models</title>
-      <link>/2020/12/02/ecm-for-tax-revenue-forecasting/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</link>
       <pubDate>Wed, 02 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/2020/12/02/ecm-for-tax-revenue-forecasting/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -1654,10 +1654,10 @@ eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_
     
     <item>
       <title>Fast Class-Agnostic Data Manipulation in R</title>
-      <link>/2020/11/14/class-agnostic-data-manipulation/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</link>
       <pubDate>Sat, 14 Nov 2020 00:00:00 +0000</pubDate>
       
-      <guid>/2020/11/14/class-agnostic-data-manipulation/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/11/14/class-agnostic-data-manipulation/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -2144,10 +2144,10 @@ microbenchmark(collapse_xts = fdiff(ESM_xts, -1:1, diff = 1:2),
     
     <item>
       <title>Efficient Grouped Programming in R and/or C/C&#43;&#43; - with the collapse Package</title>
-      <link>/2020/09/13/programming-with-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</link>
       <pubDate>Sun, 13 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/2020/09/13/programming-with-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/09/13/programming-with-collapse/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
@@ -2446,10 +2446,10 @@ system.time(ganyNA(x, g, use.g.names = FALSE))
     
     <item>
       <title>Introducing collapse: Advanced and Fast Data Transformation in R</title>
-      <link>/2020/08/31/welcome-to-collapse/</link>
+      <link>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</link>
       <pubDate>Mon, 31 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>/2020/08/31/welcome-to-collapse/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/</guid>
       <description><![CDATA[ 
 <link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
 <script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>

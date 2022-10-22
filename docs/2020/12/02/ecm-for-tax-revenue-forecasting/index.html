@@ -27,8 +27,8 @@
 
 
 
-<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
-<link rel="stylesheet" href="../../../../css/main.css" media="all">
+<link rel="stylesheet" href="/Rblog/css/fonts.css" media="all">
+<link rel="stylesheet" href="/Rblog/css/main.css" media="all">
 
 
 
@@ -37,8 +37,8 @@
     <div class="wrapper">
       <header class="header">
         <nav class="nav">
-  <a href="../../../../" class="nav-logo">
-    <img src="../../../../images/logo.png"
+  <a href="/Rblog/" class="nav-logo">
+    <img src="/Rblog/images/logo.png"
          width="50"
          height="50"
          alt="Logo">
@@ -46,7 +46,7 @@
 
   <ul class="nav-links">
     
-    <li><a href="../../../../about/">About</a></li>
+    <li><a href="/Rblog/about/">About</a></li>
     
     <li><a href="https://github.com/SebKrantz">GitHub</a></li>
     
@@ -73,8 +73,8 @@
 
     <div class="article-content">
       
-<link href="../../../../Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
-<script src="../../../../Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+<link href="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/Rblog/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
 <p>There are several ways to forecast tax revenue. The IMF <a href="https://courses.edx.org/asset-v1:IMFx+FPP.1x+1T2017+type@asset+block@FPP1x_Manual.pdf"><em>Financial Programming Manual</em></a> reviews 3 of them: (i) the effective tax rate approach; (ii) the elasticity approach; and (iii) the regression approach. Approach (iii) typically results in the most accurate short-term forecasts. The simple regression approach regresses tax revenue on its own lags and GDP with some lags.</p>
@@ -107,12 +107,12 @@ plot(na_omit(X)[-1L, ] %&gt;% setColnames(.c(Revenue, GDP)),
      multi.panel = TRUE, yaxis.same = FALSE, 
      main = &quot;Domestic Revenue and GDP (in Logs)&quot;, 
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="../../../../Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-1.png" width="100%" /></p>
 <pre class="r"><code># Plotting the log-differenced data
 plot(na_omit(D(X)), legend.loc = &quot;topleft&quot;, 
      main = &quot;Revenue and GDP in Quarterly Log-Differences&quot;,
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="../../../../Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-2.png" width="100%" />
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-1-2.png" width="100%" />
 The data was not seasonally adjusted as revenue and GDP exhibit similar seasonal patterns. Summarizing the log-differenced using a function designed for panel data allows us to assess the extent of seasonality relative to overall variation.</p>
 <pre class="r"><code># Summarize between and within quarters
 tfmv(data, 3:4, D) %&gt;% qsu(pid = lrev + lgdp ~ Quarter)
@@ -321,7 +321,7 @@ GDPdum
 res &lt;- resid(cieq) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 plot(res[-1L, ], main = &quot;Residuals from Cointegration Equation&quot;, 
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="../../../../Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
 <pre class="r"><code># Testing residuals: Stationary
 adf.test(res)
 ## 
@@ -838,7 +838,7 @@ ECM2_fit &lt;- fitted(ecm2) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 plot(D(X[, &quot;lrev&quot;]) %&gt;% merge(ECM1_fit, ECM2_fit) %&gt;% na_omit, 
      main = &quot;Dlog Revenue and ECM Fit&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="../../../../Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 <p>Both the fit statistics and fitted values suggest that ECM2 is a feasible forecasting specification that avoids the need to first forecast quarterly GDP.</p>
 <p>The true forecasting performance of the model can only be estimated through out of sample forecasts. Below I compute 1 quarter ahead forecasts for quarters 2018Q1 through 2019Q4 using an expanding window where both the cointegration equation and the ECM are re-estimated for each new period.</p>
 <pre class="r"><code># Function to forecast with expanding window from start year (using ECM2 specification)
@@ -866,7 +866,7 @@ ECM_oos_fc &lt;- forecast_oos(na_omit(X))
 plot(ECM_oos_fc[&quot;2009/&quot;, ], 
      main = &quot;Out of Sample Expanding Window Forecast from ECM&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="../../../../Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="/Rblog/post/2020-12-02-the-ecm-approach-to-short-term-revenue-forecasting_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <!-- Old forecasting: Problematic !!
 # library(dynlm)
 # forecast_oos <- function(x, start = 2018) {
@@ -1003,10 +1003,10 @@ eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_
       <footer class="footer">
         <ul class="footer-links">
           <li>
-            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+            <a href="/Rblog/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
           </li>
           <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/Rblog/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
           </li>
         </ul>
       </footer>
@@ -1027,7 +1027,7 @@ eval_forecasts(ECM_oos_fc_cc[, &quot;D1.lrev&quot;], ECM_oos_fc_cc[, &quot;ECM2_
 
 
     
-<script src="../../../../js/math-code.js"></script>
+<script src="/js/math-code.js"></script>
 <script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
 
