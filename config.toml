@@ -1,7 +1,7 @@
 languageCode = "en-us"
 title = "R, Econometrics, High Performance"
 
-baseurl = "https://sebkrantz.github.io/Rblog/"
+baseurl = "https://sebkrantz.github.io/" # Rblog/
 publishDir = "docs"
 
 theme = "hugo-lithium"
