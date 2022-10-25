@@ -9,16 +9,16 @@ tags: ["R", "C++", "econometrics", "time series", "dynamic factor models"]
 
 This short post notifies you of the CRAN release of a new R package, [dfms](<https://CRAN.R-project.org/package=dfms>), to efficiently estimate dynamic factor models in R using the Expectation Maximization (EM) algorithm and Kalman Filtering. Estimation can be done in 3 different ways following:
 
-- Doz, C., Giannone, D., & Reichlin, L. (2011). A two-step estimator for large approximate dynamic factor models based on Kalman filtering. *Journal of Econometrics, 164*(1), 188-205. <doi:10.1016/j.jeconom.2011.02.012> 
+- Doz, C., Giannone, D., & Reichlin, L. (2011). A two-step estimator for large approximate dynamic factor models based on Kalman filtering. *Journal of Econometrics, 164*(1), 188-205. <doi.org/10.1016/j.jeconom.2011.02.012> 
 
-- Doz, C., Giannone, D., & Reichlin, L. (2012). A quasi-maximum likelihood approach for large, approximate dynamic factor models. *Review of economics and statistics, 94*(4), 1014-1024. <doi:10.1162/REST_a_00225>
+- Doz, C., Giannone, D., & Reichlin, L. (2012). A quasi-maximum likelihood approach for large, approximate dynamic factor models. *Review of economics and statistics, 94*(4), 1014-1024. <doi.org/10.1162/REST_a_00225>
 
-- Banbura, M., & Modugno, M. (2014). Maximum likelihood estimation of factor models on datasets with arbitrary pattern of missing data. *Journal of Applied Econometrics, 29*(1), 133-160. <doi:10.1002/jae.2306>
+- Banbura, M., & Modugno, M. (2014). Maximum likelihood estimation of factor models on datasets with arbitrary pattern of missing data. *Journal of Applied Econometrics, 29*(1), 133-160. <doi.org/10.1002/jae.2306>
 
-The models is
+The general model is
 
 $$\textbf{x}_t = \textbf{C} \textbf{f}_t + \textbf{e}_t \ \sim\  N(\textbf{0}, \textbf{R})$$
-$$\textbf{f}_t = \sum_{i=1}^p \textbf{A}_p \textbf{f}_{t-p} + \textbf{u}_t \ \sim\  N(\textbf{0}, \textbf{Q})$$
+$$\textbf{f}_t = \sum_{j=1}^p \textbf{A}_j \textbf{f}_{t-j} + \textbf{u}_t \ \sim\  N(\textbf{0}, \textbf{Q})$$
 
 where the first equation is called the measurement or observation equation, the second equation is called transition, state or process equation, and
 

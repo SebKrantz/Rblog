@@ -163,7 +163,7 @@ Using a config file in a project will ignore any global configuration as discuss
 
 ## Suggested Extensions
 
-The *fastverse* can be freely extended with any R package, but I have put together a list of suggested high-performance and low-dependency packages in the [README](<https://sebkrantz.github.io/fastverse/#suggested-extensions>) file. You are free to contribute to this list, so that it becomes a comprehensive showcase of R's high-performance world as far as statistical computing and data manipulation is concerned. 
+The *fastverse* can be freely extended with any R package, but I have put together a list of suggested high-performance and low-dependency packages in the [README](<https://fastverse.github.io/fastverse/#suggested-extensions>) file. You are free to contribute to this list, so that it becomes a comprehensive showcase of R's high-performance world as far as statistical computing and data manipulation is concerned. 
 
 ## Installation: Versions of the *fastverse*
 
@@ -182,7 +182,7 @@ remotes::install_github("SebKrantz/fastverse")
 
 The *fastverse* was developed principally for 2 reasons: to promote quality high-performance software development for R, and to provide a flexible approach to package loading and management in R, particularly for users wishing to combine various high-performance packages in statistical workflows. 
 
-This post already introduced most of what there is to know about the *fastverse*. Additional details are found on the [website](<https://sebkrantz.github.io/fastverse/>). 
+This post already introduced most of what there is to know about the *fastverse*. Additional details are found on the [website](<https://fastverse.github.io/fastverse/>). 
 
 ```{r}
 # Resetting the fastverse to defaults (clearing all permanent extensions and options)
