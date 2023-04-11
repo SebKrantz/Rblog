@@ -2,7 +2,7 @@
 title: 'collapse and the fastverse: Reflections on the Past, Present and Future'
 subtitle: 'With Examples from Geospatial Data Science'
 author: Package Build
-date: '2023-04-09'
+date: '2023-04-12'
 slug: collapse-and-the-fastverse-reflecting-the-past-present-and-future
 categories: ["R"]
 tags: ["R", "collapse", "fastverse"]

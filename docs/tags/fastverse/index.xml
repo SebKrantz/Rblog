@@ -6,7 +6,350 @@
     <description>Recent content in fastverse on R, Econometrics, High Performance</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/fastverse/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 12 Apr 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/fastverse/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>collapse and the fastverse: Reflections on the Past, Present and Future</title>
+      <link>https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/</link>
+      <pubDate>Wed, 12 Apr 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/</guid>
+      <description><![CDATA[ 
+
+
+<p>Last week <a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> reached 1M downloads off CRAN. This is a milestone that was largely unforeseen for a package that started 4 years ago as a collection of functions intended to ease the R life of an economics master student. Today, <em>collapse</em> provides cutting-edge performance in many areas of statistical computing and data manipulation, and a breadth of statistical algorithms that can meet applied economists’ or statisticians’ demands on a programming environment like R. It is also the only programming framework in R that is effectively class-agnostic. Version 1.9.5 just released to CRAN this week, is also the first version that includes Single Instruction Multiple Data (SIMD) instructions for a limited set of operations. The future will see more efforts to take advantage of the capabilities of modern processors.</p>
+<p>Meanwhile, the <a href="https://fastverse.github.io/fastverse/"><em>fastverse</em></a> - a lightweight collection of C/C++-based R packages for statistical computing and data manipulation - is becoming more popular as an alternative to the <a href="https://www.tidyverse.org/"><em>tidyverse</em></a> for data analysis and as backends to statistical packages developed for R - a trend that is needed.</p>
+<p>It is on this positive occasion that I decided it was the right time to provide you with a personal note, or rather, some reflections, regarding the history, present state, and the future of <em>collapse</em> and the <em>fastverse</em>.</p>
+<div id="the-past" class="section level1">
+<h1>The Past</h1>
+<p><em>collapse</em> started in 2019 as a small package with only two functions: <code>collap()</code> - intended to facilitate the aggregation of mixed-type data in R, and <code>qsu()</code> - intended to facilitate summarizing panel data in R. Both were inspired by <a href="https://www.stata.com/"><em>STATA’s</em></a> <code>collapse</code> and <code>(xt)summarize</code> commands, and implemented with <a href="https://rdatatable.gitlab.io/data.table/"><em>data.table</em></a> as a backend. The package - called <em>collapse</em> alluding to the STATA command - would probably have stayed this way, had not unforeseen events affected my career plans.</p>
+<p>Having completed a master’s in international economics in summer 2019, I was preparing for a two-year posting as an ODI Fellow in the Central Bank of Papua New Guinea in fall. However, things did not work out, I had difficulties getting a working visa and there were coordination issues with the Bank, so ODI decided to offer me a posting in the Ugandan Ministry of Finance, starting in January 2020. This gave me 4 months, September-December 2019, during which I ended up writing a new backend for <em>collapse</em> - in C++.</p>
+<p>While <em>collapse</em> with <em>data.table</em> backed was never particularly slow, some of the underlying metaprogramming seemed arcane, especially because I wanted to utilize <em>data.table</em>’s GeForce optimizations which require the aggregation function to be recognizable in the call for <em>data.table</em> to internally replace it with an optimized version. But there were also statistical limitations. As an economist, I often employed sampling or trade weights in statistics, and in this respect, R was quite limited. There was also no straightforward way to aggregate categorical data, using, as I would have it, a (weighted) statistical mode function. I also felt R was lacking basic things in the time series domain - evidenced by the lengths I went to handle (irregular) trade panels. Finally, I felt limited by the division of software development around different classes in R. I found <em>data.table</em> useful for analytics, but the class too complex to behave in predictable ways. Thus I often ended up converting back to ‘data.frame’ or ‘tibble’ to use functions from a different package. Sometimes it would also have been practical to simply keep data as a vector or matrix - in linear-algebra-heavy programs - but I needed <em>data.table</em> to do something ‘by groups’. So in short, my workflow in R employed frequent object conversions, faced statistical limitations, and, in the case of early <em>collapse</em>’s <em>data.table</em> backend, also involved tedious metaprogramming.</p>
+<p>The will for change pushed me to practically rethink the way statistics could be done in R. It required a framework that encompassed increased statistical complexity, including advanced statistical algorithms like (weighted) medians, quantiles, modes, support for (irregular) time series and panels etc., and enabling these operations to be vectored efficiently across many groups and columns without a limiting syntax that would again encourage metaprogramming. The framework would also need to be class-agnostic/support multiple R objects and classes, to easily integrate with different frameworks and reduce the need for object conversions. These considerations led to the creation of a comprehensive set of S3 generic grouped and weighted <a href="https://sebkrantz.github.io/collapse/reference/fast-statistical-functions.html"><em>Fast Statistical Functions</em></a> for vectors matrices and data.frame-like objects, initially programmed fully in C++. The functions natively supported R factors for grouping. To facilitate programming further, I created multivariate <a href="https://sebkrantz.github.io/collapse/reference/GRP.html">grouping (‘GRP’) objects</a> that could be used to perform multiple statistical operations across the same groups without grouping overhead. With this backend and hand, it was easy to reimplement <a href="https://sebkrantz.github.io/collapse/reference/collap.html"><code>collap()</code></a><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>, and also provide a whole array of other useful functions, including dplyr-like functions like <code>fgroup_by()</code>, and <a href="https://sebkrantz.github.io/collapse/reference/time-series-panel-series.html">time series functions</a> that could be used ad-hoc but also supported <a href="https://cran.r-project.org/package=plm"><em>plm</em>’s</a> indexed ‘pseries’ and ‘pdata.frame’ classes. <em>collapse</em> 1.0.0, released to CRAN on 19th March 2020 (me sitting in the Ugandan finance ministry) was already a substantial piece of statistical software offering cutting-edge performance (see the benchmarks in the <a href="https://sebkrantz.github.io/Rblog/2020/08/31/welcome-to-collapse/"><em>introductory blog post</em></a>).</p>
+<p>To then cut a long story short, in the coming 3 years <em>collapse</em> became better, broader, and faster in multiple iterations. Additional speed came especially from rewriting central parts of the package in C - reimplementing some core algorithms in C rather than relying on the <a href="https://en.cppreference.com/w/cpp/algorithm"><em>C++ standard library</em></a> or <a href="https://dirk.eddelbuettel.com/code/rcpp/Rcpp-sugar.pdf"><em>Rcpp sugar</em></a> - as well as introducing <a href="https://sebkrantz.github.io/collapse/reference/TRA.html">data transformation by reference</a> and <a href="https://sebkrantz.github.io/collapse/reference/collapse-options.html">OpenMP multithreading</a>. For example, <a href="https://sebkrantz.github.io/collapse/reference/fmode.html"><code>fmode()</code></a>, rewritten from C++ to C for v1.8.0 (May 2022), became about 3x faster in serial mode (grouped execution), with additional gains through multithreading across groups. Other noteworthy functionality was a modern reimplementation of ‘pseries’ and ‘pdata.frame’, through <a href="https://sebkrantz.github.io/collapse/reference/indexing.html">‘indexed_frame’ and ‘indexed_series’ classes</a>, fully fledged <a href="https://sebkrantz.github.io/collapse/reference/fsummarise.html"><code>fsummarise()</code></a>, <a href="https://sebkrantz.github.io/collapse/reference/ftransform.html"><code>fmutate()</code></a> and <a href="https://sebkrantz.github.io/collapse/reference/across.html"><code>across()</code></a> functions enabling <em>tidyverse</em>-like programming with vectorization for <em>Fast Statistical Functions</em> in the backend, a set of functions facilitating <a href="https://sebkrantz.github.io/collapse/reference/efficient-programming.html">memory efficient R programming</a> and low-cost <a href="https://sebkrantz.github.io/collapse/reference/quick-conversion.html">data object conversions</a>, functions to effectively deal with <a href="https://sebkrantz.github.io/collapse/reference/list-processing.html">(nested) lists of data objects</a> - such as unlisting to data frame with <a href="https://sebkrantz.github.io/collapse/reference/unlist2d.html"><code>unlist2d()</code></a>, and additional <a href="https://sebkrantz.github.io/collapse/reference/summary-statistics.html">descriptive statistical tools</a> like <a href="https://sebkrantz.github.io/collapse/reference/qtab.html"><code>qtab()</code></a> and <a href="https://sebkrantz.github.io/collapse/reference/descr.html"><code>descr()</code></a>. Particularly 2022 has seen two major updates: v1.7 and v1.8, and the bulk of development for 1.9 - released in January 2023. <!-- These updates significantly improved the functionality and performance of *collapse*, making it one of the most powerful statistical libraries available in any software environment. --> In improving <em>collapse</em>, I always took inspiration from other packages, most notably <em>data.table</em>, <em>kit</em>, <em>dplyr</em>, <em>fixest</em>, and R itself, to which I am highly indebted. The presentation of <em>collapse</em> at <a href="https://sebkrantz.github.io/collapse/index.html#presentation-at-user-2022">UseR 2022</a> in June 2022 marks another milestone of its establishment in the R community.</p>
+<p>While using R and improving <em>collapse</em>, I became increasingly aware that I was not alone in the pursuit of making R faster and statistically more powerful. Apart from well-established packages like <em>data.table</em>, <em>matrixStats</em>, and <em>fst</em>, I noticed and started using many smaller packages like <em>kit</em>, <em>roll</em>, <em>stringfish</em>, <em>qs</em>, <em>Rfast</em>, <em>coop</em>, <em>fastmap</em>, <em>fasttime</em>, <em>rrapply</em> etc. aimed at improving particular aspects of R in a statistical or computational sense, often offering clean C or C++ implementations with few R-level dependencies. I saw a pattern of common traits and development efforts that were largely complimentary and needed encouragement. My impression at the time - largely unaltered today - was that such efforts were ignored by large parts of the R user community. One reason is of course the lack of visibility and coordination, compared to institutional stakeholders like Rstudio and H2O backing the <em>tidyverse</em> and <em>data.table</em>. Another consideration, it seemed to me, was that the <em>tidyverse</em> is particularly popular simply because there exists an R package and website called <em>tidyverse</em> which loads a set of packages that work well together, and thus alleviates users of the burden of searching CRAN and choosing their own collection of data manipulation packages.</p>
+<p>Thus I decided in early 2021 to also create a meta package and <a href="https://github.com/fastverse/fastverse">GitHub repo</a> called <a href="https://fastverse.github.io/fastverse/"><em>fastverse</em></a> and use it to promote high-performance R packages with few dependencies. The first version 0.1.6 made it to CRAN in August 2021, attaching 6 core packages (<em>data.table</em>, <em>collapse</em>, <em>matrixStats</em>, <em>kit</em>, <em>fst</em> and <em>magrittr</em>), and allowing easy extension with additional packages using the <code>fastverse_extend()</code> function. With 7 total dependencies instead of 80, it was a considerably more lightweight and computationally powerful alternative to the <em>tidyverse</em>. The <a href="https://github.com/fastverse/fastverse#suggested-extensions">README</a> of the GitHub repository has grown largely due to suggestions from the community and now lists many of the highest performing and (mostly) lightweight R packages. Over time I also introduced more useful functionality into the <em>fastverse</em> package, such as the ability to configure the environment and set of packages included using a <a href="https://fastverse.github.io/fastverse/articles/fastverse_intro.html#custom-fastverse-configurations-for-projects"><code>.fastverse</code></a> file, an option to <a href="https://fastverse.github.io/fastverse/reference/fastverse_extend.html">install missing packages on the fly</a>, and the <a href="https://fastverse.github.io/fastverse/reference/fastverse_child.html"><code>fastverse_child()</code></a> function to create wholly separate package verses. Observing my own frequent usage of <em>data.table</em>, <em>collapse</em>, <em>kit</em>, and <em>magrittr</em> in combination, I did a poll on Twitter in Fall 2022 suggesting the removal of <em>matrixStats</em> and <em>fst</em> from the core set of packages - which as accepted and implemented from v0.3.0 (November 2022). The <em>fastverse</em> package has thus become an extremely lightweight, customizable, and fast <em>tidyverse</em> alternative.</p>
+<!-- . The proposal was accepted, thus since v0.3.0 (November 2022), the core *fastverse* only consists of *data.table*, *collapse*, *kit* and *magrittr*, depends only on *Rcpp*, and offers several possibilities of customization and extension with additional packages. It has become an extremely lightweight, flexible and fast *tidyverse* alternative. -->
+</div>
+<div id="the-present" class="section level1">
+<h1>The Present</h1>
+<p>Today, both <em>collapse</em> and <em>fastverse</em> are well established in a part of the R community closer to econometrics and high-performance statistics. A growing number of econometric packages benefit from <em>collapse</em> as a computational backend, most notably the well-known <a href="https://cran.r-project.org/package=plm"><em>plm</em></a> package - which experienced order-of-magnitude performance gains. I am also developing <a href="https://github.com/SebKrantz/dfms"><em>dfms</em></a> (first CRAN release October 2022), demonstrating that very efficient estimation of Dynamic Factor Models is possible in R combining <em>collapse</em> and <em>RcppArmadillo</em>. <em>collapse</em> is also powering various shiny apps across the web. I ended up creating a <em>collapse</em>-powered public <a href="https://mepd.finance.go.ug/apps/macro-data-portal/">macroeconomic data portal</a> for Uganda, and later, at the Kiel Institute for the World Economy, for <a href="https://africamonitor.ifw-kiel.de/">Africa at large</a>.</p>
+<p>So <em>collapse</em> has made it into production in my own work and the work of others. Core benefits in my experience are that it is lightweight to install on a server, has very low baseline function execution speeds (of a few microseconds instead of milliseconds with most other frameworks) making for speedy reaction times, scales very well to large data, and supports multiple R objects and modes of programming - reducing the need for metaprogramming. Since my own work and the work of others depends on it, API stability has always been important. <em>collapse</em> has not seen any major API changes in updates v1.7-v1.9, and currently no further API changes are planned. This lightweight and robust nature - characteristic of all core <em>fastverse</em> packages esp. <em>data.table</em> - stands in contrast to <em>dplyr</em>, who’s core API involving <code>summarise()</code>, <code>mutate()</code> and <code>across()</code> keeps changing to an extent that at some point in 2022 I removed unit tests of <code>fsummarise()</code> and <code>fmutate()</code> against the <em>dplyr</em> versions from CRAN.</p>
+<p>Apart from development, it has also been very fun using the <em>fastverse</em> in the wild for some research projects. Lately, I’ve been working a lot with geospatial data, where the <em>fastverse</em> has enabled numerous interesting applications.</p>
+<p>For example, I was interested in how the area of OSM buildings needs to be scaled using a power weight to correlate optimally with nightlights luminosity within a million cells of populated places in Sub-Saharan Africa. Having extracted around 12 million buildings from OSM, I programmed the following objective function and optimized it for power weights between 0.0001 and 5.</p>
+<pre class="r"><code>library(fastverse)       
+library(microbenchmark)
+
+a &lt;- abs(rnorm(12e6, 100, 100))            # Think of this as building areas in m^2
+g &lt;- GRP(sample.int(1e6, 12e6, TRUE))      # Think of this as grid cells
+y &lt;- fsum(a^1.5, g, use.g.names = FALSE) + # Think of this as nightlights 
+     rnorm(g$N.groups, sd = 10000)  
+length(y)
+## [1] 999989
+
+# Objective function
+cor_ay &lt;- function(w, a, y) {
+  aw_agg = fsum(a^w, g, use.g.names = FALSE, na.rm = FALSE)
+  cor(aw_agg, y) 
+}
+
+# Checking the speed of the objective
+microbenchmark(cor_ay(2, a, y))
+## Unit: milliseconds
+##             expr      min      lq     mean   median       uq      max neval
+##  cor_ay(2, a, y) 30.42331 32.1136 35.02078 34.43118 36.75326 55.36505   100
+
+# Now the optimization
+system.time(res &lt;- optimise(cor_ay, c(0.0001, 5), a, y, maximum = TRUE))
+##    user  system elapsed 
+##   1.375   0.051   1.427
+res
+## $maximum
+## [1] 1.501067
+## 
+## $objective
+## [1] 0.5792703</code></pre>
+<p>The speed of the objective due to <code>GRP()</code> and <code>fsum()</code><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> allowed further subdivision of buildings into different classes, and experimentation with finer spatial resolutions.</p>
+<p>Another recent application involved finding the 100 nearest neighbors for each of around 100,000 cells (rows) in a rich geospatial dataset with about 50 variables (columns), and estimating a simple proximity-weighted linear regression of an outcome of interest <code>y</code> on a variable of interest <code>z</code>. Since computing a distance matrix on 100,000 rows up-front is infeasible memory-wise, I needed to go row-by-row. Here functions <code>dapply()</code>, <code>fdist()</code> and <code>flm()</code> from <em>collapse</em>, and <code>topn()</code> from <em>kit</em> became very handy.</p>
+<pre class="r"><code># Generating the data
+X &lt;- rnorm(5e6)       # 100,000 x 50 matrix of characteristics
+dim(X) &lt;- c(1e5, 50)
+z &lt;- rnorm(1e5)       # Characteristic of interest
+y &lt;- z + rnorm(1e5)   # Outcome of interest
+Xm &lt;- t(forwardsolve(t(chol(cov(X))), t(X)))    # Transform X to compute Mahalanobis distance (takes account of correlations)
+
+# Coefficients for a single row
+coef_i &lt;- function(row_i) {
+    mdist = fdist(Xm, row_i, nthreads = 2L)                           # Mahalanobis distance
+    best_idx = topn(mdist, 101L, hasna = FALSE, decreasing = FALSE)   # 100 closest points
+    best_idx = best_idx[mdist[best_idx] &gt; 0]                          # Removing the point itself (mdist = 0)
+    weights = 1 / mdist[best_idx]                                     # Distance weights
+    flm(y[best_idx], z[best_idx], weights, add.icpt = TRUE)           # Weighted lm coefficients
+}
+
+# Benchmarking a single execution
+microbenchmark(coef_i(Xm[1L, ]))
+## Unit: microseconds
+##              expr     min      lq     mean  median       uq      max neval
+##  coef_i(Xm[1L, ]) 927.051 965.591 1149.184 998.473 1031.068 3167.988   100
+
+# Compute coefficients for all rows
+system.time(coefs &lt;- dapply(Xm, coef_i, MARGIN = 1))
+##    user  system elapsed 
+## 214.942  10.322 114.123
+head(coefs, 3)
+##         coef_i1  coef_i2
+## [1,] 0.04329208 1.189331
+## [2,] 0.20741015 1.107963
+## [3,] 0.02860692 1.106427</code></pre>
+<p>Due to the efficiency of <code>fdist()</code> and <code>topn()</code>, a single call to the function takes around 1.2 milliseconds on the M1, giving a total execution time of around 120 seconds for 100,000 iterations of the program - one for each row of <code>Xm</code>.</p>
+<p>A final recent application involved creating geospatial GINI coefficients for South Africa using remotely sensed population and nightlights data. Since population data from <a href="https://hub.worldpop.org/geodata/listing?id=75">WorldPop</a> and Nightlights from <a href="https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG">Google Earth Engine</a> are easily obtained from the web, I reproduce the exercise here in full.</p>
+<pre class="r"><code># Downloading 1km2 UN-Adjusted population data for South Africa from WorldPop
+pop_year &lt;- function(y) sprintf(&quot;https://data.worldpop.org/GIS/Population/Global_2000_2020_1km_UNadj/%i/ZAF/zaf_ppp_%i_1km_Aggregated_UNadj.tif&quot;, y, y)
+for (y in 2014:2020) download.file(pop_year(y), mode = &quot;wb&quot;, destfile = sprintf(&quot;data/WPOP_SA_1km_UNadj/zaf_ppp_%i_1km_Aggregated_UNadj.tif&quot;, y))</code></pre>
+<p>VIIRS Nightlights are available on <a href="https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG">Google Earth Engine</a> on a monthly basis from 2014 to 2022. I extracted annual median composites for South Africa using instructions found <a href="https://worldbank.github.io/OpenNightLights/tutorials/mod3_6_making_VIIRS_annual_composites.html">here</a> and saved them to my <a href="https://drive.google.com/drive/folders/18xI75APNFkUx4pcTfFdX8Orm36lcLzva?usp=share_link">google drive</a><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+<pre class="r"><code># Reading population files using terra and creating a single data.table
+pop_data &lt;- list.files(pop_path) %&gt;% 
+  set_names(substr(., 9, 12)) %&gt;% 
+  lapply(function(x) paste0(pop_path, &quot;/&quot;, x) %&gt;% 
+           terra::rast() %&gt;% 
+           terra::as.data.frame(xy = TRUE) %&gt;% 
+           set_names(c(&quot;lon&quot;, &quot;lat&quot;, &quot;pop&quot;))) %&gt;% 
+  unlist2d(&quot;year&quot;, id.factor = TRUE, DT = TRUE) %&gt;% 
+  fmutate(year = as.integer(levels(year))[year]) %T&gt;% print(2)
+##            year      lon       lat      pop
+##           &lt;int&gt;    &lt;num&gt;     &lt;num&gt;    &lt;num&gt;
+##        1:  2014 29.62792 -22.12958 38.21894
+##        2:  2014 29.63625 -22.12958 19.25175
+##       ---                                  
+## 11420562:  2020 37.83625 -46.97958  0.00000
+## 11420563:  2020 37.84458 -46.97958  0.00000
+
+# Same for nightlights
+nl_data &lt;- list.files(nl_annual_path) %&gt;% 
+  set_names(substr(., 1, 4)) %&gt;% 
+  lapply(function(x) paste0(nl_annual_path, &quot;/&quot;, x) %&gt;% 
+           terra::rast() %&gt;% 
+           terra::as.data.frame(xy = TRUE) %&gt;% 
+           fsubset(avg_rad %!=% -9999)) %&gt;%  # Values outside land area of SA, coded using a mask in GEE
+  unlist2d(&quot;year&quot;, id.factor = TRUE, DT = TRUE) %&gt;%
+  frename(x = lon, y = lat) %&gt;% 
+  fmutate(year = as.integer(levels(year))[year]) %T&gt;% print(2)
+##            year      lon       lat    avg_rad
+##           &lt;int&gt;    &lt;num&gt;     &lt;num&gt;      &lt;num&gt;
+##        1:  2014 29.64583 -22.12500 0.08928293
+##        2:  2014 29.65000 -22.12500 0.04348474
+##       ---                                    
+## 58722767:  2022 20.00833 -34.83333 0.37000000
+## 58722768:  2022 20.01250 -34.83333 0.41000000</code></pre>
+<p>Since nightlights are available up to 2022, but population only up to 2020, I did a crude cell-level population forecast for 2021 and 2022 based on 1.6 million linear models of cell-level population between 2014 and 2020.</p>
+<pre class="r"><code># Unset unneeded options for greater efficiency
+set_collapse(na.rm = FALSE, sort = FALSE)
+system.time({
+# Forecasting population in 1.6 million grid cells based on linear regression
+pop_forecast &lt;- pop_data %&gt;% 
+  fgroup_by(lat, lon) %&gt;% 
+  fmutate(dm_year = fwithin(year)) %&gt;% 
+  fsummarise(pop_2020 = flast(pop),
+             beta = fsum(pop, dm_year) %/=% fsum(dm_year^2)) %&gt;% 
+  fmutate(pop_2021 = pop_2020 + beta, 
+          pop_2022 = pop_2021 + beta, 
+          beta = NULL)
+})
+##    user  system elapsed 
+##   0.210   0.054   0.263
+
+head(pop_forecast)
+##          lat      lon  pop_2020  pop_2021  pop_2022
+##        &lt;num&gt;    &lt;num&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;
+## 1: -22.12958 29.62792  52.35952  54.35387  56.34821
+## 2: -22.12958 29.63625  23.65122  24.44591  25.24060
+## 3: -22.12958 29.64458  33.29427  34.10418  34.91409
+## 4: -22.12958 29.65292 194.08760 216.78054 239.47348
+## 5: -22.12958 29.66125 123.92527 139.52940 155.13353
+## 6: -22.13792 29.56958  13.61020  13.39950  13.18880</code></pre>
+<p>The above expression is an optimized version of univariate linear regression: <code>beta = cov(pop, year)/var(year) = sum(pop * dm_year) / sum(dm_year^2)</code>, where <code>dm_year = year - mean(year)</code>, that is fully vectorized across 1.6 million groups. Two further tricks are applied here: <code>fsum()</code> has an argument for sampling weights, which I utilize here instead of writing <code>fsum(pop * dm_year)</code>, which would require materializing a vector <code>pop * dm_year</code> before summing. The division by reference (<code>%/=%</code>) saves another unneeded copy. The expression could also have been written in one line as <code>fsummarise(beta = fsum(pop, W(year)) %/=% fsum(W(year)^2))</code>, given that 3/4 of the computation time here is actually spent on grouping 11.4 million records by <code>lat</code> and <code>lon</code>. <!-- This indicates just how fast vectorized operations with *collapse* are. --></p>
+<pre class="r"><code># Appending population data with cell-level forecasts for 2021 and 2022
+pop_data_forecast &lt;- rbind(pop_data,
+  pop_forecast %&gt;% fselect(-pop_2020) %&gt;% rm_stub(&quot;pop_&quot;) %&gt;% 
+  melt(1:2, variable.name = &quot;year&quot;, value.name = &quot;pop&quot;) %&gt;% 
+  fmutate(year = as.integer(levels(year))[year]) %&gt;% 
+  colorder(year))</code></pre>
+<p>As you may have noticed, the nightlights data has a higher resolution of around 464m than the population data at 1km resolution. To match the two datasets, I use a function that transforms the coordinates to a rectilinear grid of a certain size in km, using an Approximation to the <a href="https://en.wikipedia.org/wiki/Haversine_formula">Haversine Formula</a> which rescales longitude coordinates based on the latitude coordinate (to have them approximately represent distance as at the equator). The coordinates are then divided by the grid size in km transformed to degrees at the equator, and the modulus from this division is removed. Afterward, half of the grid size is added again, reflecting the grid centroids. Finally, longitudes are rescaled back to their original extent using the same scale factor.</p>
+<pre class="r"><code># Transform coordinates to cell centroids of a rectilinear square grid of a certain size in kms
+round_to_kms_fast &lt;- function(lon, lat, km, round = TRUE, digits = 6) {
+  degrees = km / (40075.017 / 360)             # Gets the degree-distance of the kms at the equator
+  if(round) div = round(degrees, digits)       # Round to precision
+  res_lat = TRA(lat, div, &quot;-%%&quot;) %+=% (div/2)  # This transforms the data to the grid centroid
+  scale_lat = cos(res_lat * pi/180)            # Approx. scale factor based on grid centroid
+  res_lon = setTRA(lon * scale_lat, div, &quot;-%%&quot;) %+=% (div/2) %/=% scale_lat  
+  return(list(lon = res_lon, lat = res_lat))
+}</code></pre>
+<p>The virtue of this approach, while appearing crude and not fully respecting the spherical earth model, is that it allows arbitrary grid sizes and transforms coordinates from different datasets in the same way. To determine the grid size, I take the largest 2-digit grid size that keeps the population cells unique, i.e. that largest number such that:</p>
+<pre class="r"><code>pop_data %&gt;% ftransform(round_to_kms_fast(lon, lat, 0.63)) %&gt;% 
+  fselect(year, lat, lon) %&gt;% any_duplicated()
+## [1] FALSE</code></pre>
+<p>It turns out that 0.63km is the ideal grid size. I apply this to both datasets and merge them, aggregating nightlights using the mean<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
+<pre class="r"><code>system.time({
+nl_pop_data &lt;- pop_data_forecast %&gt;% 
+   ftransform(round_to_kms_fast(lon, lat, 0.63)) %&gt;% 
+   merge(nl_data %&gt;% ftransform(round_to_kms_fast(lon, lat, 0.63)) %&gt;% 
+         fgroup_by(year, lat, lon) %&gt;% fmean(), 
+         by = .c(year, lat, lon))
+})
+##    user  system elapsed 
+##   8.195   1.380   4.280
+head(nl_pop_data, 2)
+## Key: &lt;year, lat, lon&gt;
+##     year       lat      lon      pop    avg_rad
+##    &lt;int&gt;     &lt;num&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;
+## 1:  2014 -34.82266 19.98068 2.140570 0.07518135
+## 2:  2014 -34.82266 19.98758 4.118959 0.09241374</code></pre>
+<p>Given the matched data, I define a function to compute the weighted GINI coefficient and an unweighted version for comparison.</p>
+<pre class="r"><code># Taken from Wikipedia: with small-sample correction
+gini_wiki &lt;- function(x) 1 + 2/(length(x)-1) * (sum(seq_along(x)*sort(x)) / sum(x) - length(x))
+
+# No small-sample correction
+gini_noss &lt;- function(x) 2/length(x) * sum(seq_along(x)*sort(x)) / sum(x) - (length(x)+1)/length(x) 
+
+Skp1qm1 &lt;- function(k, q) (q-1)/2 * (2*(k+1) + q) + k + 1
+all.equal(Skp1qm1(30-1, 70+1), sum(30:100))
+## [1] TRUE
+
+# Weighted GINI (by default without correction)
+w_gini &lt;- function(x, w, sscor = FALSE) {
+  o = radixorder(x)
+  w = w[o]
+  x = x[o]
+  sw = sum(w)
+  csw = cumsum(w)
+  sx = Skp1qm1(c(0, csw[-length(csw)]), w) 
+  if(sscor) return(1 + 2/(sw-1)*(sum(sx*x) / sum(x*w) - sw)) 
+  2/sw * sum(sx*x) / sum(x*w) - (sw+1)/sw
+}</code></pre>
+<p>This computes the population-weighted and unweighted GINI on a percentage scale for each year.</p>
+<pre class="r"><code>raw_gini_ts &lt;- nl_pop_data %&gt;% 
+  fsubset(pop &gt; 0 &amp; avg_rad &gt; 0) %&gt;%
+  fgroup_by(year) %&gt;% 
+  fsummarise(gini = gini_noss(avg_rad)*100, 
+             w_gini = w_gini(avg_rad, pop)*100) %T&gt;% print()
+##     year     gini   w_gini
+##    &lt;int&gt;    &lt;num&gt;    &lt;num&gt;
+## 1:  2014 79.34750 55.51574
+## 2:  2015 91.35048 55.06437
+## 3:  2016 92.16993 54.75063
+## 4:  2017 55.96135 53.53097
+## 5:  2018 59.87219 52.84233
+## 6:  2019 64.43899 52.23766
+## 7:  2020 53.05498 51.15202
+## 8:  2021 52.19359 50.26020
+## 9:  2022 48.07294 49.69182
+
+# Plotting
+library(ggplot2)
+raw_gini_ts %&gt;% melt(1) %&gt;% 
+  ggplot(aes(x = year, y = value, colour = variable)) + 
+      geom_line()</code></pre>
+<p><img src="https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/index_files/figure-html/unnamed-chunk-11-1.png" width="100%" /></p>
+<p>As evident from the plot, the population-weighted GINI is more smooth, which could be due to unpopulated areas exhibiting greater fluctuations in nightlights (such as fires or flares).</p>
+<p>A final thing that we can do is calibrate the GINI to an official estimate. I use the <a href="https://CRAN.R-project.org/package=africamonitor"><em>africamonitor</em></a> R API to get World Bank GINI estimates for South Africa.</p>
+<pre class="r"><code>WB_GINI &lt;- africamonitor::am_data(&quot;ZAF&quot;, &quot;SI_POV_GINI&quot;) %T&gt;% print()
+## Key: &lt;Date&gt;
+##          Date SI_POV_GINI
+##        &lt;Date&gt;       &lt;num&gt;
+## 1: 1993-01-01        59.3
+## 2: 2000-01-01        57.8
+## 3: 2005-01-01        64.8
+## 4: 2008-01-01        63.0
+## 5: 2010-01-01        63.4
+## 6: 2014-01-01        63.0</code></pre>
+<p>The last estimate in the series is from 2014, estimating a GINI of 63%. To bring the nightlights data in line with this estimate, I again use <code>optimize()</code> to determine an appropriate power weight:</p>
+<pre class="r"><code>np_pop_data_pos_14 &lt;- nl_pop_data %&gt;% 
+  fsubset(pop &gt; 0 &amp; avg_rad &gt; 0 &amp; year == 2014, year, pop, avg_rad) 
+
+objective &lt;- function(k) {
+  nl_gini = np_pop_data_pos_14 %$% w_gini(avg_rad^k, pop) * 100
+  abs(63 - nl_gini)
+}
+
+res &lt;- optimize(objective, c(0.0001, 5)) %T&gt;% print()
+## $minimum
+## [1] 1.308973
+## 
+## $objective
+## [1] 0.0002598319</code></pre>
+<p>With the ideal weight determined, it is easy to obtain a final calibrated nightlights-based GINI series and use it to extend the World Bank estimate.</p>
+<pre class="r"><code>final_gini_ts &lt;- nl_pop_data %&gt;% 
+  fsubset(pop &gt; 0 &amp; avg_rad &gt; 0) %&gt;%
+  fgroup_by(year) %&gt;% 
+  fsummarise(nl_gini = w_gini(avg_rad^res$minimum, pop)*100) %T&gt;% print()
+##     year  nl_gini
+##    &lt;int&gt;    &lt;num&gt;
+## 1:  2014 62.99974
+## 2:  2015 62.49832
+## 3:  2016 62.22387
+## 4:  2017 61.22247
+## 5:  2018 60.54190
+## 6:  2019 59.82656
+## 7:  2020 58.83987
+## 8:  2021 57.93322
+## 9:  2022 57.51001
+
+final_gini_ts %&gt;% 
+  merge(WB_GINI %&gt;% fcompute(year = year(Date), wb_gini = SI_POV_GINI), 
+        by = &quot;year&quot;, all = TRUE) %&gt;% 
+  melt(&quot;year&quot;, na.rm = TRUE) %&gt;% 
+  ggplot(aes(x = year, y = value, colour = variable)) + 
+      geom_line() + scale_y_continuous(limits = c(50, 70))</code></pre>
+<p><img src="https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /></p>
+<p>It should be noted, at this point, that this estimate and the declining trend it shows may be seriously misguided. Research by <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3786572">Galimberti et al. (2020)</a> using the old <a href="https://developers.google.com/earth-engine/datasets/catalog/NOAA_DMSP-OLS_NIGHTTIME_LIGHTS">DMSP OLS Nightlights</a> series from 1992-2013 for 234 countries and territories, shows that nightlights based inequality measures much better resemble the cross-sectional variation in inequality between countries than the time series dimension within countries.</p>
+<p>The example is nevertheless instrumental in showing how the <em>fastverse</em>, in various respects, facilitates and enables complex data science in R.</p>
+</div>
+<div id="the-future" class="section level1">
+<h1>The Future</h1>
+<p>Future development of <em>collapse</em> will see an increased use of SIMD instructions to further increase performance. The impact of such instructions - visible in frameworks like Apache <a href="https://github.com/apache/arrow"><em>arrow</em></a> and Python’s <a href="https://github.com/pola-rs/polars"><em>polars</em></a> (which is based on <em>arrow</em>) can be considerable. The following shows a benchmark computing the means of a matrix with 100 columns and 1 million rows using base R, collapse 1.9.0 (no SIMD), and collapse 1.9.5 (with SIMD).</p>
+<pre class="r"><code>library(collapse)
+library(microbenchmark)
+
+fmean19 &lt;- collapsedev19::fmean
+m &lt;- rnorm(1e8)
+dim(m) &lt;- c(1e6, 100) # matrix with 100 columns and 1 million rows
+
+microbenchmark(colMeans(m), 
+               fmean19(m, na.rm = FALSE), 
+               fmean(m, na.rm = FALSE), 
+               fmean(m), # default is na.rm = TRUE, can be changed with set_collapse()
+               fmean19(m, nthreads = 4, na.rm = FALSE), 
+               fmean(m, nthreads = 4, na.rm = FALSE), 
+               fmean(m, nthreads = 4))
+## Unit: milliseconds
+##                                     expr      min       lq     mean   median       uq       max neval
+##                              colMeans(m) 93.09308 97.52766 98.80975 97.99094 99.05563 190.67317   100
+##                fmean19(m, na.rm = FALSE) 93.04056 97.47590 97.68101 98.05097 99.14058 100.48612   100
+##                  fmean(m, na.rm = FALSE) 12.75202 13.04181 14.05289 13.49043 13.81448  18.79206   100
+##                                 fmean(m) 12.67806 13.02974 14.02059 13.49638 13.81009  18.72581   100
+##  fmean19(m, nthreads = 4, na.rm = FALSE) 24.84251 25.20573 26.12640 25.52416 27.08612  28.71300   100
+##    fmean(m, nthreads = 4, na.rm = FALSE) 13.07941 13.18853 13.96326 13.38853 13.68627  18.04652   100
+##                   fmean(m, nthreads = 4) 13.05813 13.18277 13.99704 13.33753 13.71505  19.18242   100</code></pre>
+<p>Despite these impressive results, I am somewhat doubtful that much of <em>collapse</em> will benefit from SIMD. The main reason is that SIMD is a low-level vectorization that can be used to speed up simple operations like addition, subtraction, division, and multiplication. This is especially effective with large amounts of adjacent data. But with many groups and little data in each group, serial programming can be just as efficient or even more efficient if it allows writing grouped operations in a non-nested way. So it depends on the data to groups ratio. My <a href="https://github.com/SebKrantz/collapse/blob/master/misc/arrow%20benchmark/arrow_benchmark.md">arrow benchmark</a> from August 2022 showed just that: with few groups relative to the data size, <em>arrow</em> considerably outperforms <em>collapse</em> and <em>data.table</em>, but with more groups the latter catch up considerably and <em>collapse</em> took lead with many very small groups. More complex statistics algorithms like the median (involving selection) or mode / distinct value count (involving hashing), also cannot (to my knowledge) benefit from SIMD, and here <em>collapse</em> implementations are already pretty much state of the art.</p>
+<p>Apart from additional vectorization, I am also considering a possible broadening of the package to support further data manipulation operations such as table joins. This may take a while for me to get into though, so I cannot promise an update including this in 2023. At this stage, I am very happy with the API, so no changes are planned here, and I will also try to keep <em>collapse</em> harmonious with other <em>fastverse</em> packages, in particular <em>data.table</em> and <em>kit</em>.</p>
+<p>Most of all, I hope to see an increased breadth of statistical R packages using <em>collapse</em> as a backend, so that its potential for increasing the performance and complexity of statistical R packages is realized in the community. I have in the past assisted package maintainers interested in developing <em>collapse</em> backends and hope to increase further collaborations along these lines.</p>
+<!--
+I also hope that my own discipline of economics would realize the potential of *collapse* and the *fastverse* for economic research. The possibility to apply complex statistical operations effectively to large in-memory datasets - on which most modern day research is still based - should facilitate economic analysis along the lines outlined above. 
+-->
+<p>At last, I wish to thank all users that provided feedback and inspiration or promoted this software in the community, and more generally all people that encouraged, contributed to, and facilitated these projects. Much credit is also due to the CRAN maintainers who endured many of my mistakes and insisted on high standards, which made <em>collapse</em> better and more robust.</p>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://sebkrantz.github.io/collapse/reference/qsu.html"><code>qsu()</code></a> was implemented fully in C++.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Actually what is taking most time here is raising 12 million data points to a fractional power.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>You can download the composites for South Africa from my drive. It actually took me a while to figure out how to properly extract the images from Earth Engine. You may find <a href="https://stackoverflow.com/questions/75822877/exporting-tif-images-from-google-earth-engine-to-google-drive-minimal-example-i">my answer</a> here helpful if you want to export images for other countries.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>Not the sum, as there could be a differing amount of nightlights observations for each cell.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
     <item>
       <title>Introducing dfms: Efficient Estimation of Dynamic Factor Models in R</title>
       <link>https://sebkrantz.github.io/Rblog/2022/10/22/introducing-dfms-efficient-estimation-of-dynamic-factor-models-in-r/</link>

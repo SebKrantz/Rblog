@@ -1,13 +1,78 @@
----
-title: 'collapse and the fastverse: Reflections on the Past, Present and Future'
-subtitle: 'With Examples from Geospatial Data Science'
-author: Package Build
-date: '2023-04-12'
-slug: collapse-and-the-fastverse-reflecting-the-past-present-and-future
-categories: ["R"]
-tags: ["R", "collapse", "fastverse"]
----
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.101.0" />
 
+
+<title>collapse and the fastverse: Reflections on the Past, Present and Future - With Examples from Geospatial Data Science  - R, Econometrics, High Performance</title>
+<meta property="og:title" content="collapse and the fastverse: Reflections on the Past, Present and Future - R, Econometrics, High Performance">
+
+
+  <link href='https://sebkrantz.github.io/Rblog/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/Rblog/css/fonts.css" media="all">
+<link rel="stylesheet" href="/Rblog/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/Rblog/" class="nav-logo">
+    <img src="/Rblog/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/Rblog/about/">About</a></li>
+    
+    <li><a href="https://github.com/SebKrantz">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/collapse_R">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">22 min read</span>
+    
+
+    <h1 class="article-title">collapse and the fastverse: Reflections on the Past, Present and Future</h1>
+
+    
+    <span class="article-date">2023-04-12</span>
+    
+
+    <div class="article-content">
+      
 
 
 <p>Last week <a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> reached 1M downloads off CRAN. This is a milestone that was largely unforeseen for a package that started 4 years ago as a collection of functions intended to ease the R life of an economics master student. Today, <em>collapse</em> provides cutting-edge performance in many areas of statistical computing and data manipulation, and a breadth of statistical algorithms that can meet applied economists’ or statisticians’ demands on a programming environment like R. It is also the only programming framework in R that is effectively class-agnostic. Version 1.9.5 just released to CRAN this week, is also the first version that includes Single Instruction Multiple Data (SIMD) instructions for a limited set of operations. The future will see more efforts to take advantage of the capabilities of modern processors.</p>
@@ -243,7 +308,7 @@ library(ggplot2)
 raw_gini_ts %&gt;% melt(1) %&gt;% 
   ggplot(aes(x = year, y = value, colour = variable)) + 
       geom_line()</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="100%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/index_files/figure-html/unnamed-chunk-11-1.png" width="100%" /></p>
 <p>As evident from the plot, the population-weighted GINI is more smooth, which could be due to unpopulated areas exhibiting greater fluctuations in nightlights (such as fires or flares).</p>
 <p>A final thing that we can do is calibrate the GINI to an official estimate. I use the <a href="https://CRAN.R-project.org/package=africamonitor"><em>africamonitor</em></a> R API to get World Bank GINI estimates for South Africa.</p>
 <pre class="r"><code>WB_GINI &lt;- africamonitor::am_data(&quot;ZAF&quot;, &quot;SI_POV_GINI&quot;) %T&gt;% print()
@@ -294,7 +359,7 @@ final_gini_ts %&gt;%
   melt(&quot;year&quot;, na.rm = TRUE) %&gt;% 
   ggplot(aes(x = year, y = value, colour = variable)) + 
       geom_line() + scale_y_continuous(limits = c(50, 70))</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /></p>
 <p>It should be noted, at this point, that this estimate and the declining trend it shows may be seriously misguided. Research by <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3786572">Galimberti et al. (2020)</a> using the old <a href="https://developers.google.com/earth-engine/datasets/catalog/NOAA_DMSP-OLS_NIGHTTIME_LIGHTS">DMSP OLS Nightlights</a> series from 1992-2013 for 234 countries and territories, shows that nightlights based inequality measures much better resemble the cross-sectional variation in inequality between countries than the time series dimension within countries.</p>
 <p>The example is nevertheless instrumental in showing how the <em>fastverse</em>, in various respects, facilitates and enables complex data science in R.</p>
 </div>
@@ -341,3 +406,69 @@ I also hope that my own discipline of economics would realize the potential of *
 <li id="fn4"><p>Not the sum, as there could be a differing amount of nightlights observations for each cell.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
+
+    </div>
+  </article>
+
+  
+<section id="comments">
+  <div id="disqus_thread"></div>
+  <script>
+  var disqus_config = function () {
+  
+  };
+  (function() {
+    var inIFrame = function() {
+      var iframe = true;
+      try { iframe = window.self !== window.top; } catch (e) {}
+      return iframe;
+    };
+    if (inIFrame()) return;
+    var d = document, s = d.createElement('script');
+    s.src = '//r-econometrics-high-performance.disqus.com/embed.js'; s.async = true;
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/Rblog/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/Rblog/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
