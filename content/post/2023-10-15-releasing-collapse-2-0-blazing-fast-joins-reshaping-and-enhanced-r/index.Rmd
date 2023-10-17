@@ -1,0 +1,264 @@
+---
+title: 'Releasing collapse 2.0: Blazing Fast Joins, Reshaping, and Enhanced R'
+author: Package Build
+date: '2023-10-15'
+slug: releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r
+categories: ["R"]
+tags: ["R", "collapse"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, fig.width = 8, fig.height = 5, out.width = '100%', 
+                      cache = TRUE, message = FALSE, error = FALSE, warning = TRUE)
+
+oldopts <- options(width = 200L)
+```
+
+I'm excited to announce the release of [*collapse*](https://sebkrantz.github.io/collapse/) 2.0, adding blazing fast joins, pivots, flexible namespace and many other features, including a brand new [*website*](https://sebkrantz.github.io/collapse/), an updated [cheat sheet](https://raw.githubusercontent.com/SebKrantz/collapse/master/misc/collapse%20cheat%20sheet/collapse_cheat_sheet.pdf), and a new [vignette](https://sebkrantz.github.io/collapse/articles/collapse_for_tidyverse_users.html) aimed at *tidyverse* users.
+
+In the 3.5 years after the first release of *collapse* 1.0 to CRAN in March 2020, the package has seen 10 major updates, and become a remarkable piece of statistical software that is robust, stable, lightweight, fast, statistically advanced, comprehensive, flexible, class-agnostic, verbose and well-documented. It is profoundly able to deal with rich (multi-level, irregular, weighted, nested, labelled, and missing) scientific data, and can enhance the workflow of every R user.
+
+The addition of rich, fast, and verbose joins and pivots in this release, together with secure interactive namespace masking and extensive global configurability, should enable many R users to use it as a workhorse package for data manipulation and statistical computing tasks.
+
+In this post, I briefly introduce the core new features of this release and end with some reflections on why I created the package and think that its approach towards speeding up and enriching R is more encompassing than others.
+
+# Fast, Class-Agnostic, and Verbose Table Joins
+
+Joins in *collapse* has been a much-requested feature. Still, I was long hesitant to take them on because they are complex, high-risk, operations, and I was unsure on how to go about them or provide an implementation that would satisfy my own ambitious demands to their performance, generality and verbosity.
+
+I am glad that, following repeated requests, I have overcome these hesitations and designed an implementation - inspired by [*polars*](https://pola-rs.github.io/polars/py-polars/html/reference/dataframe/api/polars.DataFrame.join.html) - that I am very satisfied with. *collapse*'s join function is simply called `join()`, and provides 6 types of joins (left, inner, full, right, semi and anti), controlled by a `how` argument - the default being a left join. It also provides two separate join algorithms: a vectorized hash join (the default, `sort = FALSE`) and a sort-merge-join (`sort = TRUE`). The join-column argument is called `on`, and, if left empty, selects columns present in both datasets. An example with generated data follows:
+
+```{r}
+library(collapse)
+df1 <- data.frame(
+  id1 = c(1, 1, 2, 3),
+  id2 = c("a", "b", "b", "c"),
+  name = c("John", "Jane", "Bob", "Carl"),
+  age = c(35, 28, 42, 50)
+)
+df2 <- data.frame(
+  id1 = c(1, 2, 3, 3),
+  id2 = c("a", "b", "c", "e"),
+  salary = c(60000, 55000, 70000, 80000),
+  dept = c("IT", "Marketing", "Sales", "IT")
+)
+
+# Different types of joins
+for (i in c("left","inner","right","full","semi","anti"))
+    join(df1, df2, how = i) |> print()
+```
+
+Notice how, by default (`verbose = 1`), a compact summary of the operation is printed, indicating the type of join, the datasets and columns, and the number and percentage of records from each dataset matched in the join operation. `join()` also preserves the attributes of the first argument (`x`) and the order of columns and rows (default `keep.col.order = TRUE`, `sort = FALSE`) in it. We can thus think of a join operation as adding columns to a data frame-like object (`x`) from another similar object (`y`) .
+
+There are several additional options to increase verbosity and assimilate the join operation:
+
+```{r}
+# verbose = 2 also shows classes, allowing you to detect implicit conversions (inside fmatch())
+join(df1, df2, how = "left", verbose = 2)
+
+# Adding join column: useful especially for full join
+join(df1, df2, how = "full", column = TRUE)
+
+# Custom column + rearranging
+join(df1, df2, how = "full", column = list("join", c("x", "y", "x_y")), 
+     keep.col.order = FALSE)
+
+# Attaching match attribute
+str(join(df1, df2, attr = TRUE))
+
+```
+
+Finally, it is possible to validate the join operation to be either one of `"m:m"` (default, no checks), `"1:m"`, `"m:1"` or `"1:1"`. For example:
+
+```{r, error=TRUE}
+join(df1, rowbind(df2, df2), validate = "1:1")
+```
+
+Another check being automatically executed inside the workhorse function `fmatch()` (if `sort = FALSE`) is for overidentified join conditions, i.e., if the records are more than identified by the join columns. For example if we added `"name"` and `"dept"` to the join condition, this would issue a warning as the match is already identified by `"id1"` and `"id2"`:
+
+```{r}
+join(df1, df2, on = c("id1", "id2", "name" = "dept"), how = "left")
+```
+
+The warning can be silenced by passing `overid = 2` to `join()`. To see better where this may be useful, consider the following example using `fmatch()`.
+
+```{r}
+df1 <- data.frame(
+  id1 = c(1, 1, 2, 3),
+  id2 = c("a", "b", "b", "c"),
+  name = c("John", "Bob", "Jane", "Carl")
+)
+df2 <- data.frame(
+  id1 = c(1, 2, 3, 3),
+  id2 = c("a", "b", "c", "e"),
+  name = c("John", "Janne", "Carl", "Lynne")
+)
+
+# This gives an overidentification warning: columns 1:2 identify the data
+fmatch(df1, df2)
+# This just runs through without warning
+fmatch(df1, df2, overid = 2)
+# This terminates computation after first 2 columns
+fmatch(df1, df2, overid = 0)
+fmatch(df1[1:2], df2[1:2])  # Same thing!
+# -> note that here we get an additional match based on the unique ids,
+# which we didn't get before because "Jane" != "Janne"
+```
+
+So, in summary, the implementation of joins on *collapse* as provided by the `join()` function is not only blazing fast[^1] and class-agnostic but also allows you to verify all aspects of this high-risk operation.
+
+[^1]: Some initial benchmarks were shared on [Twitter](https://twitter.com/collapse_R), and *collapse* is about to enter the [DuckDB database like ops benchmark](https://duckdb.org/2023/04/14/h2oai.html#results). `fmatch()` is also nearly an order of magnitude faster than `match()` for atomic vectors.
+
+# Advanced Pivots
+
+The second big addition in *collapse* 2.0 is `pivot()`, which provides advanced data reshaping capabilities in a single parsimonious API. Notably, it supports longer-, wider-, and recast-pivoting functionality and can accommodate variable labels in the reshaping process.
+
+Fortunately, *collapse* supplies a perfect test dataset to illustrate these capabilities: the 2014 [Groningen Growth and Development Centre 10-Sector Database](https://www.rug.nl/ggdc/structuralchange/previous-sector-database/10-sector-2014), which provides sectoral employment and value-added series for 10 broad sectors in 43 countries:
+
+```{r}
+head(GGDC10S)
+
+namlab(GGDC10S, N = TRUE, Ndistinct = TRUE)
+```
+
+Evidently, the data is supplied in a format where two variables, employment and value-added, are stacked in each sector column. The data is also labeled, with descriptions attached as `"label"` attributes (retrievable using `vlabels()` or, together with names, using `namlab()`).
+
+There are 3 different ways to reshape this data to make it easier to analyze. The first is to simply melt it into a long frame, e.g. for plotting with `ggplot2`: 
+
+```{r}
+# Pivot Longer
+pivot(GGDC10S, ids = 1:5, 
+      names = list(variable = "Sectorcode", value = "Value"), 
+      labels = "Sector", how = "longer", na.rm = TRUE) |> head()
+```
+
+Note how specifying the `labels` argument created a column that captures the sector descriptions, which would otherwise be lost in the reshaping process, and `na.rm = TRUE` removed missing values in the long frame. I note without demonstration that this operation has an exact reverse operation: `pivot(long_df, 1:5, "Value", "Sector", "Description", how = "wider")`.
+
+The second way to reshape the data is to create a wider frame with sector-variable columns:
+
+```{r}
+# Pivot Wider
+pivot(GGDC10S, ids = 1:5, names = "Variable", how = "wider", na.rm = TRUE) |> 
+  namlab(N = TRUE, Ndistinct = TRUE)
+```
+
+Note how the variable labels were copied to each of the two variables created for each sector. It is also possible to pass argument `transpose = c("columns", "names")` to change the order of columns and/or naming of the casted columns. Wide pivots where multiple columns are cast do not have a well-defined reverse operation. It may nevertheless be very useful to analyze individual sectors.
+
+The third useful way to reshape this data for analysis is to recast it such that each variable goes into a separate column and the sectors are stacked in one column:
+
+```{r}
+# Pivot Recast
+recast_df = pivot(GGDC10S, values = 6:16, 
+      names = list(from = "Variable", to = "Sectorcode"),
+      labels = list(to = "Sector"), how = "recast", na.rm = TRUE)
+head(recast_df)
+```
+
+This is useful, for example, if we wanted to run a regression with sector-fixed effects. The code to reverse this pivot is
+
+```{r}
+# Reverse Pivot Recast
+pivot(recast_df, values = c("VA", "EMP"), 
+      names = list(from = "Sectorcode", to = "Variable"),
+      labels = list(from = "Sector"), how = "recast") |> head(3)
+```
+
+This showcased just some of the functionality of `pivot()`, more extensive examples are available in the [documentation](https://sebkrantz.github.io/collapse/reference/pivot.html) (`?pivot`). But the above is enough to demonstrate this unified API's power and flexibility; it is also blazing fast.
+
+# Global Configurability and Interactive Namespace Masking
+
+The third major feature of *collapse* 2.0 is its extensive [global configurability](https://sebkrantz.github.io/collapse/reference/collapse-options.html) via the `set_collapse()` function, which includes the default behavior for missing values (`na.rm` arguments in all statistical functions and algorithms), sorted grouping (`sort`), multithreading and algorithmic optimizations (`nthreads`, `stable.algo`), presentational settings (`stub`, `digits`, `verbose`), and, surpassing all else, the package namespace itself (`mask`, `remove`). 
+
+Why should the namespace, in particular, be modifiable? The main reason is that *collapse* provides many enhanced and performance improved equivalents to functions present in base R and *dplyr*, such as the [*Fast Statistical Functions*](https://sebkrantz.github.io/collapse/reference/fast-statistical-functions.html), fast [*Grouping and Ordering*](https://sebkrantz.github.io/collapse/reference/fast-grouping-ordering.html) functions and algorithms, [*Data Manipulation*](https://sebkrantz.github.io/collapse/reference/fast-data-manipulation.html) and [*Time Series*](https://sebkrantz.github.io/collapse/reference/time-series-panel-series.html) functions.
+
+*collapse* is intentionally fully compatible with the base R and *dplyr* namespaces by adding f-prefixes to these performance-improved functions where conflicts exist. Since v1.7.0, there exists a global option `"collapse_mask"` which can be set before the package is loaded to export non-prefixed versions of these functions, but this was somewhat tedious and best done with an `.Rprofile` file. *collapse* 2.0 also adds this option to `set_collapse()` and makes it fully interactive; that is, it can be set and changed at any point within the active session.
+
+Concretely, what does this mean? Base R and *dplyr* are relatively slow compared to what can be achieved with group-level vectorization, SIMD instructions, and efficient algorithms, especially as data grows. To provide an example, I generate some large vectors and run some benchmarks for basic operations:
+
+```{r}
+ul <- outer(letters, letters, paste0)
+l <- sample(ul, 1e7, replace = TRUE)
+m <- sample(outer(month.abb, month.abb, paste0), 1e7, replace = TRUE)
+x <- na_insert(rnorm(1e7), prop = 0.05)
+data <- data.frame(l, m, x)
+
+library(microbenchmark)
+microbenchmark(
+  unique(l),
+  table(l, m),
+  sum(x, na.rm = TRUE),
+  median(x, na.rm = TRUE),
+  mean(x, na.rm = TRUE),
+times = 10)
+
+library(dplyr)
+microbenchmark(
+  dplyr = data |>
+    subset(l %in% ul[1:500]) |>
+    group_by(l, m) |>
+    summarize(mean_x = mean(x, na.rm = TRUE), 
+              median_x = median(x, na.rm = TRUE)), 
+times = 10)
+```
+
+The beauty of namespace masking is that we can turn parts or all of this code into *collapse* code by simply invoking the `mask` option to `set_collapse()`. The most comprehensive setting is `mask = "all"`. It is a secure option because invoking it instantly exports these functions in the *collapse* namespace and re-attaches the namespace to make sure it is at the top of the search path:
+
+```{r}
+set_collapse(mask = "all")
+# This is all collapse code now + no need to set na.rm = TRUE (default in collapse)
+# We could use set_collapse(na.rm = FALSE) to bring collapse in-line with base R
+microbenchmark(
+  unique(l),
+  table(l, m),
+  sum(x),
+  median(x),
+  mean(x),
+times = 10)
+
+microbenchmark(
+  collapse = data |>
+    subset(l %in% ul[1:500]) |>
+    group_by(l, m) |>
+    summarize(mean_x = mean(x), 
+              median_x = median(x)), 
+times = 10)
+
+# Reset the masking 
+# set_collapse(mask = NULL)
+```
+
+Evidently, the *collapse* code runs much faster. The 5-10x speedups shown here are quite normal. Higher speedups can be experienced for grouped operations as the number of groups grows large and repetition in R becomes very costly. As indicated before, masking in *collapse* 2.0 is fully interactive and reversible: invoking `set_collapse(mask = NULL)` and running the same code again will execute it again with base R and *dplyr*.
+
+So, in summary, *collapse* 2.0 provides fast R, in R, in a very simple and broadly accessible way. There are many other advantages to using *collapse*, e.g., given that its [*Fast Statistical Functions*](https://sebkrantz.github.io/collapse/reference/fast-statistical-functions.html) are S3 generic and support grouped and weighted aggregations and transformations out of the box, this saves many unnecessary calls to `apply()`, `lapply()` or `summarise()`, etc. (in addition to many unnecessary specifications of `na.rm = TRUE`) e.g.:
+
+```{r}
+# S3 generic statistical functions save a lot of syntax
+mean(mtcars)                 # = sapply(mtcars, mean)
+mean(mtcars, w = runif(32))  # = sapply(mtcars, weighted.mean, w = runif(32))
+mean(mtcars$mpg, mtcars$cyl) # = tapply(mtcars$mpg, mtcars$cyl, mean)
+mean(mtcars, TRA = "-") |>   # = sweep(mtcars, 2, sapply(mtcars, mean))
+  head()
+mtcars |> group_by(cyl, vs, am) |> 
+  mean() # = summarize(across(everything(), mean))
+```
+
+# Concluding Reflections
+
+It has been a remarkable 3.5-year-long journey leading up to the development of *collapse* 2.0, and a tremendous feat of time, energy, and determination. I could probably have published 2 academic papers instead, but would still be writing horrible code like most economists, be trying to do complex things in econometrics, etc., using other mainstream data science libraries not really designed for that, or, worst case, just be stuck to commercial software. I'm happy I came out as an open-source developer and that I've been accompanied on this path by other great people from my profession. 
+
+I also never regretted choosing R as a primary language. I find it unique in its simplicity and parsimony, the ability to work with different objects like vectors, matrices, and data frames in a fluent way, and to do rather complex things like matching with a single function call. 
+
+On the other hand, R for me always lacked speed and the ability to do advanced statistical and data manipulation operations with ease, as I was used to coming from commercial environments (STATA, Mathematica).
+
+*collapse* is my determined attempt to bring statistical complexity, parsimony, speed, and joy to statistics and data manipulation in R, and I believe it is the most encompassing attempt out there and preserves the fundamental character of the language. 
+
+Notably, the *collapse* approach is not limited to a certain object (like e.g. *data.table*, which remains a great idea and implementation), and does not rely on data structures and syntax that are somewhat alien/external to the language and do not integrate with many of its first-order features (e.g. *arrow*, *polars*, *duckdb*). It is also arguably more successful than alternative ways to implement or compile the language ([*FastR* / *Graal VM*](https://github.com/oracle/fastr)), because the fundamental performance problem in R is algorithmic efficiency and the lack of low-level vectorization for repetitive tasks^[See e.g. benchmarks for [*r2c*](https://github.com/brodieG/r2c).].
+<!--
+Concretely, I think collapse 2.0, with its broad set of functions and algorithms ranging from basic arithmetic and programming to basic and advanced statistics, unique values, matching, ordering, and broad data manipulation, together with the namespace masking options and global configurability, is probably the most encompassing attempt ever made to fundamentally speed up and enrich the R language itself.
+-->
+
+By reimplementing core parts of the language using efficient algorithms and providing rich and flexible vectorizations for many statistical operations across columns and groups in a class-agnostic way supporting nearly all frequently used data structures, *collapse* solves the fundamental performance problem in a way that integrates seamlessly with the core of the language. It also adds much-needed statistical complexity, particularly for weighted statistics, time series, and panel data. In short, it provides advanced and fast R, inside GNU R.
+
+It is not, and will never be, the absolute best that can be done in performance terms. The data formats used by the best-performing systems (such as the *arrow* columnar format underlying *polars*) are designed at the memory level to optimally use computer resources (SIMD etc.), with database applications in mind, and the people doing this did not study economics. But it is not yet clear that such architectures are very suitable for languages meant to do broad and linear-algebra heavy statistical computing tasks, and R just celebrated its 30th birthday this year. So, given the constraints imposed by a 30-year-old C-based language and API, frameworks like *collapse* and *data.table* are pushing the boundaries very far^[Actually, it is extremely impressive how well *data.table* still performs compared to modern libraries based on optimized memory models. The [benchmarks](https://duckdblabs.github.io/db-benchmark/) also show that in high-cardinality settings (many groups relative to the data size), optimized memory models don't pay off that much, indicating that there is always a tradeoff between the complexity of statistical operations and the possibility of vectorization/bulk processing on modern hardware.].
+
+Let me stop here; *collapse* 2.0 is out. It changed my R life, and I hope it will change yours. 
