@@ -8,6 +8,396 @@
     <language>en-us</language>
     <lastBuildDate>Sat, 09 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/survey/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Releasing collapse 2.0: Blazing Fast Joins, Reshaping, and Enhanced R</title>
+      <link>https://sebkrantz.github.io/Rblog/2023/10/15/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</link>
+      <pubDate>Sun, 15 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2023/10/15/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</guid>
+      <description><![CDATA[ 
+
+
+<p>I’m excited to announce the release of <a href="https://sebkrantz.github.io/collapse/"><em>collapse</em></a> 2.0, adding blazing fast joins, pivots, flexible namespace and many other features, including a brand new <a href="https://sebkrantz.github.io/collapse/"><em>website</em></a>, an updated <a href="https://raw.githubusercontent.com/SebKrantz/collapse/master/misc/collapse%20cheat%20sheet/collapse_cheat_sheet.pdf">cheat sheet</a>, and a new <a href="https://sebkrantz.github.io/collapse/articles/collapse_for_tidyverse_users.html">vignette</a> aimed at <em>tidyverse</em> users.</p>
+<p>In the 3.5 years after the first release of <em>collapse</em> 1.0 to CRAN in March 2020, the package has seen 10 major updates, and become a remarkable piece of statistical software that is robust, stable, lightweight, fast, statistically advanced, comprehensive, flexible, class-agnostic, verbose and well-documented. It is profoundly able to deal with rich (multi-level, irregular, weighted, nested, labelled, and missing) scientific data, and can enhance the workflow of every R user.</p>
+<p>The addition of rich, fast, and verbose joins and pivots in this release, together with secure interactive namespace masking and extensive global configurability, should enable many R users to use it as a workhorse package for data manipulation and statistical computing tasks.</p>
+<p>In this post, I briefly introduce the core new features of this release and end with some reflections on why I created the package and think that its approach towards speeding up and enriching R is more encompassing than others.</p>
+<div id="fast-class-agnostic-and-verbose-table-joins" class="section level1">
+<h1>Fast, Class-Agnostic, and Verbose Table Joins</h1>
+<p>Joins in <em>collapse</em> has been a much-requested feature. Still, I was long hesitant to take them on because they are complex, high-risk, operations, and I was unsure on how to go about them or provide an implementation that would satisfy my own ambitious demands to their performance, generality and verbosity.</p>
+<p>I am glad that, following repeated requests, I have overcome these hesitations and designed an implementation - inspired by <a href="https://pola-rs.github.io/polars/py-polars/html/reference/dataframe/api/polars.DataFrame.join.html"><em>polars</em></a> - that I am very satisfied with. <em>collapse</em>’s join function is simply called <code>join()</code>, and provides 6 types of joins (left, inner, full, right, semi and anti), controlled by a <code>how</code> argument - the default being a left join. It also provides two separate join algorithms: a vectorized hash join (the default, <code>sort = FALSE</code>) and a sort-merge-join (<code>sort = TRUE</code>). The join-column argument is called <code>on</code>, and, if left empty, selects columns present in both datasets. An example with generated data follows:</p>
+<pre class="r"><code>library(collapse)
+df1 &lt;- data.frame(
+  id1 = c(1, 1, 2, 3),
+  id2 = c(&quot;a&quot;, &quot;b&quot;, &quot;b&quot;, &quot;c&quot;),
+  name = c(&quot;John&quot;, &quot;Jane&quot;, &quot;Bob&quot;, &quot;Carl&quot;),
+  age = c(35, 28, 42, 50)
+)
+df2 &lt;- data.frame(
+  id1 = c(1, 2, 3, 3),
+  id2 = c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;e&quot;),
+  salary = c(60000, 55000, 70000, 80000),
+  dept = c(&quot;IT&quot;, &quot;Marketing&quot;, &quot;Sales&quot;, &quot;IT&quot;)
+)
+
+# Different types of joins
+for (i in c(&quot;left&quot;,&quot;inner&quot;,&quot;right&quot;,&quot;full&quot;,&quot;semi&quot;,&quot;anti&quot;))
+    join(df1, df2, how = i) |&gt; print()
+## left join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age salary      dept
+## 1   1   a John  35  60000        IT
+## 2   1   b Jane  28     NA      &lt;NA&gt;
+## 3   2   b  Bob  42  55000 Marketing
+## 4   3   c Carl  50  70000     Sales
+## inner join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age salary      dept
+## 1   1   a John  35  60000        IT
+## 2   2   b  Bob  42  55000 Marketing
+## 3   3   c Carl  50  70000     Sales
+## right join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age salary      dept
+## 1   1   a John  35  60000        IT
+## 2   2   b  Bob  42  55000 Marketing
+## 3   3   c Carl  50  70000     Sales
+## 4   3   e &lt;NA&gt;  NA  80000        IT
+## full join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age salary      dept
+## 1   1   a John  35  60000        IT
+## 2   1   b Jane  28     NA      &lt;NA&gt;
+## 3   2   b  Bob  42  55000 Marketing
+## 4   3   c Carl  50  70000     Sales
+## 5   3   e &lt;NA&gt;  NA  80000        IT
+## semi join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age
+## 1   1   a John  35
+## 2   2   b  Bob  42
+## 3   3   c Carl  50
+## anti join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age
+## 1   1   b Jane  28</code></pre>
+<p>Notice how, by default (<code>verbose = 1</code>), a compact summary of the operation is printed, indicating the type of join, the datasets and columns, and the number and percentage of records from each dataset matched in the join operation. <code>join()</code> also preserves the attributes of the first argument (<code>x</code>) and the order of columns and rows (default <code>keep.col.order = TRUE</code>, <code>sort = FALSE</code>) in it. We can thus think of a join operation as adding columns to a data frame-like object (<code>x</code>) from another similar object (<code>y</code>) .</p>
+<p>There are several additional options to increase verbosity and assimilate the join operation:</p>
+<pre class="r"><code># verbose = 2 also shows classes, allowing you to detect implicit conversions (inside fmatch())
+join(df1, df2, how = &quot;left&quot;, verbose = 2)
+## left join: df1[id1:numeric, id2:character] 3/4 (75%) &lt;m:m&gt; df2[id1:numeric, id2:character] 3/4 (75%)
+##   id1 id2 name age salary      dept
+## 1   1   a John  35  60000        IT
+## 2   1   b Jane  28     NA      &lt;NA&gt;
+## 3   2   b  Bob  42  55000 Marketing
+## 4   3   c Carl  50  70000     Sales
+
+# Adding join column: useful especially for full join
+join(df1, df2, how = &quot;full&quot;, column = TRUE)
+## full join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 name age salary      dept   .join
+## 1   1   a John  35  60000        IT matched
+## 2   1   b Jane  28     NA      &lt;NA&gt;     df1
+## 3   2   b  Bob  42  55000 Marketing matched
+## 4   3   c Carl  50  70000     Sales matched
+## 5   3   e &lt;NA&gt;  NA  80000        IT     df2
+
+# Custom column + rearranging
+join(df1, df2, how = &quot;full&quot;, column = list(&quot;join&quot;, c(&quot;x&quot;, &quot;y&quot;, &quot;x_y&quot;)), 
+     keep.col.order = FALSE)
+## full join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+##   id1 id2 join name age salary      dept
+## 1   1   a  x_y John  35  60000        IT
+## 2   1   b    x Jane  28     NA      &lt;NA&gt;
+## 3   2   b  x_y  Bob  42  55000 Marketing
+## 4   3   c  x_y Carl  50  70000     Sales
+## 5   3   e    y &lt;NA&gt;  NA  80000        IT
+
+# Attaching match attribute
+str(join(df1, df2, attr = TRUE))
+## left join: df1[id1, id2] 3/4 (75%) &lt;m:m&gt; df2[id1, id2] 3/4 (75%)
+## &#39;data.frame&#39;:	4 obs. of  6 variables:
+##  $ id1   : num  1 1 2 3
+##  $ id2   : chr  &quot;a&quot; &quot;b&quot; &quot;b&quot; &quot;c&quot;
+##  $ name  : chr  &quot;John&quot; &quot;Jane&quot; &quot;Bob&quot; &quot;Carl&quot;
+##  $ age   : num  35 28 42 50
+##  $ salary: num  60000 NA 55000 70000
+##  $ dept  : chr  &quot;IT&quot; NA &quot;Marketing&quot; &quot;Sales&quot;
+##  - attr(*, &quot;join.match&quot;)=List of 3
+##   ..$ call   : language join(x = df1, y = df2, attr = TRUE)
+##   ..$ on.cols:List of 2
+##   .. ..$ x: chr [1:2] &quot;id1&quot; &quot;id2&quot;
+##   .. ..$ y: chr [1:2] &quot;id1&quot; &quot;id2&quot;
+##   ..$ match  : &#39;qG&#39; int [1:4] 1 NA 2 3
+##   .. ..- attr(*, &quot;N.nomatch&quot;)= int 1
+##   .. ..- attr(*, &quot;N.groups&quot;)= int 4
+##   .. ..- attr(*, &quot;N.distinct&quot;)= int 3</code></pre>
+<p>Finally, it is possible to validate the join operation to be either one of <code>"m:m"</code> (default, no checks), <code>"1:m"</code>, <code>"m:1"</code> or <code>"1:1"</code>. For example:</p>
+<pre class="r"><code>join(df1, rowbind(df2, df2), validate = &quot;1:1&quot;)
+## Error in join(df1, rowbind(df2, df2), validate = &quot;1:1&quot;): Join is not 1:1: df1 (x) is unique on the join columns; rowbind (y) is not unique on the join columns</code></pre>
+<p>Another check being automatically executed inside the workhorse function <code>fmatch()</code> (if <code>sort = FALSE</code>) is for overidentified join conditions, i.e., if the records are more than identified by the join columns. For example if we added <code>"name"</code> and <code>"dept"</code> to the join condition, this would issue a warning as the match is already identified by <code>"id1"</code> and <code>"id2"</code>:</p>
+<pre class="r"><code>join(df1, df2, on = c(&quot;id1&quot;, &quot;id2&quot;, &quot;name&quot; = &quot;dept&quot;), how = &quot;left&quot;)
+## Warning in fmatch(x[ixon], y[iyon], nomatch = NA_integer_, count = count, : Overidentified match/join: the first 2 of 3 columns uniquely match the records. With overid &gt; 0, fmatch() continues to
+## match columns. Consider removing columns or setting overid = 0 to terminate the algorithm after 2 columns (the results may differ, see ?fmatch). Alternatively set overid = 2 to silence this warning.
+## left join: df1[id1, id2, name] 0/4 (0%) &lt;m:m&gt; df2[id1, id2, dept] 0/4 (0%)
+##   id1 id2 name age salary
+## 1   1   a John  35     NA
+## 2   1   b Jane  28     NA
+## 3   2   b  Bob  42     NA
+## 4   3   c Carl  50     NA</code></pre>
+<p>The warning can be silenced by passing <code>overid = 2</code> to <code>join()</code>. To see better where this may be useful, consider the following example using <code>fmatch()</code>.</p>
+<pre class="r"><code>df1 &lt;- data.frame(
+  id1 = c(1, 1, 2, 3),
+  id2 = c(&quot;a&quot;, &quot;b&quot;, &quot;b&quot;, &quot;c&quot;),
+  name = c(&quot;John&quot;, &quot;Bob&quot;, &quot;Jane&quot;, &quot;Carl&quot;)
+)
+df2 &lt;- data.frame(
+  id1 = c(1, 2, 3, 3),
+  id2 = c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;e&quot;),
+  name = c(&quot;John&quot;, &quot;Janne&quot;, &quot;Carl&quot;, &quot;Lynne&quot;)
+)
+
+# This gives an overidentification warning: columns 1:2 identify the data
+fmatch(df1, df2)
+## Warning in fmatch(df1, df2): Overidentified match/join: the first 2 of 3 columns uniquely match the records. With overid &gt; 0, fmatch() continues to match columns. Consider removing columns or setting
+## overid = 0 to terminate the algorithm after 2 columns (the results may differ, see ?fmatch). Alternatively set overid = 2 to silence this warning.
+## [1]  1 NA NA  3
+# This just runs through without warning
+fmatch(df1, df2, overid = 2)
+## [1]  1 NA NA  3
+# This terminates computation after first 2 columns
+fmatch(df1, df2, overid = 0)
+## [1]  1 NA  2  3
+fmatch(df1[1:2], df2[1:2])  # Same thing!
+## [1]  1 NA  2  3
+# -&gt; note that here we get an additional match based on the unique ids,
+# which we didn&#39;t get before because &quot;Jane&quot; != &quot;Janne&quot;</code></pre>
+<p>So, in summary, the implementation of joins on <em>collapse</em> as provided by the <code>join()</code> function is not only blazing fast<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> and class-agnostic but also allows you to verify all aspects of this high-risk operation.</p>
+</div>
+<div id="advanced-pivots" class="section level1">
+<h1>Advanced Pivots</h1>
+<p>The second big addition in <em>collapse</em> 2.0 is <code>pivot()</code>, which provides advanced data reshaping capabilities in a single parsimonious API. Notably, it supports longer-, wider-, and recast-pivoting functionality and can accommodate variable labels in the reshaping process.</p>
+<p>Fortunately, <em>collapse</em> supplies a perfect test dataset to illustrate these capabilities: the 2014 <a href="https://www.rug.nl/ggdc/structuralchange/previous-sector-database/10-sector-2014">Groningen Growth and Development Centre 10-Sector Database</a>, which provides sectoral employment and value-added series for 10 broad sectors in 43 countries:</p>
+<pre class="r"><code>head(GGDC10S)
+##   Country Regioncode             Region Variable Year      AGR      MIN       MAN        PU       CON      WRT      TRA     FIRE      GOV      OTH      SUM
+## 1     BWA        SSA Sub-saharan Africa       VA 1960       NA       NA        NA        NA        NA       NA       NA       NA       NA       NA       NA
+## 2     BWA        SSA Sub-saharan Africa       VA 1961       NA       NA        NA        NA        NA       NA       NA       NA       NA       NA       NA
+## 3     BWA        SSA Sub-saharan Africa       VA 1962       NA       NA        NA        NA        NA       NA       NA       NA       NA       NA       NA
+## 4     BWA        SSA Sub-saharan Africa       VA 1963       NA       NA        NA        NA        NA       NA       NA       NA       NA       NA       NA
+## 5     BWA        SSA Sub-saharan Africa       VA 1964 16.30154 3.494075 0.7365696 0.1043936 0.6600454 6.243732 1.658928 1.119194 4.822485 2.341328 37.48229
+## 6     BWA        SSA Sub-saharan Africa       VA 1965 15.72700 2.495768 1.0181992 0.1350976 1.3462312 7.064825 1.939007 1.246789 5.695848 2.678338 39.34710
+
+namlab(GGDC10S, N = TRUE, Ndistinct = TRUE)
+##      Variable    N Ndist                                                 Label
+## 1     Country 5027    43                                               Country
+## 2  Regioncode 5027     6                                           Region code
+## 3      Region 5027     6                                                Region
+## 4    Variable 5027     2                                              Variable
+## 5        Year 5027    67                                                  Year
+## 6         AGR 4364  4353                                          Agriculture 
+## 7         MIN 4355  4224                                                Mining
+## 8         MAN 4355  4353                                         Manufacturing
+## 9          PU 4354  4237                                             Utilities
+## 10        CON 4355  4339                                          Construction
+## 11        WRT 4355  4344                         Trade, restaurants and hotels
+## 12        TRA 4355  4334                  Transport, storage and communication
+## 13       FIRE 4355  4349 Finance, insurance, real estate and business services
+## 14        GOV 3482  3470                                   Government services
+## 15        OTH 4248  4238               Community, social and personal services
+## 16        SUM 4364  4364                               Summation of sector GDP</code></pre>
+<p>Evidently, the data is supplied in a format where two variables, employment and value-added, are stacked in each sector column. The data is also labeled, with descriptions attached as <code>"label"</code> attributes (retrievable using <code>vlabels()</code> or, together with names, using <code>namlab()</code>).</p>
+<p>There are 3 different ways to reshape this data to make it easier to analyze. The first is to simply melt it into a long frame, e.g. for plotting with <code>ggplot2</code>:</p>
+<pre class="r"><code># Pivot Longer
+pivot(GGDC10S, ids = 1:5, 
+      names = list(variable = &quot;Sectorcode&quot;, value = &quot;Value&quot;), 
+      labels = &quot;Sector&quot;, how = &quot;longer&quot;, na.rm = TRUE) |&gt; head()
+##   Country Regioncode             Region Variable Year Sectorcode       Sector    Value
+## 1     BWA        SSA Sub-saharan Africa       VA 1964        AGR Agriculture  16.30154
+## 2     BWA        SSA Sub-saharan Africa       VA 1965        AGR Agriculture  15.72700
+## 3     BWA        SSA Sub-saharan Africa       VA 1966        AGR Agriculture  17.68066
+## 4     BWA        SSA Sub-saharan Africa       VA 1967        AGR Agriculture  19.14591
+## 5     BWA        SSA Sub-saharan Africa       VA 1968        AGR Agriculture  21.09957
+## 6     BWA        SSA Sub-saharan Africa       VA 1969        AGR Agriculture  21.86221</code></pre>
+<p>Note how specifying the <code>labels</code> argument created a column that captures the sector descriptions, which would otherwise be lost in the reshaping process, and <code>na.rm = TRUE</code> removed missing values in the long frame. I note without demonstration that this operation has an exact reverse operation: <code>pivot(long_df, 1:5, "Value", "Sector", "Description", how = "wider")</code>.</p>
+<p>The second way to reshape the data is to create a wider frame with sector-variable columns:</p>
+<pre class="r"><code># Pivot Wider
+pivot(GGDC10S, ids = 1:5, names = &quot;Variable&quot;, how = &quot;wider&quot;, na.rm = TRUE) |&gt; 
+  namlab(N = TRUE, Ndistinct = TRUE)
+##      Variable    N Ndist                                                 Label
+## 1     Country 3376    36                                               Country
+## 2  Regioncode 3376     6                                           Region code
+## 3      Region 3376     6                                                Region
+## 4    Variable 3376     2                                              Variable
+## 5        Year 3376    67                                                  Year
+## 6      AGR_VA 1702  1700                                          Agriculture 
+## 7     AGR_EMP 1674  1669                                          Agriculture 
+## 8      MIN_VA 1702  1641                                                Mining
+## 9     MIN_EMP 1674  1622                                                Mining
+## 10     MAN_VA 1702  1702                                         Manufacturing
+## 11    MAN_EMP 1674  1672                                         Manufacturing
+## 12      PU_VA 1702  1665                                             Utilities
+## 13     PU_EMP 1674  1615                                             Utilities
+## 14     CON_VA 1702  1693                                          Construction
+## 15    CON_EMP 1674  1668                                          Construction
+## 16     WRT_VA 1702  1695                         Trade, restaurants and hotels
+## 17    WRT_EMP 1674  1670                         Trade, restaurants and hotels
+## 18     TRA_VA 1702  1694                  Transport, storage and communication
+## 19    TRA_EMP 1674  1662                  Transport, storage and communication
+## 20    FIRE_VA 1702  1696 Finance, insurance, real estate and business services
+## 21   FIRE_EMP 1674  1674 Finance, insurance, real estate and business services
+## 22     GOV_VA 1702  1698                                   Government services
+## 23    GOV_EMP 1674  1666                                   Government services
+## 24     OTH_VA 1702  1695               Community, social and personal services
+## 25    OTH_EMP 1674  1671               Community, social and personal services
+## 26     SUM_VA 1702  1702                               Summation of sector GDP
+## 27    SUM_EMP 1674  1674                               Summation of sector GDP</code></pre>
+<p>Note how the variable labels were copied to each of the two variables created for each sector. It is also possible to pass argument <code>transpose = c("columns", "names")</code> to change the order of columns and/or naming of the casted columns. Wide pivots where multiple columns are cast do not have a well-defined reverse operation. It may nevertheless be very useful to analyze individual sectors.</p>
+<p>The third useful way to reshape this data for analysis is to recast it such that each variable goes into a separate column and the sectors are stacked in one column:</p>
+<pre class="r"><code># Pivot Recast
+recast_df = pivot(GGDC10S, values = 6:16, 
+      names = list(from = &quot;Variable&quot;, to = &quot;Sectorcode&quot;),
+      labels = list(to = &quot;Sector&quot;), how = &quot;recast&quot;, na.rm = TRUE)
+head(recast_df)
+##   Country Regioncode             Region Year Sectorcode       Sector       VA      EMP
+## 1     BWA        SSA Sub-saharan Africa 1964        AGR Agriculture  16.30154 152.1179
+## 2     BWA        SSA Sub-saharan Africa 1965        AGR Agriculture  15.72700 153.2971
+## 3     BWA        SSA Sub-saharan Africa 1966        AGR Agriculture  17.68066 153.8867
+## 4     BWA        SSA Sub-saharan Africa 1967        AGR Agriculture  19.14591 155.0659
+## 5     BWA        SSA Sub-saharan Africa 1968        AGR Agriculture  21.09957 156.2451
+## 6     BWA        SSA Sub-saharan Africa 1969        AGR Agriculture  21.86221 157.4243</code></pre>
+<p>This is useful, for example, if we wanted to run a regression with sector-fixed effects. The code to reverse this pivot is</p>
+<pre class="r"><code># Reverse Pivot Recast
+pivot(recast_df, values = c(&quot;VA&quot;, &quot;EMP&quot;), 
+      names = list(from = &quot;Sectorcode&quot;, to = &quot;Variable&quot;),
+      labels = list(from = &quot;Sector&quot;), how = &quot;recast&quot;) |&gt; head(3)
+##   Country Regioncode             Region Year Variable      AGR
+## 1     BWA        SSA Sub-saharan Africa 1964       VA 16.30154
+## 2     BWA        SSA Sub-saharan Africa 1965       VA 15.72700
+## 3     BWA        SSA Sub-saharan Africa 1966       VA 17.68066</code></pre>
+<p>This showcased just some of the functionality of <code>pivot()</code>, more extensive examples are available in the <a href="https://sebkrantz.github.io/collapse/reference/pivot.html">documentation</a> (<code>?pivot</code>). But the above is enough to demonstrate this unified API’s power and flexibility; it is also blazing fast.</p>
+</div>
+<div id="global-configurability-and-interactive-namespace-masking" class="section level1">
+<h1>Global Configurability and Interactive Namespace Masking</h1>
+<p>The third major feature of <em>collapse</em> 2.0 is its extensive <a href="https://sebkrantz.github.io/collapse/reference/collapse-options.html">global configurability</a> via the <code>set_collapse()</code> function, which includes the default behavior for missing values (<code>na.rm</code> arguments in all statistical functions and algorithms), sorted grouping (<code>sort</code>), multithreading and algorithmic optimizations (<code>nthreads</code>, <code>stable.algo</code>), presentational settings (<code>stub</code>, <code>digits</code>, <code>verbose</code>), and, surpassing all else, the package namespace itself (<code>mask</code>, <code>remove</code>).</p>
+<p>Why should the namespace, in particular, be modifiable? The main reason is that <em>collapse</em> provides many enhanced and performance improved equivalents to functions present in base R and <em>dplyr</em>, such as the <a href="https://sebkrantz.github.io/collapse/reference/fast-statistical-functions.html"><em>Fast Statistical Functions</em></a>, fast <a href="https://sebkrantz.github.io/collapse/reference/fast-grouping-ordering.html"><em>Grouping and Ordering</em></a> functions and algorithms, <a href="https://sebkrantz.github.io/collapse/reference/fast-data-manipulation.html"><em>Data Manipulation</em></a> and <a href="https://sebkrantz.github.io/collapse/reference/time-series-panel-series.html"><em>Time Series</em></a> functions.</p>
+<p><em>collapse</em> is intentionally fully compatible with the base R and <em>dplyr</em> namespaces by adding f-prefixes to these performance-improved functions where conflicts exist. Since v1.7.0, there exists a global option <code>"collapse_mask"</code> which can be set before the package is loaded to export non-prefixed versions of these functions, but this was somewhat tedious and best done with an <code>.Rprofile</code> file. <em>collapse</em> 2.0 also adds this option to <code>set_collapse()</code> and makes it fully interactive; that is, it can be set and changed at any point within the active session.</p>
+<p>Concretely, what does this mean? Base R and <em>dplyr</em> are relatively slow compared to what can be achieved with group-level vectorization, SIMD instructions, and efficient algorithms, especially as data grows. To provide an example, I generate some large vectors and run some benchmarks for basic operations:</p>
+<pre class="r"><code>ul &lt;- outer(letters, letters, paste0)
+l &lt;- sample(ul, 1e7, replace = TRUE)
+m &lt;- sample(outer(month.abb, month.abb, paste0), 1e7, replace = TRUE)
+x &lt;- na_insert(rnorm(1e7), prop = 0.05)
+data &lt;- data.frame(l, m, x)
+
+library(microbenchmark)
+microbenchmark(
+  unique(l),
+  table(l, m),
+  sum(x, na.rm = TRUE),
+  median(x, na.rm = TRUE),
+  mean(x, na.rm = TRUE),
+times = 10)
+## Warning in microbenchmark(unique(l), table(l, m), sum(x, na.rm = TRUE), : less accurate nanosecond times to avoid potential integer overflows
+## Unit: milliseconds
+##                     expr       min        lq      mean    median        uq       max neval
+##                unique(l)  82.07856  85.14671  91.08940  86.02663  87.65242 124.87604    10
+##              table(l, m) 506.91215 546.24042 554.55146 549.27130 565.78729 640.67941    10
+##     sum(x, na.rm = TRUE)  15.39316  15.40485  15.58453  15.45362  15.54109  16.57486    10
+##  median(x, na.rm = TRUE) 155.55667 157.19572 164.38405 160.75044 165.29642 196.26446    10
+##    mean(x, na.rm = TRUE)  53.79520  54.12406  60.39059  55.94202  57.72792  97.40887    10
+
+library(dplyr)
+microbenchmark(
+  dplyr = data |&gt;
+    subset(l %in% ul[1:500]) |&gt;
+    group_by(l, m) |&gt;
+    summarize(mean_x = mean(x, na.rm = TRUE), 
+              median_x = median(x, na.rm = TRUE)), 
+times = 10)
+## Unit: seconds
+##   expr      min       lq     mean   median       uq      max neval
+##  dplyr 2.159383 2.193034 2.230608 2.226005 2.250952 2.370895    10</code></pre>
+<p>The beauty of namespace masking is that we can turn parts or all of this code into <em>collapse</em> code by simply invoking the <code>mask</code> option to <code>set_collapse()</code>. The most comprehensive setting is <code>mask = "all"</code>. It is a secure option because invoking it instantly exports these functions in the <em>collapse</em> namespace and re-attaches the namespace to make sure it is at the top of the search path:</p>
+<pre class="r"><code>set_collapse(mask = &quot;all&quot;)
+# This is all collapse code now + no need to set na.rm = TRUE (default in collapse)
+# We could use set_collapse(na.rm = FALSE) to bring collapse in-line with base R
+microbenchmark(
+  unique(l),
+  table(l, m),
+  sum(x),
+  median(x),
+  mean(x),
+times = 10)
+## Unit: milliseconds
+##         expr       min        lq       mean     median         uq        max neval
+##    unique(l) 14.215561 15.289105  15.516647  15.564871  15.786722  16.411152    10
+##  table(l, m) 94.875968 97.539410 107.189014 108.895508 115.038948 118.004806    10
+##       sum(x)  1.968984  1.998955   2.053936   2.037946   2.128843   2.152500    10
+##    median(x) 90.736772 91.784609  93.486921  92.288725  94.812787  99.236277    10
+##      mean(x)  2.384314  2.389931   2.454666   2.419861   2.456023   2.680621    10
+
+microbenchmark(
+  collapse = data |&gt;
+    subset(l %in% ul[1:500]) |&gt;
+    group_by(l, m) |&gt;
+    summarize(mean_x = mean(x), 
+              median_x = median(x)), 
+times = 10)
+## Unit: milliseconds
+##      expr      min       lq     mean   median       uq      max neval
+##  collapse 344.2272 351.6525 363.8762 358.4373 373.9692 402.6943    10
+
+# Reset the masking 
+# set_collapse(mask = NULL)</code></pre>
+<p>Evidently, the <em>collapse</em> code runs much faster. The 5-10x speedups shown here are quite normal. Higher speedups can be experienced for grouped operations as the number of groups grows large and repetition in R becomes very costly. As indicated before, masking in <em>collapse</em> 2.0 is fully interactive and reversible: invoking <code>set_collapse(mask = NULL)</code> and running the same code again will execute it again with base R and <em>dplyr</em>.</p>
+<p>So, in summary, <em>collapse</em> 2.0 provides fast R, in R, in a very simple and broadly accessible way. There are many other advantages to using <em>collapse</em>, e.g., given that its <a href="https://sebkrantz.github.io/collapse/reference/fast-statistical-functions.html"><em>Fast Statistical Functions</em></a> are S3 generic and support grouped and weighted aggregations and transformations out of the box, this saves many unnecessary calls to <code>apply()</code>, <code>lapply()</code> or <code>summarise()</code>, etc. (in addition to many unnecessary specifications of <code>na.rm = TRUE</code>) e.g.:</p>
+<pre class="r"><code># S3 generic statistical functions save a lot of syntax
+mean(mtcars)                 # = sapply(mtcars, mean)
+##        mpg        cyl       disp         hp       drat         wt       qsec         vs         am       gear       carb 
+##  20.090625   6.187500 230.721875 146.687500   3.596563   3.217250  17.848750   0.437500   0.406250   3.687500   2.812500
+mean(mtcars, w = runif(32))  # = sapply(mtcars, weighted.mean, w = runif(32))
+##         mpg         cyl        disp          hp        drat          wt        qsec          vs          am        gear        carb 
+##  20.9009889   5.9682791 221.9436951 137.7951392   3.6740174   3.1670541  18.0195300   0.4878638   0.4240404   3.7486737   2.6293563
+mean(mtcars$mpg, mtcars$cyl) # = tapply(mtcars$mpg, mtcars$cyl, mean)
+##        4        6        8 
+## 26.66364 19.74286 15.10000
+mean(mtcars, TRA = &quot;-&quot;) |&gt;   # = sweep(mtcars, 2, sapply(mtcars, mean))
+  head()
+##                         mpg     cyl        disp       hp       drat       wt     qsec      vs       am    gear    carb
+## Mazda RX4          0.909375 -0.1875  -70.721875 -36.6875  0.3034375 -0.59725 -1.38875 -0.4375  0.59375  0.3125  1.1875
+## Mazda RX4 Wag      0.909375 -0.1875  -70.721875 -36.6875  0.3034375 -0.34225 -0.82875 -0.4375  0.59375  0.3125  1.1875
+## Datsun 710         2.709375 -2.1875 -122.721875 -53.6875  0.2534375 -0.89725  0.76125  0.5625  0.59375  0.3125 -1.8125
+## Hornet 4 Drive     1.309375 -0.1875   27.278125 -36.6875 -0.5165625 -0.00225  1.59125  0.5625 -0.40625 -0.6875 -1.8125
+## Hornet Sportabout -1.390625  1.8125  129.278125  28.3125 -0.4465625  0.22275 -0.82875 -0.4375 -0.40625 -0.6875 -0.8125
+## Valiant           -1.990625 -0.1875   -5.721875 -41.6875 -0.8365625  0.24275  2.37125  0.5625 -0.40625 -0.6875 -1.8125
+mtcars |&gt; group_by(cyl, vs, am) |&gt; 
+  mean() # = summarize(across(everything(), mean))
+##   cyl vs am      mpg     disp        hp     drat       wt     qsec     gear     carb
+## 1   4  0  1 26.00000 120.3000  91.00000 4.430000 2.140000 16.70000 5.000000 2.000000
+## 2   4  1  0 22.90000 135.8667  84.66667 3.770000 2.935000 20.97000 3.666667 1.666667
+## 3   4  1  1 28.37143  89.8000  80.57143 4.148571 2.028286 18.70000 4.142857 1.428571
+## 4   6  0  1 20.56667 155.0000 131.66667 3.806667 2.755000 16.32667 4.333333 4.666667
+## 5   6  1  0 19.12500 204.5500 115.25000 3.420000 3.388750 19.21500 3.500000 2.500000
+## 6   8  0  0 15.05000 357.6167 194.16667 3.120833 4.104083 17.14250 3.000000 3.083333
+## 7   8  0  1 15.40000 326.0000 299.50000 3.880000 3.370000 14.55000 5.000000 6.000000</code></pre>
+</div>
+<div id="concluding-reflections" class="section level1">
+<h1>Concluding Reflections</h1>
+<p>It has been a remarkable 3.5-year-long journey leading up to the development of <em>collapse</em> 2.0, and a tremendous feat of time, energy, and determination. I could probably have published 2 academic papers instead, but would still be writing horrible code like most economists, be trying to do complex things in econometrics, etc., using other mainstream data science libraries not really designed for that, or, worst case, just be stuck to commercial software. I’m happy I came out as an open-source developer and that I’ve been accompanied on this path by other great people from my profession.</p>
+<p>I also never regretted choosing R as a primary language. I find it unique in its simplicity and parsimony, the ability to work with different objects like vectors, matrices, and data frames in a fluent way, and to do rather complex things like matching with a single function call.</p>
+<p>On the other hand, R for me always lacked speed and the ability to do advanced statistical and data manipulation operations with ease, as I was used to coming from commercial environments (STATA, Mathematica).</p>
+<p><em>collapse</em> is my determined attempt to bring statistical complexity, parsimony, speed, and joy to statistics and data manipulation in R, and I believe it is the most encompassing attempt out there and preserves the fundamental character of the language.</p>
+<p>Notably, the <em>collapse</em> approach is not limited to a certain object (like e.g. <em>data.table</em>, which remains a great idea and implementation), and does not rely on data structures and syntax that are somewhat alien/external to the language and do not integrate with many of its first-order features (e.g. <em>arrow</em>, <em>polars</em>, <em>duckdb</em>). It is also arguably more successful than alternative ways to implement or compile the language (<a href="https://github.com/oracle/fastr"><em>FastR</em> / <em>Graal VM</em></a>), because the fundamental performance problem in R is algorithmic efficiency and the lack of low-level vectorization for repetitive tasks<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.
+<!--
+Concretely, I think collapse 2.0, with its broad set of functions and algorithms ranging from basic arithmetic and programming to basic and advanced statistics, unique values, matching, ordering, and broad data manipulation, together with the namespace masking options and global configurability, is probably the most encompassing attempt ever made to fundamentally speed up and enrich the R language itself.
+--></p>
+<p>By reimplementing core parts of the language using efficient algorithms and providing rich and flexible vectorizations for many statistical operations across columns and groups in a class-agnostic way supporting nearly all frequently used data structures, <em>collapse</em> solves the fundamental performance problem in a way that integrates seamlessly with the core of the language. It also adds much-needed statistical complexity, particularly for weighted statistics, time series, and panel data. In short, it provides advanced and fast R, inside GNU R.</p>
+<p>It is not, and will never be, the absolute best that can be done in performance terms. The data formats used by the best-performing systems (such as the <em>arrow</em> columnar format underlying <em>polars</em>) are designed at the memory level to optimally use computer resources (SIMD etc.), with database applications in mind, and the people doing this did not study economics. But it is not yet clear that such architectures are very suitable for languages meant to do broad and linear-algebra heavy statistical computing tasks, and R just celebrated its 30th birthday this year. So, given the constraints imposed by a 30-year-old C-based language and API, frameworks like <em>collapse</em> and <em>data.table</em> are pushing the boundaries very far<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+<p>Let me stop here; <em>collapse</em> 2.0 is out. It changed my R life, and I hope it will change yours.</p>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>Some initial benchmarks were shared on <a href="https://twitter.com/collapse_R">Twitter</a>, and <em>collapse</em> is about to enter the <a href="https://duckdb.org/2023/04/14/h2oai.html#results">DuckDB database like ops benchmark</a>. <code>fmatch()</code> is also nearly an order of magnitude faster than <code>match()</code> for atomic vectors.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>See e.g. benchmarks for <a href="https://github.com/brodieG/r2c"><em>r2c</em></a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Actually, it is extremely impressive how well <em>data.table</em> still performs compared to modern libraries based on optimized memory models. The <a href="https://duckdblabs.github.io/db-benchmark/">benchmarks</a> also show that in high-cardinality settings (many groups relative to the data size), optimized memory models don’t pay off that much, indicating that there is always a tradeoff between the complexity of statistical operations and the possibility of vectorization/bulk processing on modern hardware.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
       <title>collapse and the fastverse: Reflections on the Past, Present and Future</title>
       <link>https://sebkrantz.github.io/Rblog/2023/04/12/collapse-and-the-fastverse-reflecting-the-past-present-and-future/</link>
       <pubDate>Wed, 12 Apr 2023 00:00:00 +0000</pubDate>
