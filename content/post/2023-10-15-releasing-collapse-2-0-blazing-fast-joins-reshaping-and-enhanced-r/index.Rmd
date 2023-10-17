@@ -1,7 +1,7 @@
 ---
 title: 'Releasing collapse 2.0: Blazing Fast Joins, Reshaping, and Enhanced R'
 author: Package Build
-date: '2023-10-15'
+date: '2023-10-17'
 slug: releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r
 categories: ["R"]
 tags: ["R", "collapse"]
@@ -157,7 +157,7 @@ head(recast_df)
 This is useful, for example, if we wanted to run a regression with sector-fixed effects. The code to reverse this pivot is
 
 ```{r}
-# Reverse Pivot Recast
+# Reverse Pivot Recast 
 pivot(recast_df, values = c("VA", "EMP"), 
       names = list(from = "Sectorcode", to = "Variable"),
       labels = list(from = "Sector"), how = "recast") |> head(3)
