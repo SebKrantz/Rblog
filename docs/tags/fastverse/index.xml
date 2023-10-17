@@ -9,10 +9,10 @@
     <lastBuildDate>Wed, 12 Apr 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/fastverse/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Releasing collapse 2.0: Blazing Fast Joins, Reshaping, and Enhanced R</title>
-      <link>https://sebkrantz.github.io/Rblog/2023/10/15/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</link>
-      <pubDate>Sun, 15 Oct 2023 00:00:00 +0000</pubDate>
+      <link>https://sebkrantz.github.io/Rblog/2023/10/17/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</link>
+      <pubDate>Tue, 17 Oct 2023 00:00:00 +0000</pubDate>
       
-      <guid>https://sebkrantz.github.io/Rblog/2023/10/15/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</guid>
+      <guid>https://sebkrantz.github.io/Rblog/2023/10/17/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</guid>
       <description><![CDATA[ 
 
 
@@ -258,14 +258,14 @@ head(recast_df)
 ## 5     BWA        SSA Sub-saharan Africa 1968        AGR Agriculture  21.09957 156.2451
 ## 6     BWA        SSA Sub-saharan Africa 1969        AGR Agriculture  21.86221 157.4243</code></pre>
 <p>This is useful, for example, if we wanted to run a regression with sector-fixed effects. The code to reverse this pivot is</p>
-<pre class="r"><code># Reverse Pivot Recast
+<pre class="r"><code># Reverse Pivot Recast 
 pivot(recast_df, values = c(&quot;VA&quot;, &quot;EMP&quot;), 
       names = list(from = &quot;Sectorcode&quot;, to = &quot;Variable&quot;),
       labels = list(from = &quot;Sector&quot;), how = &quot;recast&quot;) |&gt; head(3)
-##   Country Regioncode             Region Year Variable      AGR
-## 1     BWA        SSA Sub-saharan Africa 1964       VA 16.30154
-## 2     BWA        SSA Sub-saharan Africa 1965       VA 15.72700
-## 3     BWA        SSA Sub-saharan Africa 1966       VA 17.68066</code></pre>
+##   Country Regioncode             Region Year Variable      AGR      MIN       MAN        PU       CON      WRT      TRA     FIRE      GOV      OTH      SUM
+## 1     BWA        SSA Sub-saharan Africa 1964       VA 16.30154 3.494075 0.7365696 0.1043936 0.6600454 6.243732 1.658928 1.119194 4.822485 2.341328 37.48229
+## 2     BWA        SSA Sub-saharan Africa 1965       VA 15.72700 2.495768 1.0181992 0.1350976 1.3462312 7.064825 1.939007 1.246789 5.695848 2.678338 39.34710
+## 3     BWA        SSA Sub-saharan Africa 1966       VA 17.68066 1.970343 0.8038415 0.2026464 1.3462312 8.271015 2.154452 1.358193 6.365948 2.993436 43.14677</code></pre>
 <p>This showcased just some of the functionality of <code>pivot()</code>, more extensive examples are available in the <a href="https://sebkrantz.github.io/collapse/reference/pivot.html">documentation</a> (<code>?pivot</code>). But the above is enough to demonstrate this unified API’s power and flexibility; it is also blazing fast.</p>
 </div>
 <div id="global-configurability-and-interactive-namespace-masking" class="section level1">
