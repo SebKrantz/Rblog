@@ -20,11 +20,11 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "^README", "\\.
     name = "GitHub"
     url = "https://github.com/SebKrantz"
 [[menu.main]]
-    name = "Twitter"
-    url = "https://twitter.com/collapse_R"
+    name = "Mastodon"
+    url = "https://fosstodon.org/@sebkrantz"
 
 [params]
-    description = "An R blog dedicated to econometrics and high-performance data analysis and applications."
+    description = "An blog dedicated to introducing high-performance statistical software and applications."
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.12.0"

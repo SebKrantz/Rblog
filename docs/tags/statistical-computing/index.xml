@@ -8,6 +8,68 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://sebkrantz.github.io/Rblog/tags/statistical-computing/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Introducing OptimalTransportNetworks.jl: Optimal Transport Networks in Spatial Equilibrium</title>
+      <link>https://sebkrantz.github.io/Rblog/2024/09/22/introducing-optimaltransportnetworks-jl-optimal-transport-networks-in-spatial-equilibrium/</link>
+      <pubDate>Sun, 22 Sep 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://sebkrantz.github.io/Rblog/2024/09/22/introducing-optimaltransportnetworks-jl-optimal-transport-networks-in-spatial-equilibrium/</guid>
+      <description><![CDATA[ 
+
+
+<p>I’m happy to announce the release of <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworks.jl">OptimalTransportNetworks.jl</a>, a modern Julia translation of the MATLAB <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworkToolbox">OptimalTransportNetworkToolbox</a> implementing the quantitative spatial model and algorithms described in</p>
+<p>Fajgelbaum, P. D., &amp; Schaal, E. (2020). Optimal transport networks in spatial equilibrium. <em>Econometrica, 88</em>(4), 1411-1452.</p>
+<p>The model/software uses duality principles to <strong>optimize over the space of networks</strong>, nesting an optimal flows problem and a neoclassical general-equilibrium trade model into a global network design problem to derive the optimal (welfare maximizing) transport network (extension) from any set of economic fundamentals.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
+<p>For more information about the model see <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworkToolbox/tree/main/docs/paper_materials">this folder</a> and the <a href="https://raw.githubusercontent.com/OptimalTransportNetworks/OptimalTransportNetworkToolbox/main/docs/User%20Guide.pdf">MATLAB User Guide</a>.</p>
+<p>The model is the first of its kind and a pathbreaking contribution towards the welfare maximizing planning of transport infrastructure. Its creation has been funded by the European Union through an <a href="https://cordis.europa.eu/project/id/804095">ERC Research Grant</a>.</p>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>The code for this example is in <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworks.jl/blob/main/examples/example04.jl">example04.jl</a>. See the <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworks.jl/blob/main/examples">examples folder</a> for more examples.</p>
+<p>This plot shows the endowments on a map-graph: circle size is population, circle colour is productivity (the central node is more productive), the black lines indicate geographic barriers, and the background is shaded according to the cost of network building (elevation), indicating a mountain in the upper right corner.</p>
+<p align="center">
+<img src="example_04_setup.png" alt="example_04_setup.png"/>
+</p>
+<p>The following plot shows the optimal network after 200 iterations, keeping population fixed. The size of nodes indicates consumption in each node. The blue lines are the proposed roads and their thickness indicates their capacity.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
+<p align="center">
+<img src="example_04_solution.png" alt="example_04_solution.png"/>
+</p>
+<p>You may wonder why are there multiple roads to certain cities? The reason is decreasing returns to infrastructure (<span class="math inline">\(\beta \leq \gamma\)</span>, where <span class="math inline">\(\beta\)</span> governs the strength of congestion forces and <span class="math inline">\(\gamma\)</span> the returns to infrastructure). This guarantees the global convexity of the nested optimization problem. In this example <span class="math inline">\(\beta = \gamma = 1\)</span>.</p>
+<p>However, we can assume increasing returns to infrastructure, e.g., by setting <span class="math inline">\(\gamma = 2\)</span>. In this case the nested optimization problem is not globally convex, and the software automatically calls a Simulated Annealing algorithm to approximate the global solution following convex optimization. The result:</p>
+<p align="center">
+<img src="example_04_solution_annealing.png" alt="example_04_solution_annealing.png"/>
+</p>
+<p>In reality, which assumption is reasonable depends on the setting. Inside cities, estimates of the empirical relationship between speed, roads, and vehicles by <a href="https://direct.mit.edu/rest/article-abstract/100/4/725/58505/Speed?redirectedFrom=fulltext">Couture, Duranton, and Turner (2018)</a> using U.S. data imply the DRS/convex case, i.e., congestion forces are strong and it is better to ‘build several smaller roads than a few huge roads’. Outside of cities there is (to my knowledge) not much evidence on this matter.</p>
+</div>
+<div id="customization-and-research-use" class="section level2">
+<h2>Customization and Research Use</h2>
+<p>While the examples are nice and illustrative, the library permits users to provide custom graphs which must not be dense/fully connected.</p>
+<p>My own recent research on <a href="https://github.com/SebKrantz/OptimalAfricanRoads">Optimal Investments in Africa’s Road Network</a>, considers, amongst other scenarios, optimal $10 billion (2015 USD) upgrades to the trans-African transport network using a sparse graph derived from fastest Open Street Map routes between 47 large (port-)cities - see the <a href="https://github.com/SebKrantz/OptimalAfricanRoads/blob/main/code/11_GE_simulation_trans_african/optimal_trans_african_networks_largest_pcities.jl">simulation code</a>, the following figures are taken from the <a href="https://www.dropbox.com/scl/fi/0mbk75tb4t5g9vl1tlxnx/presentation_WCA_CEPR.pdf?rlkey=sbispafuhwvslzsol0n2ey1hi&amp;dl=0">slides</a>.</p>
+<p>I find that optimal upgrades depend not so much on the returns to infrastructure (as the network is fixed/sparse), but rather on heterogeneous road construction costs, the elasticity of substitution between different city-goods (<span class="math inline">\(\sigma\)</span> - a trade elasticity) and whether social planners are inequality averse (<span class="math inline">\(\rho = 2\)</span> instead of <span class="math inline">\(0\)</span>).</p>
+<p align="center">
+<img src="Trans_African_Upgrade_Sigma3.8.png" alt="Trans_African_Upgrade_Sigma3.8.png" style="max-width: 100%"/>
+<img src="Trans_African_Upgrade_Sigma2.png" alt="Trans_African_Upgrade_Sigma2.png" style="max-width: 100%"/>
+<img src="Trans_African_Upgrade_Flows.png" alt="Trans_African_Upgrade_Flows.png" style="max-width: 100%"/>
+</p>
+<p>I have forked available replication materials for papers using this framework on the <a href="https://github.com/OptimalTransportNetworks">OptimalTransportNetworks organization</a>. Further works I am aware of include:</p>
+<p>Graff, T. (2024). Spatial inefficiencies in Africa’s trade network. <em>Journal of Development Economics</em>, 103319. Available at <a href="https://tilmangraff.github.io/" class="uri">https://tilmangraff.github.io/</a></p>
+<p>Gorton, Nicole and Ianchovichina, Elena, Trade Networks in Latin America: Spatial Inefficiencies and Optimal Expansions. Available at SSRN: <a href="https://ssrn.com/abstract=4041108" class="uri">https://ssrn.com/abstract=4041108</a> or <a href="http://dx.doi.org/10.2139/ssrn.4041108" class="uri">http://dx.doi.org/10.2139/ssrn.4041108</a></p>
+<p>Kreindler, G., Gaduh, A., Graff, T., Hanna, R., &amp; Olken, B. A. (2023). Optimal Public Transportation Networks: Evidence from the World’s Largest Bus Rapid Transit System in Jakarta (No. w31369). National Bureau of Economic Research. Available at <a href="https://www.nber.org/papers/w31369" class="uri">https://www.nber.org/papers/w31369</a></p>
+</div>
+<div id="going-forward" class="section level2">
+<h2>Going Forward</h2>
+<p>Community efforts to further improve the code are very welcome. I started the GitHub organization <a href="https://github.com/OptimalTransportNetworks">OptimalTransportNetworks</a> to maintain both the Julia and MATLAB libraries, but also to gather/start similar contributions, including replication materials of relevant research papers.</p>
+<p>The overall aim of the organization is to develop powerful open tools to solve (large-scale) transport infrastructure allocation problems from an economics/welfare perspective. Global infrastructure investment needs are estimated at 3.5% of global GDP - around 100 trillion USD by 2040 according to the <a href="https://cdn.gihub.org/outlook/live/methodology/Global+Infrastructure+Outlook+factsheet+-+June+2018.pdf">Global Infrastructure Outlook</a> - and transport investments are a good part of that - e.g. the African Development Bank estimates that <a href="https://www.afdb.org/en/news-and-events/scaling-financing-key-accelerating-africas-structural-transformation-73244">73% of Africa’s estimated ~$400B annual financing gap until 2030 is in transportation</a>. Thus it is high time to start thinking about economic/welfare maximizing planning and develop relevant open tools. If you’re interested in contributing/maintaining or have new ideas/research/approaches, don’t hesitate to reach out - happy to welcome smart minds to the organization.</p>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>population per location, productivity per location for each of <em>N</em> traded goods, endowment of a non-traded good, and (optionally) a pre-existing transport network.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Which is necessarily a continuous measure. We may also think in terms of of road speed, with “thicker” roads being the faster ones.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+]]></description>
+    </item>
+    
+    <item>
       <title>Releasing collapse 2.0: Blazing Fast Joins, Reshaping, and Enhanced R</title>
       <link>https://sebkrantz.github.io/Rblog/2023/10/17/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</link>
       <pubDate>Tue, 17 Oct 2023 00:00:00 +0000</pubDate>

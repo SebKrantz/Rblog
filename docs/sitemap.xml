@@ -2,22 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://sebkrantz.github.io/Rblog/2024/09/22/introducing-optimaltransportnetworks-jl-optimal-transport-networks-in-spatial-equilibrium/</loc>
+    <lastmod>2024-09-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/post/</loc>
+    <lastmod>2024-09-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://sebkrantz.github.io/Rblog/</loc>
+    <lastmod>2024-09-22T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://sebkrantz.github.io/Rblog/categories/</loc>
     <lastmod>2023-10-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://sebkrantz.github.io/Rblog/tags/collapse/</loc>
     <lastmod>2023-10-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://sebkrantz.github.io/Rblog/post/</loc>
-    <lastmod>2023-10-17T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://sebkrantz.github.io/Rblog/tags/r/</loc>
     <lastmod>2023-10-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://sebkrantz.github.io/Rblog/categories/r/</loc>
-    <lastmod>2023-10-17T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://sebkrantz.github.io/Rblog/</loc>
     <lastmod>2023-10-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://sebkrantz.github.io/Rblog/2023/10/17/releasing-collapse-2-0-blazing-fast-joins-reshaping-and-enhanced-r/</loc>

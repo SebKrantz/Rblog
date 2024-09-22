@@ -3,6 +3,6 @@
 title: About
 ---
 
-This is the R blog of [Sebastian Krantz](https://github.com/SebKrantz), dedicated to econometrics and high-performance data analysis and applications, as well as the introduction of new software such as [collapse](https://sebkrantz.github.io/collapse/) and the [fastverse](https://fastverse.github.io/fastverse/).  
+This is the software blog of [Sebastian Krantz](https://github.com/SebKrantz), dedicated to introducing high-performance statistical software and applications.  
 
 The blog is linked to [r-bloggers.com](https://www.r-bloggers.com/).
