@@ -12,7 +12,7 @@ I'm happy to announce the release of [OptimalTransportNetworks.jl](https://githu
 
 Fajgelbaum, P. D., & Schaal, E. (2020). Optimal transport networks in spatial equilibrium. *Econometrica, 88*(4), 1411-1452.
 
-The model/software uses duality principles to **optimize over the space of networks**, nesting an optimal flows problem and a neoclassical general-equilibrium trade model into a global network design problem to derive the optimal (welfare maximizing) transport network (extension) from any set of economic fundamentals.^[population per location, productivity per location for each of *N* traded goods, endowment of a non-traded good, and (optionally) a pre-existing transport network.]
+The model/software uses duality principles to **optimize over the space of networks**, nesting an optimal flows problem and a neoclassical general-equilibrium trade model into a global network design problem to derive the optimal (welfare maximizing) transport network (extension) from any primitive set of economic fundamentals.^[Population per location, productivity per location for each of *N* traded goods, endowment of a non-traded good, and (optionally) a pre-existing transport network.]
 
 
 For more information about the model see [this folder](https://github.com/OptimalTransportNetworks/OptimalTransportNetworkToolbox/tree/main/docs/paper_materials) and the [MATLAB User Guide](https://raw.githubusercontent.com/OptimalTransportNetworks/OptimalTransportNetworkToolbox/main/docs/User%20Guide.pdf). 
