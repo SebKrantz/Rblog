@@ -27,13 +27,13 @@ This plot shows the endowments on a map-graph: circle size is population, circle
 
 
 <p align="center">
-<img src="example_04_setup.png" alt="example_04_setup.png"/>
+<img src="example_04_setup.png" alt="example_04_setup.png" style="max-width: 100%"/>
 </p>
 
 The following plot shows the optimal network after 200 iterations, keeping population fixed. The size of nodes indicates consumption in each node. The blue lines are the proposed roads and their thickness indicates their capacity.^[Which is necessarily a continuous measure. We may also think in terms of of road speed, with "thicker" roads being the faster ones.]
 
 <p align="center">
-<img src="example_04_solution.png" alt="example_04_solution.png"/>
+<img src="example_04_solution.png" alt="example_04_solution.png" style="max-width: 100%"/>
 </p>
 
 You may wonder why are there multiple roads to certain cities? The reason is decreasing returns to infrastructure ($\beta \leq \gamma$, where $\beta$ governs the strength of congestion forces and $\gamma$ the returns to infrastructure). This guarantees the global convexity of the nested optimization problem. In this example $\beta = \gamma = 1$. 
@@ -41,7 +41,7 @@ You may wonder why are there multiple roads to certain cities? The reason is dec
 However, we can assume increasing returns to infrastructure, e.g., by setting $\gamma = 2$. In this case the nested optimization problem is not globally convex, and the software automatically calls a Simulated Annealing algorithm to approximate the global solution following convex optimization. The result: 
 
 <p align="center">
-<img src="example_04_solution_annealing.png" alt="example_04_solution_annealing.png"/>
+<img src="example_04_solution_annealing.png" alt="example_04_solution_annealing.png" style="max-width: 100%"/>
 </p>
   
 In reality, which assumption is reasonable depends on the setting. Inside cities, estimates of the empirical relationship between speed, roads, and vehicles by [Couture, Duranton, and Turner (2018)](https://direct.mit.edu/rest/article-abstract/100/4/725/58505/Speed?redirectedFrom=fulltext) using U.S. data imply the DRS/convex case, i.e., congestion forces are strong and it is better to 'build several smaller roads than a few huge roads'. Outside of cities there is (to my knowledge) not much evidence on this matter. 

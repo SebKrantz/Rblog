@@ -80,16 +80,16 @@
 <p>The code for this example is in <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworks.jl/blob/main/examples/example04.jl">example04.jl</a>. See the <a href="https://github.com/OptimalTransportNetworks/OptimalTransportNetworks.jl/blob/main/examples">examples folder</a> for more examples.</p>
 <p>This plot shows the endowments on a map-graph: circle size is population, circle colour is productivity (the central node is more productive), the black lines indicate geographic barriers, and the background is shaded according to the cost of network building (elevation), indicating a mountain in the upper right corner.</p>
 <p align="center">
-<img src="example_04_setup.png" alt="example_04_setup.png"/>
+<img src="example_04_setup.png" alt="example_04_setup.png" style="max-width: 100%"/>
 </p>
 <p>The following plot shows the optimal network after 200 iterations, keeping population fixed. The size of nodes indicates consumption in each node. The blue lines are the proposed roads and their thickness indicates their capacity.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 <p align="center">
-<img src="example_04_solution.png" alt="example_04_solution.png"/>
+<img src="example_04_solution.png" alt="example_04_solution.png" style="max-width: 100%"/>
 </p>
 <p>You may wonder why are there multiple roads to certain cities? The reason is decreasing returns to infrastructure (<span class="math inline">\(\beta \leq \gamma\)</span>, where <span class="math inline">\(\beta\)</span> governs the strength of congestion forces and <span class="math inline">\(\gamma\)</span> the returns to infrastructure). This guarantees the global convexity of the nested optimization problem. In this example <span class="math inline">\(\beta = \gamma = 1\)</span>.</p>
 <p>However, we can assume increasing returns to infrastructure, e.g., by setting <span class="math inline">\(\gamma = 2\)</span>. In this case the nested optimization problem is not globally convex, and the software automatically calls a Simulated Annealing algorithm to approximate the global solution following convex optimization. The result:</p>
 <p align="center">
-<img src="example_04_solution_annealing.png" alt="example_04_solution_annealing.png"/>
+<img src="example_04_solution_annealing.png" alt="example_04_solution_annealing.png" style="max-width: 100%"/>
 </p>
 <p>In reality, which assumption is reasonable depends on the setting. Inside cities, estimates of the empirical relationship between speed, roads, and vehicles by <a href="https://direct.mit.edu/rest/article-abstract/100/4/725/58505/Speed?redirectedFrom=fulltext">Couture, Duranton, and Turner (2018)</a> using U.S. data imply the DRS/convex case, i.e., congestion forces are strong and it is better to ‘build several smaller roads than a few huge roads’. Outside of cities there is (to my knowledge) not much evidence on this matter.</p>
 </div>
