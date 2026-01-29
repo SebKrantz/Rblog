@@ -29,6 +29,11 @@ code {
   background-color: rgba(0, 0, 0, 0.02);
 }
 
+/* R Markdown: let wide R output scroll horizontally */
+pre.r {
+  overflow-x: auto;
+}
+
 .wrapper {
   overflow: hidden;
   position: relative;
