@@ -1,7 +1,7 @@
 ---
 title: 'Releasing dfms 1.0: Fast and Feature-Rich Estimation of Dynamic Factor Models in R'
 author: R Build
-date: '2026-01-27'
+date: '2026-01-29'
 slug: releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r
 categories: ["R"]
 tags: ["R", "C++", "econometrics", "time series", "dynamic factor models"]
@@ -19,7 +19,7 @@ oldopts <- options(width = 120L)
 <img src='dfms_logo.png' width="350px" align="right" />
 
 
-I am happy to announce the release of [*dfms* version 1.0](https://docs.ropensci.org/dfms/index.html) (and 0.4.0 just a week earlier, see [news](https://docs.ropensci.org/dfms/news/index.html#dfms-100)), implementing major features such as support for dynamic factor models (DFMs) with autoregressive errors, mixed-frequency (monthly-quarterly) DFMs, including with autoregressive errors, and decomposition of forecast revisions into news releases (updates to time series) following Banbura and Modugno (2014)---supporting interpretable nowcasts for one or multiple monthly or quarterly targets. This completes the planned scope of the package: the full, computationally efficient, and easily accessible implementation of the methodology of Banbura and Modugno (2014) in R. 
+I am very happy to announce the release of [*dfms* version 1.0](https://docs.ropensci.org/dfms/index.html) (and 0.4.0 just a week earlier, see [news](https://docs.ropensci.org/dfms/news/index.html#dfms-100)), implementing major features such as support for dynamic factor models (DFMs) with autoregressive errors, mixed-frequency (monthly-quarterly) DFMs, including with autoregressive errors, and decomposition of forecast revisions into news releases (updates to time series) following Banbura and Modugno (2014)---supporting interpretable nowcasts for one or multiple monthly or quarterly targets. This completes the planned scope of the package: the full, computationally efficient, and easily accessible implementation of the methodology of Banbura and Modugno (2014) in R. 
 
 Together with this major release, *dfms* has now been successfully peer-reviewed by two academic reviewers through the [rOpenSci](https://ropensci.org/) [Software Peer Review](https://ropensci.org/software-review/), and was published by rOpenSci---the repo now lives at [`github.com/ropensci/dfms`](https://github.com/ropensci/dfms) and the website at [docs.ropensci.org/dfms](https://docs.ropensci.org/dfms/) (redirects are in place).
 
@@ -73,7 +73,7 @@ The two latest *dfms* updates principally introduce three new features: (1) mixe
 To stick with the context of its history, and since the [documentation](https://docs.ropensci.org/dfms/reference/index.html) and [vignette](https://docs.ropensci.org/dfms/articles/introduction.html) provide lots of examples using the included dataset of Banbura and Modugno (2014), I will re-estimate my South Africa nowcasting model with the last available vintages for end-November and early-December 2024. 
 
 ```{r, echo=FALSE}
-setwd("~/Documents/R/Rblog/content/post/2026-01-27-releasing-dfms-1-0-fast-easy-and-feature-rich-estimation-of-dynamic-factor-models-in-r")
+setwd("~/Documents/R/Rblog/content/post/9-releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r")
 options(fastverse.styling = FALSE)
 ```
 
