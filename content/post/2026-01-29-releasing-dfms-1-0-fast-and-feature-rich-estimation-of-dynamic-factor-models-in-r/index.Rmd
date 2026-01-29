@@ -13,7 +13,7 @@ knitr::opts_chunk$set(collapse = TRUE,
   fig.width = 8, fig.height = 5, 
   out.width = '100%', cache = TRUE)
 
-oldopts <- options(width = 120L)
+oldopts <- options(width = 150L)
 ```
 
 <img src='dfms_logo.png' width="350px" align="right" />
@@ -73,7 +73,7 @@ The two latest *dfms* updates principally introduce three new features: (1) mixe
 To stick with the context of its history, and since the [documentation](https://docs.ropensci.org/dfms/reference/index.html) and [vignette](https://docs.ropensci.org/dfms/articles/introduction.html) provide lots of examples using the included dataset of Banbura and Modugno (2014), I will re-estimate my South Africa nowcasting model with the last available vintages for end-November and early-December 2024. 
 
 ```{r, echo=FALSE}
-setwd("~/Documents/R/Rblog/content/post/9-releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r")
+setwd("~/Documents/R/Rblog/content/post/2026-01-29-releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r")
 options(fastverse.styling = FALSE)
 ```
 

@@ -106,14 +106,14 @@
 <p>The two latest <em>dfms</em> updates principally introduce three new features: (1) mixed-frequency estimation with autoregressive errors implemented in <em>dfms</em> 0.4.0; (2) decomposition of forecast revisions into news contributions following Banbura and Modugno (2014), and (3) full-state predictions and forecasts implemented in <em>dfms</em> 1.0.0.</p>
 <p>To stick with the context of its history, and since the <a href="https://docs.ropensci.org/dfms/reference/index.html">documentation</a> and <a href="https://docs.ropensci.org/dfms/articles/introduction.html">vignette</a> provide lots of examples using the included dataset of Banbura and Modugno (2014), I will re-estimate my South Africa nowcasting model with the last available vintages for end-November and early-December 2024.</p>
 <pre class="r"><code>library(fastverse)
-## -- Attaching packages ------------------------------------------------------------------------------- fastverse 0.3.4 --
+## -- Attaching packages ------------------------------------------------------------------------------------------------------------- fastverse 0.3.4 --
 ## v data.table 1.17.0     v kit        0.0.21
 ## v magrittr   2.0.4      v collapse   2.1.6
 fastverse_extend(xts, dfms, readxl)
-## -- Attaching extension packages --------------------------------------------------------------------- fastverse 0.3.4 --
+## -- Attaching extension packages --------------------------------------------------------------------------------------------------- fastverse 0.3.4 --
 ## v xts    0.14.1     v readxl 1.4.5 
 ## v dfms   1.0.0
-## -- Conflicts ---------------------------------------------------------------------------------- fastverse_conflicts() --
+## -- Conflicts ---------------------------------------------------------------------------------------------------------------- fastverse_conflicts() --
 ## x xts::first() masks data.table::first()
 ## x xts::last()  masks data.table::last()
 ## x dfms::news() masks utils::news()
@@ -135,7 +135,7 @@ colnames(data_q)
 data &lt;- merge(data_m, data_q)[&quot;1990-02/&quot;]
 # .. it also has a nice plot method
 plot(scale(data), lwd = 1, ylim = c(-5, 5))</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-2-1.png" alt="" width="120%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-2-1.png" alt="" width="100%" /></p>
 <p>The usual <em>dfms</em> workflow is starts with information criteria to determine the number of factors and the factor-VAR order</p>
 <pre class="r"><code>(ic &lt;- ICr(data))
 ## Missing values detected: imputing data with tsnarmimp() with default settings
@@ -144,7 +144,7 @@ plot(scale(data), lwd = 1, ylim = c(-5, 5))</code></pre>
 ## IC1 IC2 IC3 
 ##   1   1  20
 screeplot(ic)</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-3-1.png" alt="" width="120%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-3-1.png" alt="" width="100%" /></p>
 <pre class="r"><code>vars::VARselect(ic$F_pca[, 1:4])
 ## $selection
 ## AIC(n)  HQ(n)  SC(n) FPE(n) 
@@ -160,14 +160,14 @@ screeplot(ic)</code></pre>
 <pre class="r"><code>system.time(DFM(data, r = 4, p = 3, max.missing = 1))
 ## Converged after 33 iterations.
 ##    user  system elapsed 
-##   1.357   0.043   1.402
+##   1.373   0.046   1.421
 system.time({
 dfm &lt;- DFM(data, r = 4, p = 3, idio.ar1 = TRUE, max.missing = 1,
            quarterly.vars = colnames(data_q))
 })
 ## Converged after 26 iterations.
 ##    user  system elapsed 
-##  31.693   0.445  32.186
+##  32.635   0.533  33.225
 summary(dfm)
 ## Mixed Frequency Dynamic Factor Model
 ## n = 57, nm = 54, nq = 3, T = 417, r = 4, p = 3
@@ -212,15 +212,15 @@ summary(dfm)
 ##    N    Mean  Median      SD      Min     Max
 ##   57  0.5093  0.5816  0.3811  -0.0188  0.9995
 plot(dfm, xlim = c(200, 415))</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-4-1.png" alt="" width="120%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-4-1.png" alt="" width="100%" /></p>
 <pre class="r"><code>plot(dfm, type = &quot;individual&quot;, method = &quot;all&quot;)</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-4-2.png" alt="" width="120%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-4-2.png" alt="" width="100%" /></p>
 <p>The factor model is, ostensibly, heavily impacted by the COVID shock, although the extent to which this shock introduced error in the model parameters is not clear. For this demonstration at least, I will not modify the data to deal with the shock. Ostensibly, a significant amount of series still display autoregressive dynamics at <code>mean(abs(rho)) = 0.3</code>, with autoregressive parameters <span class="math inline">\(\rho\)</span> ranging from -0.6 to 0.41. As further described in the <a href="https://raw.githubusercontent.com/ropensci/dfms/main/vignettes/dynamic_factor_models_paper.pdf">theoretical vignette</a>, the model with autoregressive errors not only estimates these <span class="math inline">\(\rho\)</span> parameters for each series—saved in <code>dfm$rho</code>—but also the error series <span class="math inline">\(e_t\)</span> itself—saved in <code>dfm$e</code>—which are modeled as part of the state vector along with the factors. This implies that for these models one can make predictions using either the full state including the modeled residual values or using just the factors. The difference, in this case, is vast, with modeled residuals giving a much better fit to the data.</p>
 <pre class="r"><code># Computing residual absolute ratio in percentage terms
 rarp &lt;- fmedian(abs(resid(dfm))) / fmedian(abs(resid(dfm, use.full.state = FALSE))) * 100
 descr(rarp)
 ## Dataset: rarp, 1 Variables, N = 57
-## ------------------------------------------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------------------------------------------------------------------------------
 ## rarp (numeric): 
 ## Statistics
 ##    N  Ndist  Mean    SD   Min  Max  Skew  Kurt
@@ -228,10 +228,10 @@ descr(rarp)
 ## Quantiles
 ##     1%    5%   10%   25%   50%   75%   90%   95%   99%
 ##   0.01  0.01  0.01  0.01  0.02  0.05  0.13  0.16  0.27
-## ------------------------------------------------------------------------------------------------------------------------</code></pre>
+## ------------------------------------------------------------------------------------------------------------------------------------------------------</code></pre>
 <p>While using the full state (the new default) changes the interpretation of in-sample residuals and fitted values, it generally slightly improves the accuracy of dynamic predictions obtainable with <code>predict()</code>.</p>
 <pre class="r"><code>plot(predict(dfm), xlim = c(400, 428), ylim = c(-2, 2))</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-6-1.png" alt="" width="120%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-6-1.png" alt="" width="100%" /></p>
 <p>Now, the main addition in <em>dfms</em> 1.0, as mentioned, is the news decomposition via <code>news()</code>. For this we first need to load the latest vintage and set it to the same range.</p>
 <pre class="r"><code>download.file(&quot;https://github.com/coderaanalytics-models/SA-Nowcast/raw/refs/heads/main/vintages/econdata_nowcast_data_03_12_2024.xlsx&quot;,
               destfile = &quot;econdata_nowcast_data_03_12_2024.xlsx&quot;, mode = &quot;wb&quot;)
