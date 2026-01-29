@@ -11,7 +11,7 @@ tags: ["R", "C++", "econometrics", "time series", "dynamic factor models"]
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, 
   fig.width = 8, fig.height = 5, 
-  out.width = '120%', cache = TRUE)
+  out.width = '100%', cache = TRUE)
 
 oldopts <- options(width = 120L)
 ```
