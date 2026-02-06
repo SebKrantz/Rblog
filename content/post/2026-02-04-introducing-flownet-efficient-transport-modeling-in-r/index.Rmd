@@ -52,6 +52,7 @@ tm_shape(africa_network) +
 tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE)
 ```
+
 Evidently, the OSRM travel speed along links differs widely, with speeds along many central African roads around 40km/h, and higher speeds closer to the urban centers. The code below further describes the network after removing the proposed links. As detailed in Section 3 of the paper, I extracted border and documentary times and costs of exporting and importing from the last World Bank Doing Business Survey (data collected in 2019), and converted them to travel-time-equivalent frictions (in minutes) that apply along border-crossing links. There is thus a frictionless `duration` (pure travel time) variable and `border_time` (which includes documentary time---median 76h), which added together give the `total_time` needed to trade across a link. 
 
 ```{r}
@@ -60,6 +61,7 @@ africa_net <- fsubset(africa_network, !add, -add)
 names(africa_net) |> cat(sep = ", ")
 qsu(africa_net, cols = .c(from, to, speed_kmh, distance, duration, border_time, total_time))
 ```
+
 The package also provides, in `africa_trade`, a dataset of bilateral trade flows between the 47 countries which accommodate (port-)city centroids. It is derived from the [CEPII BACI database](https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37), HS96 version, averaged over 2012-2022 by 21 HS sections.
 
 ```{r}
@@ -109,6 +111,7 @@ od_matrix_trade <- trade_agg |>
 
 head(od_matrix_trade, 3)
 ```
+
 We are now ready to run the traffic assignment with the [PSL model](https://sebkrantz.github.io/flownet/articles/introduction.html#path-sized-logit-model), which is straightforward with `run_assignment()`. To increase performance, we use parallel processing by setting `nthreads = 8` to use 8 cores on this M4 Pro chip. R-level parallelism using *mirai* is highly efficient, but requires additional memory. In this example we also save all intermediate results, including individual path alternatives and associated probabilities, by setting `return.extra = "all"`. This can get very memory-intensive, especially if there are many plausible paths per OD pair. Thus, we limit the number of paths per OD-pair to 150 by setting `npaths.max = 150`. Another crucial step for PSL modelling is data harmonization. Multinomial logits, of which the PSL is a penalized variant, do not deal well with very large path-cost numbers. Thus, mean or median scaling of the generalized cost (dividing all data points by the mean or median) is good practice. We will later also need to calibrate the PSL parameter `beta` (default 1) to achieve the desired level of penalization of overlapping paths. But first, we conduct a basic dry run of the model and explore the outputs. 
 
 ```{r}
@@ -119,6 +122,7 @@ result <- run_assignment(graph, od_matrix_trade, cost.column = "duration_ms",
                          nthreads = 8, npaths.max = 150, return.extra = "all")
 print(result)
 ```
+
 It should be noted here, that processing OD-pairs at a rate of around 6000 per second is quite fast, given that on average 80 alternative paths are generated per OD-pair---which means we are generating `6000 * 80 = 480,000` or almost half a million paths per second. Overall, we just generated 15 million paths, yielding a results object more than 5Gb in size. 
 
 ```{r}
@@ -166,6 +170,7 @@ quantile(PSL, Qprobs)
 quantile(log(PSL), Qprobs)
 quantile(log(PSL) / -c2c_pcosts, Qprobs) # Adjustment amount with default beta = 1
 ```
+
 The quantiles show that the log(PSL) term ranges between -3.72 and -1.1, whereas the cost is between 80.7 and 121, which yields a median ratio of 2.3%. This is likely too weak of a corrective effect, practitioners usually aim for the PSL penalty to represent roughly 10% to 20% of the utility for heavily overlapped paths. This should approximately be the case when setting `beta = 5`:
 
 ```{r}
@@ -214,6 +219,7 @@ tm_shape(africa_net) +
 tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE)
 ```
+
 As this plot makes evident, by virtue of the various edge-level statistics `run_assignment()` can return, it is not necessary to retain the full paths to fully understand the model. 
 
 Now, let's also plot the probabilities. The `edge_weights` returned by the model represent the sum of path probabilities over all paths using each edge. Thus, in the context of probabilistic assignment, they can be interpreted as the proportion of C2C trade that traverses the edge. For additional clarity, let's plot only those edges where the probability is above 0.0001.
@@ -233,6 +239,7 @@ tm_shape(africa_net) +
 tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE)
 ```
+
 Clearly, and in contrast to what the edge counts from the raw routes suggested, no meaningful C2C traffic is routed through central Africa or the Sahara.
 
 The model thus seems well-behaved, and we can plot the final flows on the entire network:
@@ -251,6 +258,7 @@ tm_shape(africa_net) +
 tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE)
 ```
+
 Evidently, certain trade routes are much more utilized than others. But this, of course, assumes the frictionless scenario. Let's now see how the picture changes with the realistic trade costs added: 
 
 ```{r}
@@ -276,6 +284,7 @@ tm_shape(africa_net) +
 tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE)
 ```
+
 The result is quite fascinating as it suggests that, if the Doing Business 2019 Trade Frictions are accurate and traders are rational, these frictions could strongly distort intra-African trade patterns from the efficient equilibrium determined by the quality of road infrastructure. 
 
 On that note, what if the existing network were fully upgraded? If all roads had a minimum travel speed of 100km/h? The network includes a column `duration_100kmh` simulating just that. The median link under this scenario has a travel time of only 65% of the current travel time. 
@@ -301,6 +310,7 @@ tm_shape(africa_net) +
 tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE)
 ```
+
 The plot appears similar to the previous frictionless plot, with a bit more traffic routed through central Africa and the Sahara where at present the road quality is very poor. But clearly, given the present low volume of trade between Eastern and Western Africa (less than 1% or total intra-African trade), paving roads in central Africa wouldn't pay off. Such investments thus appear to be contingent on the assumption or deliberate motive of changing regional trade patterns, or, as the [paper finds](https://sebastiankrantz.com/research.html#optimal-african-roads), on unrealistically low trade elasticities. 
 
 Lastly, we can simulate flows on the network with the proposed links added, and see how much they are utilized. The links, although drawn as straight lines, are assumed to be 1.2 times longer than the line, which is the average across existing links when comparing them to a straight line:
