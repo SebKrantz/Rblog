@@ -8,7 +8,7 @@ publishDir = "docs"
 theme = "hugo-lithium"
 googleAnalytics = ""
 disqusShortname = "r-econometrics-high-performance"
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$", "^README", "\\.R$", "\\.Rproj$", ".git"]
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "^README", "\\.R$", "\\.Rproj$", ".git"]
 
 [permalinks]
     post = "/:year/:month/:day/:slug/"
