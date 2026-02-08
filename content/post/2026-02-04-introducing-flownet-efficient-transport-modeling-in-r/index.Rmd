@@ -27,7 +27,7 @@ The package supports directed and undirected graphs and multimodal networks.^[Mu
 
 The first is the African continental road network built in my [Job Market Paper](https://sebastiankrantz.com/research.html#optimal-african-roads) and included in the package. This network is already consolidated and has 1379 nodes and 2344 edges representing 315,000 km of African road network. It is thus a rather small network as far as the capabilities of *flownet* are concerned. 
 
-The second network is the [US Freight Analysis Framework (FAF5) network](https://faf.ornl.gov/faf5/) comprising 487,384 links (edges) and 348,498 nodes. This network is too large, at least for the PSL method, to yield a solution within a reasonable time, and will require some network simplification first.
+The second network is the [US Freight Analysis Framework (FAF5) network](https://faf.ornl.gov/faf5/) comprising 487,384 links (edges) and 348,498 nodes. This network is very large and requires careful tuning of the PSL method. It also provides and excellent test case to demonstrate *flownet*'s network simplification capabilities.
 
 ## Example 1: Africa's Continental Road Network
 
@@ -359,7 +359,7 @@ Finally, I should note again that all of this assumes intra-African trade patter
 
 ```{r, include=FALSE}
 
-rm(list = setdiff(ls(), "options")); gc()
+rm(list = setdiff(ls(), c("oldopts", "Qprobs"))); gc()
 
 FAF5_path <- "/Users/sebastiankrantz/Documents/CPCS/FAF5/Networks/Geodatabase Format/FAF5Network.gdb"
 FAF5_2024_truck_flows <- "/Users/sebastiankrantz/Documents/CPCS/FAF5/FAF5_2024_Truck_Flows/faf_selected_subset.csv"
@@ -399,9 +399,9 @@ sum(fduplicated(graph[, c("from", "to")]))
 rm(FAF5); gc()
 ```
 
-Evidently, casting to `LINESTRING` did not increase the number of rows in this case, and `linestrings_to_graph()` removed the geometry (`SHAPE` column) and added 8 additional columns instead: unique edge identifier, `from` and `to` node columns with corresponding coordinates, and the `.length` computed directly from the shape in meters, which in this case matches the `LENGTH` column expressed in miles.
+Evidently, casting to `LINESTRING` did not increase the row count in this case. `linestrings_to_graph()` removed the geometry (`SHAPE`) and added 8 columns: a unique edge identifier, `from` and `to` node IDs with corresponding coordinates, and `.length` computed directly from the shape in meters (which here matches the `LENGTH` column expressed in miles).
 
-We can again retrieve a data frame of nodes from this graph using `nodes_from_graph()`, and determine the nearest node to a given set of 3796 zones that are used as origin and destination locations for commodity flows.
+We can again extract nodes with `nodes_from_graph()` and determine the nearest node to each of the 3796 FAF5 zones used as origin and destination locations for commodity flows.
 
 ```{r}
 zones <- st_read(FAF5_path, layer = "FAF5_Nodes") |> 
@@ -412,7 +412,7 @@ nodes <- nodes_from_graph(graph, sf = TRUE)
 nrow(nodes)
 ```
 
-Together with the zones data, I have generated, using the [FAF5 Data Tabulation Tool](https://faf.ornl.gov/faf5/dtt_total.aspx) an OD matrix of total 2024 OD-flows by truck. 
+Using the [FAF5 Data Tabulation Tool](https://faf.ornl.gov/faf5/dtt_total.aspx), I have generated an OD matrix of total 2024 truck flows.
 
 ```{r}
 OD <- fread(FAF5_2024_truck_flows) |> janitor::clean_names() |> 
@@ -422,14 +422,14 @@ nrow(OD)
 head(OD, 3)
 ```
 
-This data can be matched to the zone nodes, but it is at a coarser level of spatial detail of 3-digit code of FAF zones where the centroid is located:
+This data can be matched to zone nodes, but only at the coarser 3-digit FAF zone level:
 
 ```{r}
 zones |> join(fslice(OD, id_o), on = c("FAFID" = "id_o")) |> invisible()
 zones |> join(fslice(OD, id_d), on = c("FAFID" = "id_d")) |> invisible()
 ```
 
-Thus, we will aggregate the centroids to the 3-digit level, and then map the 3-digit centroids to the nearest nodes.
+We therefore aggregate the centroids to the 3-digit level and map them to the nearest network nodes.
 
 ```{r}
 zones_agg <- zones |> fgroup_by(FAFID) |> 
@@ -451,12 +451,12 @@ OD_mapped <- OD |>
 head(OD_mapped)
 ```
 
-Now, let us proceed to a basic network assignment using the efficient All-or-Nothing method which will work even on this scale of network. To do this we need to further process the graph in two ways: 
+Let us now proceed to a basic flows assignment using the efficient All-or-Nothing (AoN) method. Before running it, we need to further process the graph in two ways:
 
-(1) Create column representing the cost of traversing a link. 
+(1) Create a column representing the generalized cost of traversing a link.
 (2) Ensure directed links are properly represented.
 
-For (1), I will generate a simple cost function combining the free flow time (in minutes) and a truck toll estimate giving average per-mile toll for a 5-axle vehicle times road segment length. I convert this to minutes assuming a value of time (VOT) of 50 USD/hour.
+For (1), I combine the free-flow time (in minutes) with a truck toll estimate (average per-mile toll for a 5-axle vehicle $\times$ segment length), converted to minutes assuming a value of time (VOT) of 50 USD/hour.
 
 ```{r}
 fnobs(graph$TRUCKTOLL) # Number of links with tolls
@@ -466,7 +466,7 @@ graph %<>% fmutate(TollTime = replace_na(TRUCKTOLL, 0) / 50 * 60,
 graph %$% fquantile(setv(TollTime / cost_AB, 0, NA), Qprobs)
 ```
 
-On average, the tolls make up 28% of the cost (in minutes) of crossing a link along the 3245 links with tolls. A few links are missing free flow time (around 3800 in each direction), which are imputed with a high value of 10,000 minutes.
+Among the 3245 links with tolls, they account on average for 28% of the generalized cost. A few links (~3800 in each direction) are missing free-flow time; these are imputed with a prohibitively high cost of 10,000 minutes.
 
 The network provides free flow time estimates in both directions, and, to make things more complicated, a `DIR` column indicating whether the link is bidirectional (`0`) or unidirectional (`1` or `-1`). We therefore need to convert the graph to a fully directed representation by duplicating bidirectional links with swapped endpoints.
 
@@ -488,11 +488,11 @@ result_AoN <- run_assignment(graph_dir, OD_mapped, directed = TRUE,
 print(result_AoN)
 ```
 
-The *igraph* library called under the hood still warns about some nodes not being reachable, which leads to 260 OD-pairs not being assigned here. A remedy is to also duplicate all the directed links with a very high cost, but, given that the adjusted graph already has 655,609 edges, blowing it up further is not ideal.
+The *igraph* library called under the hood still warns about some unreachable nodes, leaving 260 OD-pairs unassigned. A remedy would be to duplicate all directed links with a very high cost in the opposite direction, but with the graph already at 655,609 edges, further inflation is undesirable.
 
-As noted above, this network is almost too large for direct PSL assignment, but, given the small number of OD-pairs, we can run it when restricting the path cost (detour) to no more than 1.3 times the shortest path, and restricting the angle in which intermediate nodes targeted to generate alternative paths must lie to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. However, they do not suffice in reducing the computational burden as some connections (e.g., San Francisco to New York) still admit more than 90,000 path alternatives. Thus, we also take a random sample of 1000 qualifying paths.^[Exempting the shortest path which is always included, and actually the first reported path if `return.extra = "paths"`.] For memory-efficient multithreading, I also restrict the maximum size of the pre-computed OD cost and geodesic distance matrices required by the route enumeration algorithm to 5000^2.
+As noted above, this network is borderline for direct PSL assignment, but with only ~16k OD-pairs we can manage by restricting detours to 1.3$\times$ the shortest path and the angle for intermediate target nodes to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. They do not fully tame the combinatorial explosion, however---some connections (e.g., San Francisco to New York) still admit over 90,000 alternatives---so we additionally cap the number of paths at a random sample of 1000.^[Exempting the shortest path, which is always included and reported first if `return.extra = "paths"`.] For memory-efficient multithreading, I also limit the pre-computed OD cost and geodesic distance matrices to 5000$^2$.
 
-Last but not least, we need to calibrate the PSL model, as the average path cost of 1207 minutes is quite large, and exponentiating large numbers in the MNL implies that most of the probability weight will fall on the shortest path, i.e., the PSL will give the same result as AoN. Since I know the average shortest path cost, and have calibrated the Africa model using `beta = 4` with average normalized cost of 53.5, I will apply a heuristic calibration scaling the FAF5 link cost by `53.5 / 1207 = 0.0443` and using the same `beta`.
+We also need to calibrate the PSL model. The average path cost here is 1207 minutes---exponentiating such large numbers in the MNL concentrates virtually all probability on the shortest path, reducing the PSL to AoN. Having calibrated the Africa model with `beta = 4` at an average normalized cost of 53.5, I apply a heuristic scaling of `53.5 / 1207 = 0.0443` to the FAF5 link costs and reuse the same `beta`.
 
 ```{r}
 graph_dir$cost_scaled <- graph_dir$cost * 53.5 / 1207
@@ -506,7 +506,7 @@ result_PSL <- run_assignment(
 print(result_PSL)
 ```
 
-Given the size of the network, solving 16,438 OD pairs with <= 1000 paths each in 10 minutes, i.e., also computing around 15 million paths but on a network with 253 times more nodes and 280 times more edges than the Africa network, while taking only 10min/30sec = 20x more time, is rather impressive. Still, the multithreaded computation speed of about 30 OD pairs per second imposes clear limits on this scale of network when considering much larger OD matrices. E.g., if we were to disaggregate the flows to the 3796 FAF5 nodes, e.g., using population weights as in the Africa example, this would yield an OD matrix of 3796^2-3796 = 14.4 million pairs, which would take 876 times longer $=$ 8760 minutes to simulate, which amounts to a computation time of 6.1 days. On a server with 32 cores we might bring it down to 2 days, given that the 4GHz M4 Pro cores used here are state-of-the-art for single-thread performance.
+Solving 16,438 OD pairs ($\leq$ 1000 paths each) in about 10 minutes---again generating around 15 million paths, but on a network 253$\times$ larger in nodes and 280$\times$ in edges than the Africa network, while taking only 20$\times$ more time---is rather impressive. Still, the throughput of ~30 OD pairs per second imposes clear limits when considering much larger OD matrices.^[Disaggregating to all 3796 FAF5 zone nodes (as in the Africa example) would yield $3796^2-3796 \approx 14.4$ million pairs, requiring roughly $14.4\text{M}/16.4\text{k} = 876\times$ longer $\approx$ 6.1 days on this machine. A 32-core server might bring this down to ~2 days, given that the 4GHz M4 Pro cores used here are state-of-the-art for single-thread performance.]
 
 Now that we have a result, let's visualize the routes from San Francisco to New York. 
 
@@ -536,7 +536,7 @@ tm_shape(zones_agg) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-Ostensibly, we got a large number of paths, and quite a few of them take curious detours. The [route enumeration algorithm](https://sebkrantz.github.io/flownet/reference/run_assignment.html#route-enumeration-algorithm) already filters out paths with duplicate directional edges, ensuring no route traverses a road twice in either direction. This ex-post elimination is the principal reason why we only retain around 430 routes of the sampled 1000. Still some of these intermediate nodes generating valid routes are inside intermediate city-centers or out in the open field, yielding complex patterns there. However, the edge counts (visits) clearly suggest 2 main routes in the north and south, which both branch out the closer we get to New York. 
+As expected, we obtain a large number of paths, many of which take curious detours. The [route enumeration algorithm](https://sebkrantz.github.io/flownet/reference/run_assignment.html#route-enumeration-algorithm) filters out paths with duplicate directional edges, ensuring no route traverses a road segment twice---this ex-post elimination is the main reason we retain only ~430 of the sampled 1000. Some intermediate nodes generating valid routes lie inside city centers or in the open field, yielding complex local patterns. Nonetheless, the edge counts clearly reveal two main corridors (north and south), both branching out as they approach New York.
 
 Let's now see what the edge probabilities suggest where traffic is actually going:
 
@@ -558,9 +558,9 @@ tm_shape(zones_agg) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-Manifestly, the southern route is not deemed economically viable by the MNL function, and most of the traffic takes the fastest route along the northern corridor, with significant heterogeneity only in the midwest where the route splits into two branches that are almost equally probable, and which later merge again. There is also a variant of the route a bit to the south which takes around 5% of traffic. 
+The southern route is clearly not deemed viable by the MNL function. Most traffic follows the northern corridor, with meaningful heterogeneity only in the Midwest where it splits into two near-equally probable branches that later merge. A minor southern variant carries about 5% of traffic.
 
-Thus, as in the Africa network case, the PSL model is able to impose 'sound economic decision making' and visible structure on a large set of heterogeneous routes. Let us now attempt to visualize the entire network flows. For this we will aggregate the directed graph again to an undirected one and eliminate links with very small flows. 
+As with the Africa network, the PSL model imposes economically sound structure on a large set of heterogeneous routes. Let us now attempt to visualize the full network flows. To reduce spatial complexity, we will aggregate the directed graph back to an undirected one and filter out links with negligible flows, as well as links going to Alaska (upwards of 49.1 degrees latitute).
 
 ```{r}
 flows <- graph_dir %>%
@@ -587,9 +587,9 @@ tm_shape(roworder(linestrings_from_graph(flows), flows)) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-Now, to speed up things we can use the graph processing tools *flownet* provides. 
+Now, to speed things up on very large networks, permitting the use of larger OD matrices within reasonable computing times, we can use the graph processing tools *flownet* provides.
 
-The first general tool is `consolidate_graph()`, which can be used to reduce the complexity of the graph by contracting intermediate nodes connecting two edges and by dropping singleton, loop, and duplicate edges. This can be done using various levels of recursion. The default `recursive = "full"` toggles recursive edge elimination, node contraction, and aggregation of graph attributes, all called repeatedly in sequence until no more simplification is possible. This provides the most comprehensive results, but with multiple levels of aggregation it is not possible to cleanly relate the edges of the consolidated graph to the original ones. Therefore, `recursive = "partial"` recurses on everything but the aggregation step, and attaches attributes to the result showing which edges were kept from the original graph and how they were aggregated to the new edges. This is useful if we have a more detailed geometry available which we want to unionize alongside with the graph simplification to visualize assignment results. For aggregation, `consolidate_graph()` provides full and direct access to the powerful [`collap()`](https://fastverse.org/collapse/reference/collap.html) command in the *collapse* package supporting multi-type and custom aggregation with different functions and weights. By default, the mean is applied to numeric and the statistical mode to categorical columns. Columns `edge`, `from`, `to`, and `FX`, `FY`, `TX`, `TY`, if present in the graph, are not aggregated with `collap()` but processed separately so that the consolidated graph has a new `edge` id and a spatial structure consistent with the aggregation performed. Below, I apply full recursive consolidation on this directed graph, using the sum for all numeric columns (here `"cost"` is the only column aggregated using `collap()`).
+The first, `consolidate_graph()`, reduces graph complexity by contracting intermediate nodes that connect only two edges, and by dropping singleton, loop, and duplicate edges. It supports several levels of recursion: `recursive = "full"` (the default) repeats edge elimination, node contraction, and attribute aggregation until convergence, yielding the most compact result but making it impossible to trace individual original edges. `recursive = "partial"` omits the aggregation step from the recursion loop and attaches provenance attributes instead---useful when a more detailed geometry needs to be unionized alongside the consolidation for visualization. For aggregation, `consolidate_graph()` delegates to [`collap()`](https://fastverse.org/collapse/reference/collap.html) in *collapse*, which supports multi-type and custom aggregation with different functions and weights.^[By default, the mean is applied to numeric and the statistical mode to categorical columns. Structural columns (`edge`, `from`, `to`, `FX`, `FY`, `TX`, `TY`) are processed separately so that the consolidated graph has a new `edge` id and a consistent spatial structure.] Below, I apply full recursive consolidation on this directed graph, summing all numeric columns (here only `"cost"` is aggregated).
 
 ```{r}
 graph_dir_c <- consolidate_graph(graph_dir, 
@@ -597,9 +597,9 @@ graph_dir_c <- consolidate_graph(graph_dir,
 nrow(graph_dir_c)
 ```
 
-Ostensibly, consolidation reduced the size of the graph by 13%, but this is a rather small effect, suggesting that most links/edges in the FAF5 network have an important connecting function. 
+Consolidation reduced the graph by only 13%, suggesting that most edges in the FAF5 network serve an important connecting function.
 
-Therefore, to truly reduce the graph, we need to use `simplify_network()` - a powerful but somewhat opaque tool for topological network simplification. It provides two different network simplification methods. The default method, `"shortest-paths"`, is perhaps easiest to understand: given either a set of nodes or an OD matrix, it will compute all shortest paths between them and retain only network edges traversed. This eliminates many links not needed for primary navigational purposes, but may reduce alternative routing options. 
+For a more drastic network reduction we turn to `simplify_network()`, which provides two topological simplification methods. The default, `"shortest-paths"`, computes all shortest paths between a given set of nodes (or OD pairs) and retains only the edges traversed by any path. This eliminates links not needed for primary navigation, at the cost of reducing alternative routing options.
 
 ```{r}
 graph_dir_c_sc <- simplify_network(graph_dir_c, zones_agg$NN, 
@@ -608,9 +608,9 @@ graph_dir_c_sc <- simplify_network(graph_dir_c, zones_agg$NN,
 nrow(graph_dir_c_sc)
 ```
 
-Clearly, the method was very effective, reducing the size of the consolidated graph by 87% and then again by 70% through follow-up consolidation. *igraph*, however, still produces some warnings that some nodes cannot be reached. 
+The method is very effective, cutting the consolidated graph by 87% and then a further 70% through follow-up consolidation. *igraph* still warns about a few unreachable nodes.
 
-Thus, we could also simplify the undirected version of the graph created above to visualize the flows, where costs were averaged across directed links. This is a reasonable simplification - assuming that connectivity along highways is the same in both directions. Let us first match the nearest nodes and consolidate that version of the graph.^[Apart from identifiers, the graph has two columns: `"cost"` and `"flows"` - the previous assignment result. Here a wonderful trick is passing `w = ~ cost` to [`collap()`](https://fastverse.org/collapse/reference/collap.html), which will use costs as weights for a weighted mean of `"flows"`, and, by default, sum the weights (`"cost"`) and retain them in the dataset. Thus, we get the sum of cost along contracted edges and the cost-weighted mean of the flows.]
+We can also simplify the undirected flow graph from above (where costs were averaged across directions)---a reasonable assumption given symmetric highway connectivity. Let us first match the nearest nodes and consolidate.^[The graph has two non-identifier columns: `"cost"` and `"flows"`. Passing `w = ~ cost` to [`collap()`](https://fastverse.org/collapse/reference/collap.html) uses costs as weights for a weighted mean of `"flows"`, and by default sums the weights (`"cost"`) themselves. This yields the total cost along contracted edges and the cost-weighted mean of flows.]
 
 ```{r}
 # Matching nearest nodes and consolidating
@@ -619,7 +619,7 @@ zones_agg$NN_undir <- flows_nodes$node[st_nearest_feature(zones_agg, flows_nodes
 flows_c <- consolidate_graph(flows, keep = zones_agg$NN_undir, w = ~ cost)
 ```
 
-We can then run the simplification algorithm again, followed by contraction. 
+We then run shortest-path simplification followed by consolidation.
 
 ```{r}
 flows_c_sc <- simplify_network(flows_c, zones_agg$NN_undir) |> 
@@ -629,7 +629,7 @@ nrow(flows_c_sc)
 
 And voila, what I would call a radical simplification, first retaining 32,315 edges traversed by shortest paths and then recursively consolidating them down to 3076 edges. 
 
-Needless to say, it is visually not extremely appealing, and it removes a lot of links not traversed, including flows on them. Thus, we should assign the OD matrix afresh to this network rather than visualizing the aggregated flows. Since this post is already quite long though I will not bother to demonstrate reassignment to simplified networks - the procedure should be clear by now.  
+The result is visually sparse, and the simplification discards flows on non-traversed links. Ideally one would re-assign the OD matrix to the simplified network; I leave that as an exercise since the procedure should be clear by now.
 
 ```{r fig.width = 10, fig.asp = 0.51}
 tm_basemap("CartoDB.DarkMatter", zoom = 4) +
@@ -642,21 +642,24 @@ tm_shape(roworder(linestrings_from_graph(flows_c_sc), flows)) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-A viable alternative in terms of shortest-path simplification would be to apply this method not to the 132 aggregated zones where we have OD data, but to the disaggregated 3796 zones supplied with the network. That way we retain much more information for alternative routing: 
+A viable alternative retaining far more edges for alternative routing is to base the shortest-path simplification on the full 3796 disaggregated zones rather than only the 132 aggregated zones:
 
 ```{r}
+# Need to first match them to the undirected graph
 flows_c_nodes <- nodes_from_graph(flows_c, sf = TRUE)
 zones$NN_undir <- flows_c_nodes$node[
   st_nearest_feature(zones, flows_c_nodes)]
+# Combining with the aggregate zone nearest nodes
 sp_nodes <- unique(c(zones$NN_undir, zones_agg$NN_undir))
 length(sp_nodes)
 
+# Now simplifying again
 flows_c_sc <- simplify_network(flows_c, sp_nodes) |> 
    consolidate_graph(keep = zones_agg$NN_undir, w = ~ cost, verbose = FALSE)
 nrow(flows_c_sc)
 ```
 
-Clearly, the resulting graph is much more detailed. Simplification in this way needed to compute `3460*(3460-1)/2 = 5984070` shortest paths, which took a while - a future version of the algorithm will be multithreaded as well to speed things up. 
+The resulting graph is much more detailed. This required computing `3460*(3460-1)/2 = 5,984,070` shortest paths, which took a while---a future update will allow multithreading in `simplify_network()`.
 
 ```{r fig.width = 10, fig.asp = 0.53}
 tm_basemap("CartoDB.DarkMatter", zoom = 4) +
@@ -668,11 +671,12 @@ tm_shape(roworder(linestrings_from_graph(flows_c_sc), flows)) +
                                   item.height = 2, na.show = FALSE, bg.alpha = 0.4), lwd = 1) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
+
 This simplified network certainly looks more appealing and provides a reasonable simplification for routing in this case. 
 
-Now the other method implemented in `simplify_network()`, `"cluster"`, is a wholly different beast. It clusters nearby nodes spatially and then contracts the graph to match the new spatial structure, which involves (1) dropping loop edges following clustering, which are edges connecting nodes that fall within the same spatial cluster, and (2) aggregating edges that connect the nodes within different cluster centroids - again using [`collap()`](https://fastverse.org/collapse/reference/collap.html) which provides full flexibility. The clustering proceeds in two stages: the first, optional stage, considers key nodes we wish to keep, such as nearest zone nodes, as cluster centroids, and assigns nodes within a specified radius around them to these clusters. The second stage then uses Hartigan (1975)'s Leader Algorithm, of which the R package [leaderCluster](https://CRAN.R-project.org/package=leaderCluster) provides an efficient (C-based) implementation supporting geodesic coordinates, to cluster the remaining nodes using another radius. As indicated, if no zone nodes are provided, all nodes are clustered in this way. 
+The second method, `"cluster"`, takes a fundamentally different approach: it spatially clusters nearby nodes and contracts the graph accordingly, (1) dropping intra-cluster loop edges and (2) aggregating inter-cluster edges via [`collap()`](https://fastverse.org/collapse/reference/collap.html). Clustering proceeds in two stages: first, optionally, designated key nodes (e.g., zone centroids) as cluster seeds, absorbing all nodes within a specified radius; then, use Hartigan (1975)'s Leader Algorithm---implemented efficiently in C by [leaderCluster](https://CRAN.R-project.org/package=leaderCluster) with geodesic coordinate support---to cluster the remaining nodes using a second radius. If no key nodes are provided, all nodes are clustered directly via the Leader Algorithm.
 
-Let's now try it out using the 132 zone nodes we used for assignment to the full network as centroids and clustering the remaining nodes. We can use a radius of 7km for both kinds of clusters. Naturally, the larger the radius, the stronger the network simplification.^[*Note* here how I apply the weight trick using [`collap()`](https://fastverse.org/collapse/reference/collap.html) in two different ways: in `simplify_network()`, I weight by flows, such that, according to [`collap()`](https://fastverse.org/collapse/reference/collap.html) defaults, the flows along edges that we combine are summed and the costs are averaged using the flows as weights. Then, in the following consolidation, I do it the other way around (as before). Think about it and you will hopefully agree with me that that makes sense.]
+Below, we use the 132 zone nodes as cluster seeds and a 7km radius for both stages. The larger the radius, the more aggressive the simplification.^[*Note* here how I apply the weight trick using [`collap()`](https://fastverse.org/collapse/reference/collap.html) in two different ways: in `simplify_network()`, I weight by flows, such that, according to [`collap()`](https://fastverse.org/collapse/reference/collap.html) defaults, the flows along edges that we combine are summed and the costs are averaged using the flows as weights. Then, in the following consolidation, I do it the other way around (as before). Think about it and you will hopefully agree with me that that makes sense.]
 
 ```{r}
 flows_c_cc <- simplify_network(flows_c, zones_agg$NN_undir,
@@ -681,7 +685,7 @@ flows_c_cc <- simplify_network(flows_c, zones_agg$NN_undir,
 nrow(flows_c_cc)
 ```
 
-It is noteworthy that, following clustering, much less consolidation is possible than following shortest-path simplification - which tends to generate long chains of connected edges. 
+It is notable that clustering leaves less room for follow-up consolidation than shortest-path simplification, which tends to produce long chains of connected edges.
 
 Let's look at the result:
 
@@ -696,7 +700,7 @@ tm_shape(roworder(linestrings_from_graph(flows_c_cc), flows)) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-Also pretty neat - I think. Finally, I note again that, while this network is unimodal, both `consolidate_graph()` and `simplify_network()` support multimodal networks - passing mode identifiers to the `by` arguments of these functions will impose appropriate restrictions on their operations so as to not conflate edges of different modes. 
+Also pretty neat---I think. Finally, I note that while this network is unimodal, both `consolidate_graph()` and `simplify_network()` support multimodal networks---passing mode identifiers to their `by` arguments prevents edges of different modes from being conflated.
 
 ## Conclusion
 
@@ -704,7 +708,7 @@ Also pretty neat - I think. Finally, I note again that, while this network is un
 
 In this post, I demonstrated the package on African and US road networks, showing how to assign trade/traffic flows, and investigate and visualize the results. I additionally demonstrated the package's network simplification tools on the detailed US network. 
 
-Future updates may comprise additional traffic assignment methods, more advanced network processing tools, and performance optimizations. I believe though even in its present state the package is computationally capable of being applied to most networks we deal with at [CPCS](https://cpcs.ca/) and a wide variety of other networks, including global freight models.
+Future updates may comprise additional traffic assignment methods, more advanced network processing tools, and performance optimizations. But even in its present state, I believe the package is computationally capable of handling most networks we deal with at [CPCS](https://cpcs.ca/) and a wide variety of other applications, including modeling on regional or global multimodal transport networks.
 
 ## References
 
