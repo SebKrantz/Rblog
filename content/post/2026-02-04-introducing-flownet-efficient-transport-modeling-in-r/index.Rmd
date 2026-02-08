@@ -10,30 +10,37 @@ tags: ["R", "C++", "transport-modeling"]
 
 ```{r setup, include=FALSE}
 library(tibble)
-knitr::opts_chunk$set(collapse = TRUE, 
+knitr::opts_chunk$set(collapse = TRUE,
   fig.width = 8, fig.height = 5, dpi = 150,
   out.width = '100%', cache = FALSE)
 
 oldopts <- options(width = 150L, warn = -1, fastverse.styling = FALSE)
 ```
 
+<style>
+pre.scroll-output {
+  max-height: 300px;
+  overflow-y: auto;
+}
+</style>
+
 <img src='flownet_logo.png' width="350px" align="right" />
 
-I am excited to introduce a new R package called [*flownet*](https://sebkrantz.github.io/flownet/) providing high-performance tools for transport modeling---network processing, route enumeration, and traffic assignment in R. As of now, the package implements the [Path-Sized Logit (PSL) model](https://sebkrantz.github.io/flownet/articles/introduction.html#path-sized-logit-model) (Ben-Akiva and Bierlaire, 1999)---a powerful and well-established method for stochastic traffic assignment accounting for route overlap---alongside a novel route enumeration algorithm and a highly efficient all-or-nothing assignment solution. Furthermore, *flownet* provides powerful utility functions for (multimodal) network processing, including recursive graph consolidation/contraction, and/or network simplification. These features, combined with an accessible representation of graphs and origin-destination (OD) matrices using data frames and a simple yet powerful API, position the package as a compelling alternative for both transport analytics and graph manipulation. 
+I am excited to introduce a new R package called [*flownet*](https://sebkrantz.github.io/flownet/) providing high-performance tools for transport modeling---network processing, route enumeration, and traffic assignment in R. As of now, the package implements the [Path-Sized Logit (PSL) model](https://sebkrantz.github.io/flownet/articles/introduction.html#path-sized-logit-model) (Ben-Akiva and Bierlaire, 1999)---a powerful and well-established method for stochastic traffic assignment accounting for route overlap---alongside a novel route enumeration algorithm and a highly efficient all-or-nothing assignment solution. Furthermore, it provides powerful utility functions for (multimodal) network processing, including recursive graph consolidation/contraction, and/or network simplification. These features, combined with a simple representation of graphs and origin-destination (OD) matrices using data frames and a tidy API, position the package as a compelling tool for transport analytics and graph manipulation. 
 
-As has come to be expected of my packages, *flownet* strives to be computationally efficient, building on a whole array of [*fastverse*](https://fastverse.org/fastverse/) libraries including [*collapse*](https://fastverse.org/collapse/) and [*kit*](https://fastverse.org/kit/) for fast data manipulation, [*igraph*](https://igraph.org/) for efficient routing, [*geodist*](https://hypertidy.github.io/geodist/) and [*leaderCluster*](https://CRAN.R-project.org/package=leaderCluster) for spatial distances and clustering, and [*mirai*](https://mirai.r-lib.org/) for efficient R-level parallelism. These dependencies are supplemented by custom C code, e.g., the PSL is implemented fully in C. There is still significant room for greater performance, particularly if *igraph* can be replaced with internal C/C++ routing code, which could port the entire route enumeration algorithm to C/C++. Such innovation may be the subject of future updates, alongside additional traffic assignment methods. 
+As has come to be expected of my packages, *flownet* strives to be computationally efficient, building on a whole array of [*fastverse*](https://fastverse.org/fastverse/) libraries including [*collapse*](https://fastverse.org/collapse/) and [*kit*](https://fastverse.org/kit/) for fast data manipulation, [*igraph*](https://igraph.org/) for efficient routing, [*geodist*](https://hypertidy.github.io/geodist/) and [*leaderCluster*](https://CRAN.R-project.org/package=leaderCluster) for spatial distances and clustering, and [*mirai*](https://mirai.r-lib.org/) for efficient R-level parallelism. These dependencies are supplemented by custom C code, e.g., the PSL is implemented fully in C. There is still significant room for greater performance, particularly if *igraph* can be replaced with internal C/C++ routing code, which could port the route enumeration algorithm to C/C++. Such innovation may be the subject of future updates, alongside additional traffic assignment methods. 
 
 The package supports directed and undirected graphs and multimodal networks.^[Multimodality is principally supported via `by` arguments to network processing functions. Passing link-mode identifiers to this argument prevents network simplification/contraction across different modes.] In the following I will demonstrate *flownet* on two networks. 
 
-The first is the African continental road network built in my [Job Market Paper](https://sebastiankrantz.com/research.html#optimal-african-roads) and included in the package. This network is already consolidated and has 1379 nodes and 2344 edges representing 315,000 km of African road network. It is thus a rather small network as far as the capabilities of *flownet* are concerned. 
+The first is the African continental road network built in my [Job Market Paper](https://sebastiankrantz.com/research.html#optimal-african-roads) and included in the package. This network is already consolidated and has 1379 nodes and 2344 edges representing 315,000 km of road network. It is thus a rather small network as far as the capabilities of *flownet* are concerned. 
 
-The second network is the [US Freight Analysis Framework (FAF5) network](https://faf.ornl.gov/faf5/) comprising 487,384 links (edges) and 348,498 nodes. This network is very large and requires careful tuning of the PSL method. It also provides and excellent test case to demonstrate *flownet*'s network simplification capabilities.
+The second network is the [US Freight Analysis Framework (FAF5) network](https://faf.ornl.gov/faf5/) comprising 487,384 links (edges) and 348,498 nodes. This network is very large and requires careful tuning of the PSL method. It also provides an excellent test case to demonstrate *flownet*'s network simplification capabilities.
 
 ## Example 1: Africa's Continental Road Network
 
-The `africa_network`, taken from Krantz (2024) [Optimal Investments in Africa's Road Network](https://doi.org/10.1596/1813-9450-10893) is included in the package. It was generated by intersecting and simplifying fastest OSRM car routes between 453 African cities with population > 100,000 and international ports---provided in `africa_cities_ports`. The procedure of creating this network is described in the paper, and further demonstrated in the [introductory vignette](https://sebkrantz.github.io/flownet/articles/introduction.html#advanced-workflow-with-network-consolidation) using the network processing tools this package provides. For this blog post we will take the network as given and defer the network processing workflow to the second (FAF5) example below. 
+The `africa_network`, taken from Krantz (2024) [Optimal Investments in Africa's Road Network](https://doi.org/10.1596/1813-9450-10893) is included in the package. It was generated by intersecting and simplifying fastest OSRM car routes between 453 African cities with population > 100,000 and international ports---provided in `africa_cities_ports`. The procedure of creating this network is described in the paper, and further demonstrated in the [introductory vignette](https://sebkrantz.github.io/flownet/articles/introduction.html#advanced-workflow-with-network-consolidation) using *flownet*'s network processing tools. For this blog post we will take the network as given and defer the network processing workflow to the second (FAF5) example below. 
 
-The network includes 481 proposed new links found using a network finding algorithm described in the paper. The following code shows a plot of the network, including the proposed links in grey and the 453 (port-)cities in black.
+The network includes 481 proposed links by a network finding algorithm described in the paper. The following shows a plot of the network, including the proposed links in grey and the 453 (port-)cities in black.
 
 ```{r africa-speed-map}
 library(fastverse)
@@ -195,8 +202,9 @@ rm(result); gc()
 ```
 ```{r psl-calibrated}
 # Run Traffic Assignment using the calibrated PSL model - omitting paths this time to save memory
-result <- run_assignment(graph, od_matrix_trade, cost.column = "duration_ms", beta = 4, nthreads = 8,
-                         return.extra = c("edges", "counts", "costs", "weights", "eweights"))
+result <- run_assignment(graph, od_matrix_trade, 
+            cost.column = "duration_ms", beta = 4, nthreads = 8,
+            return.extra = c("edges", "counts", "costs", "weights", "eweights"))
 print(result)
 ```
 
@@ -334,7 +342,8 @@ They are assumed to have a speed of 100km/h, so it makes sense to also assume th
 ```{r psl-with-additions}
 graph_total <- st_drop_geometry(africa_network)
 settfm(graph_total, duration_100kmh_ms = fmedian(duration_100kmh, TRA = "/"))
-result_add <- run_assignment(graph_total, od_matrix_trade, cost.column = "duration_100kmh_ms", 
+result_add <- run_assignment(graph_total, od_matrix_trade, 
+                             cost.column = "duration_100kmh_ms", 
                              beta = 4, nthreads = 8)
 print(result_add)
 ```
@@ -604,7 +613,7 @@ Now, to speed things up on very large networks, permitting the use of larger OD 
 
 The first, `consolidate_graph()`, reduces graph complexity by contracting intermediate nodes that connect only two edges, and by dropping singleton, loop, and duplicate edges. It supports several levels of recursion: `recursive = "full"` (the default) repeats edge elimination, node contraction, and attribute aggregation until convergence, yielding the most compact result but making it impossible to trace individual original edges. `recursive = "partial"` omits the aggregation step from the recursion loop and attaches provenance attributes instead---useful when a more detailed geometry needs to be unionized alongside the consolidation for visualization. For aggregation, `consolidate_graph()` delegates to [`collap()`](https://fastverse.org/collapse/reference/collap.html) in *collapse*, which supports multi-type and custom aggregation with different functions and weights.^[By default, the mean is applied to numeric and the statistical mode to categorical columns. Structural columns (`edge`, `from`, `to`, `FX`, `FY`, `TX`, `TY`) are processed separately so that the consolidated graph has a new `edge` id and a consistent spatial structure.] Below, I apply full recursive consolidation on this directed graph, summing all numeric columns (here only `"cost"` is aggregated).
 
-```{r faf5-consolidate-directed}
+```{r faf5-consolidate-directed, class.source = "scroll-output"}
 graph_dir_c <- consolidate_graph(graph_dir, 
   keep = zones_agg$NN, directed = TRUE, FUN = "fsum")
 nrow(graph_dir_c)
@@ -616,7 +625,7 @@ For a more drastic network reduction we turn to `simplify_network()`, which prov
 
 ```{r faf5-sp-simplify-directed}
 graph_dir_c_sc <- simplify_network(graph_dir_c, zones_agg$NN, 
-                                           directed = TRUE, method = "shortest-paths") |> suppressWarnings() |>
+      directed = TRUE, method = "shortest-paths") |> suppressWarnings() |>
   consolidate_graph(keep = zones_agg$NN, directed = TRUE, FUN = "fsum")
 nrow(graph_dir_c_sc)
 ```
@@ -628,7 +637,7 @@ The method is very effective, cutting the consolidated graph by 87% and then a f
 
 We can also simplify the undirected flow graph from above (where costs were averaged across directions)---a reasonable assumption given symmetric highway connectivity. Let us first match the nearest nodes and consolidate.^[The graph has two non-identifier columns: `"cost"` and `"flows"`. Passing `w = ~ cost` to [`collap()`](https://fastverse.org/collapse/reference/collap.html) uses costs as weights for a weighted mean of `"flows"`, and by default sums the weights (`"cost"`) themselves. This yields the total cost along contracted edges and the cost-weighted mean of flows.]
 
-```{r faf5-consolidate-undirected}
+```{r faf5-consolidate-undirected, class.source = "scroll-output"}
 # Matching nearest nodes and consolidating
 flows_nodes <- nodes_from_graph(flows, sf = TRUE)
 zones_agg$NN_undir <- flows_nodes$node[st_nearest_feature(zones_agg, flows_nodes)]
@@ -643,7 +652,7 @@ flows_c_sc <- simplify_network(flows_c, zones_agg$NN_undir) |>
 nrow(flows_c_sc)
 ```
 
-And voila, what I would call a radical simplification, first retaining 32,315 edges traversed by shortest paths and then recursively consolidating them down to 3076 edges. 
+And voila, that I would call a radical simplification, first retaining 32,242 edges traversed by shortest paths and then recursively consolidating them down to 3087 edges. 
 
 The result is visually sparse, and the simplification discards flows on non-traversed links. Ideally one would re-assign the OD matrix to the simplified network; I leave that as an exercise since the procedure should be clear by now.
 
@@ -694,7 +703,7 @@ The second method, `"cluster"`, takes a fundamentally different approach: it spa
 
 Below, we use the 132 zone nodes as cluster seeds and a 7km radius for both stages. The larger the radius, the more aggressive the simplification.^[*Note* here how I apply the weight trick using [`collap()`](https://fastverse.org/collapse/reference/collap.html) in two different ways: in `simplify_network()`, I weight by flows, such that, according to [`collap()`](https://fastverse.org/collapse/reference/collap.html) defaults, the flows along edges that we combine are summed and the costs are averaged using the flows as weights. Then, in the following consolidation, I do it the other way around (as before). Think about it and you will hopefully agree with me that that makes sense.]
 
-```{r faf5-cluster-simplify}
+```{r faf5-cluster-simplify, class.source = "scroll-output"}
 flows_c_cc <- simplify_network(flows_c, zones_agg$NN_undir,
           method = "cluster", radius_km = list(nodes = 7, cluster = 7), w = ~ flows) |> 
    consolidate_graph(keep = zones_agg$NN_undir, w = ~ cost)
