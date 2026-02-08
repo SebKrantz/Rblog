@@ -11,7 +11,7 @@ tags: ["R", "C++", "transport-modeling"]
 ```{r setup, include=FALSE}
 library(tibble)
 knitr::opts_chunk$set(collapse = TRUE,
-  fig.width = 8, fig.height = 5, dpi = 150,
+  fig.width = 8, fig.height = 6, dpi = 150,
   out.width = '100%', cache = FALSE)
 
 oldopts <- options(width = 150L, warn = -1, fastverse.styling = FALSE)
@@ -509,7 +509,7 @@ The *igraph* library called under the hood still warns about some unreachable no
 rm(result_AoN); gc()
 ```
 
-As noted above, this network is borderline for direct PSL assignment, but with only ~16k OD-pairs we can manage by restricting detours to 1.3$\times$ the shortest path and the angle for intermediate target nodes to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. They do not fully tame the combinatorial explosion, however---some connections (e.g., San Francisco to New York) still admit over 90,000 alternatives---so we additionally cap the number of paths at a random sample of 1000.^[Exempting the shortest path, which is always included and reported first if `return.extra = "paths"`.] For memory-efficient multithreading, I also limit the pre-computed OD cost and geodesic distance matrices to 5000$^2$.
+As noted above, this network is borderline for direct PSL assignment, but with only ~16k OD-pairs we can manage by restricting detours to 1.2$\times$ the shortest path and the angle for intermediate target nodes to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. They do not fully tame the combinatorial explosion, however---some connections (e.g., San Francisco to New York) still admit over 90,000 alternatives---so we additionally cap the number of paths at a random sample of 1000.^[Exempting the shortest path, which is always included and reported first if `return.extra = "paths"`.] For memory-efficient multithreading, I also limit the pre-computed OD cost and geodesic distance matrices to 5000$^2$.
 
 We also need to calibrate the PSL model. The average path cost here is 1207 minutes---exponentiating such large numbers in the MNL concentrates virtually all probability on the shortest path, reducing the PSL to AoN. Having calibrated the Africa model with `beta = 4` at an average normalized cost of 53.5, I apply a heuristic scaling of `53.5 / 1207 = 0.0443` to the FAF5 link costs and reuse the same `beta`.
 
@@ -518,7 +518,7 @@ graph_dir$cost_scaled <- graph_dir$cost * 53.5 / 1207
 result_PSL <- run_assignment(
     graph_dir, OD_mapped, directed = TRUE, 
     cost.column = "cost_scaled", method = "PSL", beta = 4,
-    detour.max = 1.3, angle.max = 30, npaths.max = 1000, 
+    detour.max = 1.2, angle.max = 30, npaths.max = 1000, 
     dmat.max.size = 5000^2, nthreads = 8,
     return.extra = c("edges", "counts", "weights", "eweights")
 ) |> suppressWarnings()
@@ -605,7 +605,7 @@ tm_shape(roworder(linestrings_from_graph(flows), flows)) +
            col.scale = tm_scale_continuous_log(6, values = "inferno"),
            col.legend = tm_legend("PSL Flows", position = c("left", "bottom"),
                                   frame = FALSE, text.size = 0.8, title.size = 1, 
-                                  item.height = 2, na.show = FALSE, bg.alpha = 0.4), lwd = 0.5) +
+                                  item.height = 2, na.show = FALSE, bg.alpha = 0.4), lwd = 0.4) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
@@ -729,7 +729,7 @@ Also pretty neat---I think. Finally, I note that while this network is unimodal,
 
 ## Conclusion
 
-[*flownet*](https://sebkrantz.github.io/flownet/) is a new R package for transport modeling. It presently provides route enumeration and traffic assignment using the Path-Sized Logit model, powerful tools for network processing, and an accessible API. These features make it a compelling choice for transport analytics in general and particularly in R. The package is built on top of several [*fastverse*](https://fastverse.org/fastverse/) libraries and custom C code to ensure high performance. 
+[*flownet*](https://sebkrantz.github.io/flownet/) is a new R package for transport modeling. It presently provides route enumeration and traffic assignment using the Path-Sized Logit model, as well as powerful tools for network processing, via an accessible and parsimonious API. These features make it a compelling choice for transport analytics, particularly in R. The package is built on top of several [*fastverse*](https://fastverse.org/fastverse/) libraries and custom C code to ensure high performance. 
 
 In this post, I demonstrated the package on African and US road networks, showing how to assign trade/traffic flows, and investigate and visualize the results. I additionally demonstrated the package's network simplification tools on the detailed US network. 
 
