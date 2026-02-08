@@ -450,6 +450,9 @@ OD_mapped <- OD |>
   fsubset(is.finite(flow) / flow > 0, from, dms_orig, to, dms_dest, flow)
 head(OD_mapped)
 ```
+```{r gc-faf5-od, include=FALSE}
+rm(OD, nodes); gc()
+```
 
 Let us now proceed to a basic flows assignment using the efficient All-or-Nothing (AoN) method. Before running it, we need to further process the graph in two ways:
 
@@ -479,6 +482,9 @@ graph_dir <- rowbind(
 )
 nrow(graph_dir)
 ```
+```{r gc-faf5-graph, include=FALSE}
+rm(graph); gc()
+```
 
 We are now ready for directed all-or-nothing assignment: 
 
@@ -489,6 +495,10 @@ print(result_AoN)
 ```
 
 The *igraph* library called under the hood still warns about some unreachable nodes, leaving 260 OD-pairs unassigned. A remedy would be to duplicate all directed links with a very high cost in the opposite direction, but with the graph already at 655,609 edges, further inflation is undesirable.
+
+```{r gc-faf5-aon, include=FALSE}
+rm(result_AoN); gc()
+```
 
 As noted above, this network is borderline for direct PSL assignment, but with only ~16k OD-pairs we can manage by restricting detours to 1.3$\times$ the shortest path and the angle for intermediate target nodes to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. They do not fully tame the combinatorial explosion, however---some connections (e.g., San Francisco to New York) still admit over 90,000 alternatives---so we additionally cap the number of paths at a random sample of 1000.^[Exempting the shortest path, which is always included and reported first if `return.extra = "paths"`.] For memory-efficient multithreading, I also limit the pre-computed OD cost and geodesic distance matrices to 5000$^2$.
 
@@ -573,6 +583,9 @@ flows <- graph_dir %>%
   fsubset(flows > 1 & FY < 49.1 & TY < 49.1)
 head(flows, 3)
 ```
+```{r gc-faf5-psl, include=FALSE}
+rm(result_PSL, sf2ny_net, OD_mapped); gc()
+```
 
 For optimal visualization, I employ a dark theme and order the links by flows so that the important ones are plotted last.
 
@@ -606,6 +619,9 @@ graph_dir_c_sc <- simplify_network(graph_dir_c, zones_agg$NN,
                                            directed = TRUE, method = "shortest-paths") |> suppressWarnings() |>
   consolidate_graph(keep = zones_agg$NN, directed = TRUE, FUN = "fsum")
 nrow(graph_dir_c_sc)
+```
+```{r gc-faf5-directed, include=FALSE}
+rm(graph_dir, graph_dir_c, graph_dir_c_sc); gc()
 ```
 
 The method is very effective, cutting the consolidated graph by 87% and then a further 70% through follow-up consolidation. *igraph* still warns about a few unreachable nodes.
