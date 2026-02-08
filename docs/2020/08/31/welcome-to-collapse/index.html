@@ -205,7 +205,7 @@ plot(fwithin(., g, mean = &quot;overall.mean&quot;), col = g,
 plot(fscale(., g, mean = &quot;overall.mean&quot;, sd = &quot;within.sd&quot;), col = g,    
      main = &quot;Harmonized Mean and Variance&quot;)
 }</code></pre>
-<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p><img src="figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 <pre class="r"><code>par(oldpar)</code></pre>
 <!-- The function `get_vars` is 2x faster than `[.data.frame`, attribute-preserving, and also supports column selection using functions or regular expressions. It's replacement version `get_vars<-` is 6x faster than `[<-.data.frame`. Apart from `fbetween` and `fwithin`, the functions `fHDbetween` and `fHDwithin` can average or center data on multiple groups, and they can also project out continuous variables alongside (i.e. they provide fitted values or residuals from regression problems which may or may not involve one or more factors). -->
 <p>For the manipulation of time series and panel series, <em>collapse</em> offers the functions <code>flag</code>, <code>fdiff</code> and <code>fgrowth</code>.</p>
@@ -220,7 +220,7 @@ flag(EuStockMarkets, -1:1) %&gt;% head(3)
 EuStockMarkets[, .c(DAX, SMI)] %&gt;% 
   fdiff(0:1 * frequency(.), 1:2) %&gt;% 
   plot(main = c(&quot;DAX and SMI&quot;)) </code></pre>
-<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <!-- I note that all attributes of the time series matrix `EuStockMarkets` were preserved, the use of `head` just suppresses the print method. -->
 <!-- At this point I will  -->
 <!-- ```{r, eval=FALSE} -->
@@ -327,7 +327,7 @@ qsu(wlddev, pid = PCGDP + GINI ~ iso3c,
 
 # Panel data ACF: Efficient grouped standardizing and computing covariance with panel-lags
 psacf(wlddev, ~ iso3c, ~ year, cols = 9:12)</code></pre>
-<p><img src="/Rblog/post/2020-08-31-welcome-to-collapse_files/figure-html/unnamed-chunk-12-1.png" width="100%" />
+<p><img src="figure-html/unnamed-chunk-12-1.png" width="100%" />
 <!--
 For fast grouped statistics we can keep programming in standard evaluation as before, or we can use piped expressions. 
 
