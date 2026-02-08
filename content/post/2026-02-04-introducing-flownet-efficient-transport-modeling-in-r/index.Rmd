@@ -125,8 +125,10 @@ We are now ready to run the traffic assignment with the [PSL model](https://sebk
 # Median scaling cost column: recommended for PSL
 settfm(graph, duration_ms = fmedian(duration, TRA = "/"))
 # Run Traffic Assignment using the PSL model
+system.time({
 result <- run_assignment(graph, od_matrix_trade, cost.column = "duration_ms",
-                         nthreads = 8, npaths.max = 150, return.extra = "all")
+            nthreads = 8, npaths.max = 150, return.extra = "all", verbose = FALSE)
+})
 print(result)
 ```
 
@@ -136,7 +138,7 @@ It should be noted here, that processing OD-pairs at a rate of around 6000 per s
 str(result, max.level = 1)         # Overview of results objects
 format(object.size(result), "Mb")  # Object size
 sum(vlengths(result$paths))        # Total Number of paths
-Qprobs <- c(0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1)
+Qprobs <- c(0, 0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99, 1)
 quantile(vlengths(result$paths), Qprobs) # Number of paths distribution
 ```
 
@@ -202,9 +204,11 @@ rm(result); gc()
 ```
 ```{r psl-calibrated}
 # Run Traffic Assignment using the calibrated PSL model - omitting paths this time to save memory
+system.time({
 result <- run_assignment(graph, od_matrix_trade, 
-            cost.column = "duration_ms", beta = 4, nthreads = 8,
+            cost.column = "duration_ms", beta = 4, nthreads = 8, verbose = FALSE,
             return.extra = c("edges", "counts", "costs", "weights", "eweights"))
+})
 print(result)
 ```
 
@@ -283,8 +287,10 @@ rm(result); gc()
 # Median scaling cost column: recommended for PSL
 settfm(graph, total_time_ms = fmedian(total_time, TRA = "/"))
 # Run Traffic Assignment using the PSL model
+system.time({
 result_tc <- run_assignment(graph, od_matrix_trade, cost.column = "total_time_ms", 
-                            beta = 4, nthreads = 8)
+                            beta = 4, nthreads = 8, verbose = FALSE)
+})
 print(result_tc)
 ```
 
@@ -311,7 +317,7 @@ On that note, what if the existing network were fully upgraded? If all roads had
 quantile(africa_net$duration_100kmh / africa_net$duration, Qprobs)
 settfm(graph, duration_100kmh_ms = fmedian(duration_100kmh, TRA = "/"))
 result_ug <- run_assignment(graph, od_matrix_trade, cost.column = "duration_100kmh_ms", 
-                            beta = 4, nthreads = 8)
+                            beta = 4, nthreads = 8, verbose = FALSE)
 print(result_ug)
 ```
 ```{r upgraded-flows-map}
@@ -344,7 +350,7 @@ graph_total <- st_drop_geometry(africa_network)
 settfm(graph_total, duration_100kmh_ms = fmedian(duration_100kmh, TRA = "/"))
 result_add <- run_assignment(graph_total, od_matrix_trade, 
                              cost.column = "duration_100kmh_ms", 
-                             beta = 4, nthreads = 8)
+                             beta = 4, nthreads = 8, verbose = FALSE)
 print(result_add)
 ```
 ```{r total-flows-map}
@@ -498,8 +504,10 @@ rm(graph); gc()
 We are now ready for directed all-or-nothing assignment: 
 
 ```{r faf5-aon}
+system.time({
 result_AoN <- run_assignment(graph_dir, OD_mapped, directed = TRUE, 
-                             method = "AoN", return.extra = "costs") |> suppressWarnings()
+     method = "AoN", return.extra = "costs", verbose = FALSE) |> suppressWarnings()
+})
 print(result_AoN)
 ```
 
@@ -515,13 +523,15 @@ We also need to calibrate the PSL model. The average path cost here is 1207 minu
 
 ```{r faf5-psl}
 graph_dir$cost_scaled <- graph_dir$cost * 53.5 / 1207
+system.time({
 result_PSL <- run_assignment(
     graph_dir, OD_mapped, directed = TRUE, 
     cost.column = "cost_scaled", method = "PSL", beta = 4,
     detour.max = 1.2, angle.max = 30, npaths.max = 1000, 
-    dmat.max.size = 5000^2, nthreads = 8,
+    dmat.max.size = 5000^2, nthreads = 8, verbose = FALSE,
     return.extra = c("edges", "counts", "weights", "eweights")
 ) |> suppressWarnings()
+})
 print(result_PSL)
 ```
 
