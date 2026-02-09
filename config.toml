@@ -22,6 +22,9 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "^README", "\\.R$", "\\.Rp
 [[menu.main]]
     name = "Mastodon"
     url = "https://fosstodon.org/@sebkrantz"
+[[menu.main]]
+    name = "BlueSky"
+    url = "https://bsky.app/profile/sebkrantz.bsky.social"
 
 [params]
     description = "An blog dedicated to introducing high-performance statistical software and applications."
