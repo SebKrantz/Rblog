@@ -59,7 +59,7 @@ tm_shape(africa_cities_ports) + tm_dots(size = 0.1) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-Evidently, OSRM link speeds differs widely, with speeds along many central African roads around 40km/h, and higher speeds closer to urban centers. The code below further describes the network after removing the proposed links. As detailed in Section 3 of the paper, I extracted border and documentary times and costs of exporting and importing from the last World Bank Doing Business Survey (data collected in 2019), and converted them to travel-time-equivalent frictions (in minutes) along border-crossing links. There is thus a frictionless `duration` (pure travel time) variable and `border_time` (which includes documentary time---median 76h), which added together give the `total_time` needed to trade across a link. 
+Evidently, OSRM link speeds differ widely, with speeds along many central African roads around 40km/h, and higher speeds closer to urban centers. The code below further describes the network after removing the proposed links. As detailed in Section 3 of the paper, I extracted border and documentary times and costs of exporting and importing from the last World Bank Doing Business Survey (data collected in 2019), and converted them to travel-time-equivalent frictions (in minutes) along border-crossing links. There is thus a frictionless `duration` (pure travel time) variable and `border_time` (which includes documentary time---median 76h), which added together give the `total_time` needed to trade across a link. 
 
 ```{r africa-net-summary}
 # Removing potential new links
@@ -131,7 +131,7 @@ result <- run_assignment(graph, od_matrix_trade, cost.column = "duration_ms",
 print(result)
 ```
 
-Processing OD-pairs at a rate of around 6300 per second is quite fast, given that on average 80 alternative paths are generated per OD-pair---which means we are generating `6300 * 80 = 504,000` paths per second. Overall, we generated 15 million paths stored in `result$paths`, yielding an object more than 5Gb in size. 
+Processing OD-pairs at a rate of around 6300 per second is quite fast, given that on average 80 alternative paths are generated per OD-pair---which means we are generating `6300 * 80 = 504,000` paths per second. Overall, we generated 15 million paths stored in `result$paths`, yielding an object more than 5 GB in size. 
 
 ```{r result-overview}
 str(result, max.level = 1)         # Overview of results objects
@@ -143,7 +143,7 @@ quantile(vlengths(result$paths), Qprobs) # Number of paths distribution
 
 The default, `return.extra = NULL`, would have only returned the final flows vector equal in length to the number of edges (2344). In general, `return.extra = "paths"`, responsible for the biggest memory bloat (the object without `"paths"` is only 1.5 GB), is hardly ever needed.
 
-The print method above shows, among other things, the average degree of overlap between paths in terms of visits per edge, computed as `mean(fmean(result$edge_counts)) = 7.87`, the average adjusted path probability as `mean(fmean(result$path_weights)) = 0.024`, as well as the paths probabilities summed across paths using each edge `mean(fmean(result$edge_weights)) = 0.11`. We can use this information to visualize the paths and their probabilities for a specific OD-pair. Let's take an iconic Cape Town to Cairo routing example: 
+The print method above shows, among other things, the average degree of overlap between paths in terms of visits per edge, computed as `mean(fmean(result$edge_counts)) = 7.87`, the average adjusted path probability as `mean(fmean(result$path_weights)) = 0.024`, as well as the path probabilities summed across paths using each edge `mean(fmean(result$edge_weights)) = 0.11`. We can use this information to visualize the paths and their probabilities for a specific OD-pair. Let's take an iconic Cape Town to Cairo routing example: 
 
 ```{r c2c-extract}
 # See which OD-pair is Cape Town to Cairo
@@ -169,7 +169,7 @@ Let's start by running a number of tests to see that the software computes the p
 all.equal(c2c_pcosts, fsum(lapply(c2c_paths, \(x) cost[x]))) # Test path cost computation
 ```
 
-The path probabilities are computed using the sum of the log-path-size factors (which account for path overlap) and the negative path cost. The code below tests that these computations are correct, and also shows how to compute the PSF's from the paths, costs, and edge counts.
+The path probabilities are computed using the sum of the log-path-size factors (which account for path overlap) and the negative path cost. The code below tests that these computations are correct, and also shows how to compute the PSFs from the paths, costs, and edge counts.
 
 ```{r psl-overlap-quantiles}
 # Compute path-size factors
@@ -181,7 +181,7 @@ quantile(log(PSF), Qprobs)
 quantile(log(PSF) / -c2c_pcosts, Qprobs) # Adjustment amount with default beta = 1
 ```
 
-The quantiles show that the log(PSF) term ranges between -3.7 and -1.1, whereas the cost is between 80.7 and 121, which yields a median ratio of 2.4%. This is likely too weak of a corrective effect, practitioners usually aim for the PSF penalty to represent roughly 10% to 20% of the utility for heavily overlapped paths. This should approximately be the case when setting `beta = 4`:
+The quantiles show that the log(PSF) term ranges between -3.7 and -1.1, whereas the cost is between 80.7 and 121, which yields a median ratio of 2.4%. This is likely too weak a corrective effect; practitioners usually aim for the PSF penalty to represent roughly 10% to 20% of the utility for heavily overlapped paths. This should approximately be the case when setting `beta = 4`:
 
 ```{r beta-calibration}
 quantile(4*log(PSF) / -c2c_pcosts, Qprobs)
@@ -516,7 +516,7 @@ The *igraph* library called under the hood still warns about some unreachable no
 rm(result_AoN); gc()
 ```
 
-As noted above, this network is a borderline case borderline for PSL assignment in terms of computational efficiency, but, with only ~16k OD-pairs we can manage by restricting detours to 1.2$\times$ the shortest path and the angle for intermediate target nodes to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. They do not fully tame the combinatorial explosion, however---some connections (e.g., San Francisco to New York) still admit over 90,000 alternatives---so we additionally cap the number of paths at a random sample of 1000.^[Exempting the shortest path, which is always included and reported first if `return.extra = "paths"`.] For memory-efficient multithreading, I also limit the pre-computed OD cost and geodesic distance matrices to 5000$^2$.
+As noted above, this network is a borderline case for PSL assignment in terms of computational efficiency, but, with only ~16k OD-pairs we can manage by restricting detours to 1.2$\times$ the shortest path and the angle for intermediate target nodes to 30 degrees.^[Measured against a straight line from origin to destination node.] Since the US network is very [route efficient](https://christopherwolfram.com/projects/efficiency-of-road-networks/), these restrictions are reasonable. They do not fully tame the combinatorial explosion, however---some connections (e.g., San Francisco to New York) still admit over 90,000 alternatives---so we additionally cap the number of paths at a random sample of 1000.^[Exempting the shortest path, which is always included and reported first if `return.extra = "paths"`.] For memory-efficient multithreading, I also limit the pre-computed OD cost and geodesic distance matrices to 5000$^2$.
 
 We also need to calibrate the PSL model. The average path cost here is 1207 minutes---exponentiating such large numbers in the MNL concentrates virtually all probability on the shortest path, reducing the PSL to AoN. Having calibrated the Africa model with `beta = 4` at an average normalized cost of 53.5, I apply a heuristic scaling of `53.5 / 1207 = 0.0443` to the FAF5 link costs and reuse the same `beta`.
 
@@ -588,7 +588,7 @@ tm_layout(frame = FALSE, outer.margins = 0)
 
 The southern route is clearly not deemed viable by the MNL function. Most traffic follows the northern corridor, with meaningful heterogeneity only in the Midwest where it splits into two near-equally probable branches that later merge. A minor southern variant carries about 5% of traffic.
 
-As with the Africa network, the PSL model imposes economically sound structure on a large set of heterogeneous routes. Let us now attempt to visualize the full network flows. To reduce spatial complexity, we will aggregate the directed graph back to an undirected one and filter out links with negligible flows, as well as links going to Alaska (upwards of 49.1 degrees latitute).
+As with the Africa network, the PSL model imposes economically sound structure on a large set of heterogeneous routes. Let us now attempt to visualize the full network flows. To reduce spatial complexity, we will aggregate the directed graph back to an undirected one and filter out links with negligible flows, as well as links going to Alaska (upwards of 49.1 degrees latitude).
 
 ```{r faf5-undirected-flows}
 flows <- graph_dir %>%
@@ -605,7 +605,7 @@ head(flows, 3)
 rm(result_PSL, sf2ny_net, OD_mapped); gc()
 ```
 
-For the visualization, I use a dark map and order the links by flows so the important ones are plotted last.^[`linestrings_from_graph()` is a convenience function to turn the `FX`, `FY`, `TX`, and `TY` coordinates into straight linetsrings again.] 
+For the visualization, I use a dark map and order the links by flows so the important ones are plotted last.^[`linestrings_from_graph()` is a convenience function to turn the `FX`, `FY`, `TX`, and `TY` coordinates into straight linestrings again.] 
 
 ```{r high-res-plot, fig.width = 10, fig.asp = 0.5325, dpi = 200}
 tm_basemap("CartoDB.DarkMatter", zoom = 4) +
@@ -754,7 +754,7 @@ Ramming, M. S. (2002). *Network knowledge and route choice* (Doctoral dissertati
 
 Prato, C. G. (2009). Route choice modeling: Past, present and future research directions. *Journal of Choice Modelling, 2*(1), 65–100. https://doi.org/10.1016/S1755-5345(13)70005-8
 
-AequilibiaE Python Documentation: https://www.aequilibrae.com/develop/python/route_choice/path_size_logit.html
+AequilibraE Python Documentation: https://www.aequilibrae.com/develop/python/route_choice/path_size_logit.html
 
 Hartigan, J. A. (1975). *Clustering algorithms*. John Wiley & Sons, Inc.
 
