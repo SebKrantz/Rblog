@@ -26,6 +26,12 @@ blogdown::new_post("Releasing collapse 2.0: Blazing Fast Joins, Reshaping, and U
 
 blogdown::new_post("Introducing OptimalTransportNetworks.jl: Optimal Transport Networks in Spatial Equilibrium", ext = ".Rmd")
 
+blogdown::new_post("Introducing OptimalTransportNetworks.jl: Optimal Transport Networks in Spatial Equilibrium", ext = ".Rmd")
+
+blogdown::new_post("Releasing dfms 1.0: Fast, and Feature-Rich Estimation of Dynamic Factor Models in R", ext = ".Rmd")
+
+blogdown::new_post("Introducing flownet: Efficient Transport Modeling in R", ext = ".Rmd")
+
 
 # <description>{{ .Content | html }}</description>
 # <description>{{ "<![CDATA[" | safeHTML }} {{ .Content }}]]></description>
