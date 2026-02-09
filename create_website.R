@@ -9,7 +9,7 @@ blogdown::stop_server()
 # to appear in the RSS feed !!!!!!
 
 # Also: Globally replace 
-# <a href="/Rblog/" class="nav-logo"> -> <a href="/Rblog/" class="nav-logo">
+# <a href="/" class="nav-logo"> -> <a href="/Rblog/" class="nav-logo">
   
 
 
