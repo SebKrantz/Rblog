@@ -1,78 +1,12 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.149.0">
+---
+title: 'Releasing dfms 1.0: Fast and Feature-Rich Estimation of Dynamic Factor Models in R'
+author: R Build
+date: '2026-01-29'
+slug: releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r
+categories: ["R"]
+tags: ["R", "C++", "econometrics", "time series", "dynamic factor models"]
+---
 
-
-<title>Releasing dfms 1.0: Fast and Feature-Rich Estimation of Dynamic Factor Models in R - R, Econometrics, High Performance</title>
-<meta property="og:title" content="Releasing dfms 1.0: Fast and Feature-Rich Estimation of Dynamic Factor Models in R - R, Econometrics, High Performance">
-
-
-  <link href='https://sebkrantz.github.io/Rblog/favicon.ico' rel='icon' type='image/x-icon'/>
-
-
-
-  
-
-
-
-
-
-
-
-
-<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
-
-
-
-<link rel="stylesheet" href="/Rblog/css/fonts.css" media="all">
-<link rel="stylesheet" href="/Rblog/css/main.css" media="all">
-
-
-
-  </head>
-  <body>
-    <div class="wrapper">
-      <header class="header">
-        <nav class="nav">
-  <a href="https://sebkrantz.github.io/Rblog/" class="nav-logo">
-    <img src="/Rblog/images/logo.png"
-         width="50"
-         height="50"
-         alt="Logo">
-  </a>
-
-  <ul class="nav-links">
-    
-    <li><a href="/Rblog/about/">About</a></li>
-    
-    <li><a href="https://github.com/SebKrantz">GitHub</a></li>
-    
-    <li><a href="https://fosstodon.org/@sebkrantz">Mastodon</a></li>
-    
-  </ul>
-</nav>
-
-      </header>
-
-
-<main class="content" role="main">
-
-  <article class="article">
-    
-    <span class="article-duration">23 min read</span>
-    
-
-    <h1 class="article-title">Releasing dfms 1.0: Fast and Feature-Rich Estimation of Dynamic Factor Models in R</h1>
-
-    
-    <span class="article-date">2026-01-29</span>
-    
-
-    <div class="article-content">
-      
 
 
 <p><img src='https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/dfms_logo.png' width="350px" align="right" /></p>
@@ -135,7 +69,7 @@ colnames(data_q)
 data &lt;- merge(data_m, data_q)[&quot;1990-02/&quot;]
 # .. it also has a nice plot method
 plot(scale(data), lwd = 1, ylim = c(-5, 5))</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-2-1.png" alt="" width="100%" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" alt="" width="100%" /></p>
 <p>The usual <em>dfms</em> workflow is starts with information criteria to determine the number of factors and the factor-VAR order</p>
 <pre class="r"><code>(ic &lt;- ICr(data))
 ## Missing values detected: imputing data with tsnarmimp() with default settings
@@ -144,7 +78,7 @@ plot(scale(data), lwd = 1, ylim = c(-5, 5))</code></pre>
 ## IC1 IC2 IC3 
 ##   1   1  20
 screeplot(ic)</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-3-1.png" alt="" width="100%" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" alt="" width="100%" /></p>
 <pre class="r"><code>vars::VARselect(ic$F_pca[, 1:4])
 ## $selection
 ## AIC(n)  HQ(n)  SC(n) FPE(n) 
@@ -212,9 +146,9 @@ summary(dfm)
 ##    N    Mean  Median      SD      Min     Max
 ##   57  0.5093  0.5816  0.3811  -0.0188  0.9995
 plot(dfm, xlim = c(200, 415))</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-4-1.png" alt="" width="100%" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" alt="" width="100%" /></p>
 <pre class="r"><code>plot(dfm, type = &quot;individual&quot;, method = &quot;all&quot;)</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-4-2.png" alt="" width="100%" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-2.png" alt="" width="100%" /></p>
 <p>The factor model is, ostensibly, heavily impacted by the COVID shock, although the extent to which this shock introduced error in the model parameters is not clear. For this demonstration at least, I will not modify the data to deal with the shock. Ostensibly, a significant amount of series still display autoregressive dynamics at <code>mean(abs(rho)) = 0.3</code>, with autoregressive parameters <span class="math inline">\(\rho\)</span> ranging from -0.6 to 0.41. As further described in the <a href="https://raw.githubusercontent.com/ropensci/dfms/main/vignettes/dynamic_factor_models_paper.pdf">theoretical vignette</a>, the model with autoregressive errors not only estimates these <span class="math inline">\(\rho\)</span> parameters for each series—saved in <code>dfm$rho</code>—but also the error series <span class="math inline">\(e_t\)</span> itself—saved in <code>dfm$e</code>—which are modeled as part of the state vector along with the factors. This implies that for these models one can make predictions using either the full state including the modeled residual values or using just the factors. The difference, in this case, is vast, with modeled residuals giving a much better fit to the data.</p>
 <pre class="r"><code># Computing residual absolute ratio in percentage terms
 rarp &lt;- fmedian(abs(resid(dfm))) / fmedian(abs(resid(dfm, use.full.state = FALSE))) * 100
@@ -231,7 +165,7 @@ descr(rarp)
 ## ------------------------------------------------------------------------------------------------------------------------------------------------------</code></pre>
 <p>While using the full state (the new default) changes the interpretation of in-sample residuals and fitted values, it generally slightly improves the accuracy of dynamic predictions obtainable with <code>predict()</code>.</p>
 <pre class="r"><code>plot(predict(dfm), xlim = c(400, 428), ylim = c(-2, 2))</code></pre>
-<p><img src="https://sebkrantz.github.io/Rblog/2026/01/29/releasing-dfms-1-0-fast-and-feature-rich-estimation-of-dynamic-factor-models-in-r/index_files/figure-html/unnamed-chunk-6-1.png" alt="" width="100%" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" alt="" width="100%" /></p>
 <p>Now, the main addition in <em>dfms</em> 1.0, as mentioned, is the news decomposition via <code>news()</code>. For this we first need to load the latest vintage and set it to the same range.</p>
 <pre class="r"><code>download.file(&quot;https://github.com/coderaanalytics-models/SA-Nowcast/raw/refs/heads/main/vintages/econdata_nowcast_data_03_12_2024.xlsx&quot;,
               destfile = &quot;econdata_nowcast_data_03_12_2024.xlsx&quot;, mode = &quot;wb&quot;)
@@ -356,72 +290,3 @@ news_rgdp |&gt;
 <li id="fn3"><p>By default <code>DFM()</code> drops rows missing more than 80% of series at the beginning or end of the sample.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
-
-    </div>
-  </article>
-
-  
-
-<section id="comments">
-  <div id="disqus_thread"></div>
-  <script>
-  var disqus_config = function () {
-  
-  };
-  (function() {
-    var inIFrame = function() {
-      var iframe = true;
-      try { iframe = window.self !== window.top; } catch (e) {}
-      return iframe;
-    };
-    if (inIFrame()) return;
-    var d = document, s = d.createElement('script');
-    s.src = '//r-econometrics-high-performance.disqus.com/embed.js'; s.async = true;
-    s.setAttribute('data-timestamp', +new Date());
-    (d.head || d.body).appendChild(s);
-  })();
-  </script>
-  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</section>
-
-
-
-</main>
-
-      <footer class="footer">
-        <ul class="footer-links">
-          <li>
-            
-            <a href="/Rblog/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
-            
-          </li>
-          <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/Rblog/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
-          </li>
-        </ul>
-      </footer>
-
-    </div>
-    
-
-
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-
-
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
-
-
-
-    
-<script src="/js/math-code.js"></script>
-<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-
-
-    
-  </body>
-</html>
-

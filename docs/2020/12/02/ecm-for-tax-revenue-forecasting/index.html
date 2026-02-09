@@ -37,7 +37,7 @@
     <div class="wrapper">
       <header class="header">
         <nav class="nav">
-  <a href="/Rblog/" class="nav-logo">
+  <a href="https://sebkrantz.github.io/Rblog/" class="nav-logo">
     <img src="/Rblog/images/logo.png"
          width="50"
          height="50"
@@ -107,12 +107,12 @@ plot(na_omit(X)[-1L, ] %&gt;% setColnames(.c(Revenue, GDP)),
      multi.panel = TRUE, yaxis.same = FALSE, 
      main = &quot;Domestic Revenue and GDP (in Logs)&quot;, 
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="figure-html/unnamed-chunk-1-1.png" width="100%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/figure-html/unnamed-chunk-1-1.png" width="100%" /></p>
 <pre class="r"><code># Plotting the log-differenced data
 plot(na_omit(D(X)), legend.loc = &quot;topleft&quot;, 
      main = &quot;Revenue and GDP in Quarterly Log-Differences&quot;,
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="figure-html/unnamed-chunk-1-2.png" width="100%" />
+<p><img src="https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/figure-html/unnamed-chunk-1-2.png" width="100%" />
 The data was not seasonally adjusted as revenue and GDP exhibit similar seasonal patterns. Summarizing the log-differenced using a function designed for panel data allows us to assess the extent of seasonality relative to overall variation.</p>
 <pre class="r"><code># Summarize between and within quarters
 tfmv(data, 3:4, D) %&gt;% qsu(pid = lrev + lgdp ~ Quarter)
@@ -321,7 +321,7 @@ GDPdum
 res &lt;- resid(cieq) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 plot(res[-1L, ], main = &quot;Residuals from Cointegration Equation&quot;, 
      major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
 <pre class="r"><code># Testing residuals: Stationary
 adf.test(res)
 ## 
@@ -838,7 +838,7 @@ ECM2_fit &lt;- fitted(ecm2) %&gt;% as.xts(dateFormat = &quot;Date&quot;)
 plot(D(X[, &quot;lrev&quot;]) %&gt;% merge(ECM1_fit, ECM2_fit) %&gt;% na_omit, 
      main = &quot;Dlog Revenue and ECM Fit&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 <p>Both the fit statistics and fitted values suggest that ECM2 is a feasible forecasting specification that avoids the need to first forecast quarterly GDP.</p>
 <p>The true forecasting performance of the model can only be estimated through out of sample forecasts. Below I compute 1 quarter ahead forecasts for quarters 2018Q1 through 2019Q4 using an expanding window where both the cointegration equation and the ECM are re-estimated for each new period.</p>
 <pre class="r"><code># Function to forecast with expanding window from start year (using ECM2 specification)
@@ -866,7 +866,7 @@ ECM_oos_fc &lt;- forecast_oos(na_omit(X))
 plot(ECM_oos_fc[&quot;2009/&quot;, ], 
      main = &quot;Out of Sample Expanding Window Forecast from ECM&quot;, 
      legend.loc = &quot;topleft&quot;, major.ticks = &quot;years&quot;, grid.ticks.on = &quot;years&quot;)</code></pre>
-<p><img src="figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="https://sebkrantz.github.io/Rblog/2020/12/02/ecm-for-tax-revenue-forecasting/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <!-- Old forecasting: Problematic !!
 # library(dynlm)
 # forecast_oos <- function(x, start = 2018) {
