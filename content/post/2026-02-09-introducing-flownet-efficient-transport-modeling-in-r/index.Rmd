@@ -1,7 +1,7 @@
 ---
 title: 'Introducing flownet: Efficient Transport Modeling in R'
 author: R Build
-date: '2026-02-04'
+date: '2026-02-09'
 slug: introducing-flownet-efficient-transport-modeling-in-r
 categories: ["R"]
 tags: ["R", "C++", "transport-modeling"]
@@ -28,7 +28,7 @@ pre.scroll-output {
 
 I am excited to introduce a new R package called [*flownet*](https://sebkrantz.github.io/flownet/) providing high-performance tools for transport modeling---network processing, route enumeration, and traffic assignment in R. As of now, the package implements the [Path-Sized Logit (PSL) model](https://sebkrantz.github.io/flownet/articles/introduction.html#path-sized-logit-model) (Ben-Akiva and Bierlaire, 1999)---a powerful and well-established method for stochastic traffic assignment accounting for route overlap---alongside a novel route enumeration algorithm and a highly efficient All-or-Nothing assignment solution. Furthermore, it provides powerful utility functions for (multimodal) network processing, including recursive graph consolidation/contraction, and/or simplification. These features, combined with an accessible representation of graphs and (sparse) origin-destination (OD) matrices using data frames and a simple API, make it a compelling toolbox for both transport analytics and graph manipulation. 
 
-As has almost come to be expected of my packages, *flownet* strives to be computationally efficient, building on a whole array of [*fastverse*](https://fastverse.org/fastverse/) libraries including [*collapse*](https://fastverse.org/collapse/) and [*kit*](https://fastverse.org/kit/) for fast data manipulation, [*igraph*](https://igraph.org/) for efficient routing, [*geodist*](https://hypertidy.github.io/geodist/) and [*leaderCluster*](https://CRAN.R-project.org/package=leaderCluster) for spatial distances and clustering, and [*mirai*](https://mirai.r-lib.org/) for efficient R-level parallelism. These dependencies are supplemented by custom C code, e.g., the PSL is implemented fully in C. There is still significant room for improvements, particularly if *igraph* can be replaced with internal C/C++ routing code, which could port the entire route enumeration algorithm to C/C++. Such innovation may be the subject of future updates, alongside additional traffic assignment methods. 
+As has come to be expected of my packages, *flownet* strives to be computationally efficient, building on a whole array of [*fastverse*](https://fastverse.org/fastverse/) libraries including [*collapse*](https://fastverse.org/collapse/) and [*kit*](https://fastverse.org/kit/) for fast data manipulation, [*igraph*](https://igraph.org/) for efficient routing, [*geodist*](https://hypertidy.github.io/geodist/) and [*leaderCluster*](https://CRAN.R-project.org/package=leaderCluster) for spatial distances and clustering, and [*mirai*](https://mirai.r-lib.org/) for efficient R-level parallelism. These dependencies are supplemented by custom C code, e.g., the PSL is implemented fully in C. There is still significant room for improvements, particularly if *igraph* can be replaced with internal C/C++ routing code, which could port the entire route enumeration algorithm to C/C++. Such innovation may be the subject of future updates, alongside additional traffic assignment methods. 
 
 The package supports directed and undirected graphs and multimodal networks.^[Multimodality is principally supported via `by` arguments to network processing functions. Passing link-mode identifiers to this argument prevents network simplification/contraction across different modes.] In the following I demonstrate *flownet* on two networks:
 
@@ -243,7 +243,7 @@ As this plot makes evident, by virtue of the various edge-level statistics `run_
 Now, let's also plot the probabilities. The `edge_weights` returned by the model represent the sum of path probabilities over all paths using each edge. Thus, in the context of probabilistic assignment, they can be interpreted as the proportion of C2C trade that traverses the edge. For additional clarity, let's plot only those edges where the probability is above 0.0001.
 
 ```{r c2c-edge-probs-map}
-africa_net$c2c_eweights <- replace_outliers(c2c_eweights, 0.0001, NA, "min")
+africa_net$c2c_eweights[c2c_edges] <- replace_outliers(c2c_eweights, 0.0001, NA, "min")
 tm_basemap("CartoDB.Positron", zoom = 4) +
 tm_shape(africa_net) +
   tm_lines(col = "c2c_eweights",
@@ -520,7 +520,7 @@ As noted above, this network is a borderline case for PSL assignment in terms of
 
 We also need to calibrate the PSL model. The average path cost here is 1207 minutes---exponentiating such large numbers in the MNL concentrates virtually all probability on the shortest path, reducing the PSL to AoN. Having calibrated the Africa model with `beta = 4` at an average normalized cost of 53.5, I apply a heuristic scaling of `53.5 / 1207 = 0.0443` to the FAF5 link costs and reuse the same `beta`.
 
-```{r faf5-psl}
+```{r faf5-psl, warning = FALSE}
 graph_dir$cost_scaled <- graph_dir$cost * 53.5 / 1207
 system.time({
 result_PSL <- run_assignment(
@@ -529,7 +529,7 @@ result_PSL <- run_assignment(
     detour.max = 1.2, angle.max = 30, npaths.max = 1000, 
     dmat.max.size = 5000^2, nthreads = 8, verbose = FALSE,
     return.extra = c("edges", "counts", "weights", "eweights")
-) |> suppressWarnings()
+)
 })
 print(result_PSL)
 ```
@@ -731,7 +731,7 @@ tm_shape(roworder(linestrings_from_graph(flows_c_cc), flows)) +
 tm_layout(frame = FALSE, outer.margins = 0)
 ```
 
-Also pretty neat---I think. Finally, I note that while this network is unimodal, both `consolidate_graph()` and `simplify_network()` support multimodal networks---passing mode identifiers to their '`by`' arguments prevents edges of different modes from being conflated.
+Also pretty neat---I think---and very similar. Finally, I note that while this network is unimodal, both `consolidate_graph()` and `simplify_network()` support multimodal networks---passing mode identifiers to their '`by`' arguments prevents edges of different modes from being conflated.
 
 ## Conclusion
 
